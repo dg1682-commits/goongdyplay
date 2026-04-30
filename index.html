@@ -2,442 +2,327 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLAY 플레이어</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>궁디 플레이어 Ultimate v46</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <style>
-        /* 기존 완벽한 디자인 그대로 유지 */
-        body { margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; color: #333; font-weight: 300; }
-        .app-container { background: #ffffff; border-radius: 30px; width: 90%; max-width: 340px; min-height: 550px; max-height: 90vh; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04); border: 1px solid #f1f1f1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .view { display: none; flex-direction: column; flex: 1; padding: 35px 25px 80px 25px; overflow-y: auto; box-sizing: border-box; height: 100%; }
+        :root { --primary: #ff6b81; --bg: #ffffff; --text: #333333; --gray: #999; --border: #f5f5f5; --playing-bg: #fff0f2; --selected-bg: #fdf2f4; --scrollbar-color: rgba(153, 153, 153, 0); }
+        .dark-mode { --bg: #121212; --text: #eeeeee; --border: #222222; --playing-bg: #1e1a1b; --selected-bg: #221a1b; }
+        body { margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; overscroll-behavior: none; color: var(--text); }
+        .app-container { background: var(--bg); width: 100%; height: 100%; max-width: 450px; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: background 0.3s; }
+        .view { display: none; flex-direction: column; flex: 1; padding: 0 20px 90px 20px; overflow-y: auto; box-sizing: border-box; height: 100%; overscroll-behavior-y: contain; position: relative; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--scrollbar-color) transparent; }
         .view.active { display: flex; }
-        .app-title { font-size: 18px; color: #ff6b81; margin-bottom: 30px; font-weight: 500; letter-spacing: 1px; text-align: center; }
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-row h2 { font-size: 18px; font-weight: 500; margin: 0; display: flex; align-items: center; }
-        .action-btn { background: none; border: 1px solid #ff6b81; color: #ff6b81; padding: 6px 14px; border-radius: 15px; font-size: 13px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; }
-        .action-btn:hover { background: #ff6b81; color: #fff; }
-        .back-btn { cursor: pointer; color: #666; margin-right: 10px; font-size: 24px; transition: 0.2s; }
-        .back-btn:hover { color: #ff6b81; }
+        .view::-webkit-scrollbar { width: 4px; }
+        .view::-webkit-scrollbar-thumb { background-color: var(--scrollbar-color); border-radius: 10px; transition: background-color 0.3s; }
+        .scrolling { --scrollbar-color: rgba(153, 153, 153, 0.5) !important; }
+        .sticky-header { position: sticky; top: 0; background: var(--bg); z-index: 100; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 10px; transition: background 0.3s; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; min-height: 45px; }
+        .header-row h2 { font-size: 18px; font-weight: 500; margin: 0; color: var(--text); }
+        .header-actions { display: flex; gap: 20px; align-items: center; }
+        .player-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; min-height: 45px; }
+        .app-title { font-size: 18px; color: var(--primary); font-weight: 500; letter-spacing: 2px; text-align: center; flex: 1; margin: 0; }
+        .settings-btn { cursor: pointer; color: var(--gray); font-size: 26px; }
+        .player-content { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding-bottom: 20px; }
+        .album-wrapper { margin: 40px auto 10px auto; width: 280px; height: 280px; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        .rgb-glow { position: absolute; width: 285px; height: 285px; border-radius: 50%; background: conic-gradient(red, orange, yellow, green, cyan, blue, magenta, red); filter: blur(25px); opacity: 0.7; animation: rotateGlow 5s linear infinite; will-change: transform; transition: transform 0.1s ease-out; z-index: 1; display: none; }
+        .rgb-on .rgb-glow { display: block; }
+        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .album-art { width: 240px; height: 240px; z-index: 2; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); background-size: cover; background-position: center; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: transform 0.1s ease-out; will-change: transform; }
         
-        /* 플레이어 뷰 */
-        .album-art { width: 180px; height: 180px; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); border-radius: 50%; margin: 0 auto 25px auto; border: 1px solid #eee; transition: transform 0.3s; }
-        .album-art.playing { animation: spin 10s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .song-info { text-align: center; }
-        .song-info h2 { margin: 0 0 8px 0; font-size: 18px; font-weight: 400; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-info p { margin: 0 0 25px 0; font-size: 13px; color: #999; }
-        .progress-container { background: #f0f0f0; border-radius: 10px; height: 5px; width: 100%; margin-bottom: 30px; cursor: pointer; position: relative; }
-        .progress-bar { background: #ff6b81; height: 100%; border-radius: 10px; width: 0%; pointer-events: none; }
-        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 10px; }
-        .controls button { background: none; border: none; cursor: pointer; color: #bbb; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .controls button.active-state { color: #ff6b81; } /* 활성화 상태 색상 */
-        .controls button:hover { color: #ff6b81; }
-        .material-symbols-outlined { font-size: 28px; }
-        .play-btn .material-symbols-outlined { font-size: 46px; color: #ff6b81; }
+        /* [V46 수정] 노래 정보 가운데 정렬 및 글자색 보정 */
+        .song-info { text-align: center; margin-bottom: 25px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .song-info h2 { margin: 0 0 8px 0; font-size: 20px; font-weight: 400; color: var(--text); width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-info p { margin: 0; font-size: 14px; color: var(--gray); width: 100%; text-align: center; }
 
-        /* 리스트 스타일 */
+        .progress-section { width: 100%; margin-bottom: 35px; padding: 0 10px; box-sizing: border-box; }
+        .time-display-row { display: flex; justify-content: space-between; width: 100%; padding: 0 2px; margin-bottom: -5px; }
+        .time-text { font-size: 11px; color: var(--gray); font-weight: 400; }
+        .progress-container { width: 100%; height: 30px; display: flex; align-items: center; cursor: pointer; position: relative; touch-action: none; }
+        .progress-track { width: 100%; height: 4px; background: #eee; border-radius: 2px; position: relative; }
+        .progress-fill { width: 0%; height: 100%; background: var(--primary); border-radius: 2px; }
+        .progress-thumb { width: 16px; height: 16px; background: var(--primary); border-radius: 50%; position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); box-shadow: 0 2px 6px rgba(255, 107, 129, 0.4); z-index: 10; }
         .list-container { list-style: none; padding: 0; margin: 0; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.2s; }
-        .list-item.playing-now { background: #fff0f2; }
-        .list-item:hover { background: #fafafa; }
-        .list-item .text { font-size: 14px; color: #444; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
-        .list-item .icon { color: #ccc; font-size: 20px; }
-        .delete-btn { color: #eee; cursor: pointer; font-size: 18px; transition: 0.2s; padding-left: 10px; }
-        .delete-btn:hover { color: #ff6b81; }
+        .list-item { display: flex; justify-content: space-between; align-items: stretch; border-bottom: 1px solid var(--border); min-height: 58px; background: transparent; }
+        .list-item.playing-now { background: var(--playing-bg); }
+        .list-item.selected { background: var(--selected-bg); }
+        .list-item .text-area { flex: 1; display: flex; align-items: center; padding: 0 15px; cursor: pointer; font-size: 15px; color: var(--text); overflow: hidden; }
+        .list-item .icon-area { display: flex; align-items: center; justify-content: center; width: 48px; color: #ccc; cursor: pointer; }
+        .check-area { display: none; align-items: center; justify-content: center; width: 45px; }
+        .check-circle { width: 18px; height: 18px; border: 2px solid #ddd; border-radius: 50%; position: relative; }
+        .selected .check-circle { border-color: var(--primary); background-color: var(--primary); }
+        .selected .check-circle::after { content: '✔'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 11px; }
+        .drag-handle { display: none; align-items: center; justify-content: center; width: 45px; color: #ddd; cursor: grab; }
+        .edit-mode .check-area, .edit-mode .drag-handle { display: flex; }
+        .edit-mode .icon-area:not(.drag-handle, .check-area) { display: none; }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg); padding: 20px; border-radius: 20px; width: 70%; max-width: 250px; text-align: center; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .menu-item { padding: 14px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 15px; color: var(--text); }
+        .menu-item:last-child { border: none; }
+        .settings-group { margin-bottom: 25px; }
+        .settings-group h3 { font-size: 14px; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+        .setting-label { font-size: 14px; color: var(--text); }
+        .switch { position: relative; width: 34px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(16px); }
+        .controls { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+        .controls button { background: none; border: none; cursor: pointer; color: #bbb; padding: 12px; transition: 0.2s; }
+        .controls button.active-state { color: var(--primary); } 
+        .play-btn .material-symbols-outlined { font-size: 58px; color: var(--primary); }
+        .action-btn { background: none; border: 1px solid var(--primary); color: var(--primary); padding: 6px 14px; border-radius: 15px; font-size: 13px; cursor: pointer; }
+        .text-action-btn { background: none; border: none; color: var(--primary); font-size: 14px; font-weight: 500; cursor: pointer; padding: 5px 10px; }
+        .text-action-btn.delete { color: #ff4757; opacity: 0.3; pointer-events: none; }
+        .text-action-btn.delete.active { opacity: 1; pointer-events: auto; }
+        .floating-btn-wrap { position: sticky; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; pointer-events: none; margin-top: 20px; z-index: 90; }
+        .floating-btn-wrap .action-btn { pointer-events: auto; box-shadow: 0 4px 12px rgba(255, 107, 129, 0.3); background: var(--bg); transition: background 0.3s; }
+        .toast-msg { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 20px; font-size: 13px; z-index: 2000; display: none; }
+        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; background: var(--bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 100; transition: background 0.3s; }
+        .nav-btn { background: none; border: none; cursor: pointer; color: #ccc; display: flex; flex-direction: column; align-items: center; width: 33%; }
+        .nav-btn.active { color: var(--primary); }
+        .nav-btn .peach-icon { font-size: 26px; font-style: normal; }
+        /* [신규] EQ 바텀 모달 디자인 */
+        .eq-modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; z-index: 3000; }
+        .eq-modal-content { background: var(--bg); width: 100%; height: 55%; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s ease-out; }
+        .eq-modal-overlay.active { display: flex; }
+        .eq-modal-overlay.active .eq-modal-content { transform: translateY(0); }
 
-        /* 하단 네비게이션 */
-        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #f1f1f1; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
-        .nav-btn { background: none; border: none; cursor: pointer; color: #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 33%; transition: 0.2s; }
-        .nav-btn.active { color: #ff6b81; }
-        .nav-btn .nav-text { font-size: 15px; font-weight: 500; font-family: 'Noto Sans KR', sans-serif; }
-        .nav-btn .peach-icon { font-size: 24px; font-style: normal; }
+        .eq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .eq-presets { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+        .preset-btn { border: 1px solid var(--border); padding: 8px 18px; border-radius: 20px; font-size: 13px; color: var(--gray); background: var(--bg); flex-shrink: 0; }
+        .preset-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .eq-sliders { display: flex; justify-content: space-around; flex: 1; align-items: center; margin-top: 10px; }
+        .eq-slider-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .eq-slider-box span { font-size: 10px; color: var(--gray); font-weight: 500; }
+        .eq-slider-box input[type="range"] { appearance: none; width: 4px; height: 120px; background: var(--border); border-radius: 2px; outline: none; -webkit-appearance: slider-vertical; }
+        .eq-slider-box input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-
-    <div class="app-container">
+    <div class="app-container" id="mainApp">
+        <div id="toastMsg" class="toast-msg"></div>
+        <div id="settingsMenuModal" class="modal-overlay" onclick="closeSettingsMenu()"><div class="modal-content" onclick="event.stopPropagation()"><div class="menu-item" style="font-weight:700; color:var(--primary); border-bottom:2px solid var(--border);">메뉴</div><div class="menu-item" onclick="showToast('준비 중입니다.')">계정</div><div class="menu-item" onclick="closeSettingsMenu(); showView('settingsView')">설정</div><div class="menu-item" onclick="closeSettingsMenu(); showVersionPopup()">버전확인</div><div class="menu-item" onclick="closeSettingsMenu()" style="color:var(--gray);">닫기</div></div></div>
+        <div id="contextMenuModal" class="modal-overlay" onclick="closeContextMenu()"><div class="modal-content" onclick="event.stopPropagation()"><p id="contextTitle" style="font-weight:700; color:var(--primary); padding-bottom:10px;">폴더 관리</p><div class="menu-item" onclick="contextEditTitle()">제목 수정</div><div class="menu-item" onclick="contextPlayAll()">전체 재생</div><div class="menu-item" onclick="contextDeleteFolder()" style="color:#ff4757;">폴더 삭제</div></div></div>
+        <div id="customModal" class="modal-overlay"><div class="modal-content"><p id="modalMsg"></p><div style="display:flex; gap:10px; margin-top:20px;"><button class="action-btn" style="flex:1; background:#f0f0f0; border:none; color:#666;" onclick="closeModal()">취소</button><button class="action-btn" style="flex:1; background:var(--primary); border:none; color:white;" id="modalConfirmBtn" onclick="executeModalConfirm()">확인</button></div></div></div>
+        <div id="inputModal" class="modal-overlay"><div class="modal-content"><h3 id="inputModalTitle">입력</h3><input type="text" id="modalInputArea" style="width:100%; padding:10px; margin:10px 0; border:1px solid var(--border); border-radius:8px; box-sizing:border-box; background:var(--bg); color:var(--text);"><div style="display:flex; gap:10px;"><button class="action-btn" style="flex:1; background:#f0f0f0; border:none; color:#666;" onclick="closeInputModal()">취소</button><button class="action-btn" style="flex:1; background:var(--primary); border:none; color:white;" id="inputModalConfirmBtn">확인</button></div></div></div>
+        <div id="currentPlaylistView" class="view"><div class="sticky-header"><div class="header-row" id="pliHeaderDefault"><h2>플레이리스트 <span id="pliTotalCount" style="font-size:14px; color:var(--gray); font-weight:400;">(0)</span></h2><div class="header-actions"><label class="action-btn">+ 추가<input type="file" id="pliFileInput" accept="audio/*" multiple style="display:none;"></label><button class="action-btn" onclick="togglePliEditMode()">편집</button></div></div><div class="header-row" id="pliHeaderEdit" style="display:none;"><button class="text-action-btn gray" onclick="selectAllPli()">전체선택</button><h2 id="pliSelectedCount" style="font-size:14px; color:var(--text);">0개 선택됨</h2><div class="header-actions"><button class="text-action-btn delete" id="pliDeleteBtn" onclick="handlePliMultiDelete()">삭제</button><button class="text-action-btn" onclick="togglePliEditMode()">완료</button></div></div></div><ul class="list-container" id="nowPlayingList"></ul><p id="emptyPliText" style="text-align:center; color:#ccc; font-size:13px; margin-top:40px;">대기열이 비어있습니다.</p></div>
+        <div id="playerView" class="view active"><div class="player-top-bar"><div style="width:26px;"></div><h2 class="app-title">PLAY</h2><span class="material-symbols-outlined settings-btn" onclick="openSettingsMenu()">settings</span></div><div class="player-content"><div class="album-wrapper rgb-on" id="albumWrapper"><div class="rgb-glow" id="rgbGlow"></div><div class="album-art" id="albumArt"></div></div><div class="player-bottom-area"><div class="song-info"><h2 id="title">선택된 곡 없음</h2><p id="artist">재생목록에서 곡을 추가하세요</p></div><div class="progress-section"><div class="time-display-row"><span class="time-text" id="currentTime">0:00</span><span class="time-text" id="totalTime">0:00</span></div><div class="progress-container" id="progressContainer"><div class="progress-track"><div class="progress-fill" id="progress"></div><div class="progress-thumb" id="progressThumb"></div></div></div></div><div class="controls"><button id="shuffleBtn"><span class="material-symbols-outlined">shuffle</span></button><button id="prevBtn" onclick="prevSong()"><span class="material-symbols-outlined">skip_previous</span></button><button id="playBtn" class="play-btn"><span class="material-symbols-outlined">play_arrow</span></button><button id="nextBtn" onclick="nextSong()"><span class="material-symbols-outlined">skip_next</span></button><button id="repeatBtn"><span class="material-symbols-outlined">repeat</span></button></div></div></div></div>
+        <div id="settingsView" class="view">
+            <div class="sticky-header">
+                <div class="header-row">
+                    <h2><span class="material-symbols-outlined" onclick="showView('playerView', 'nav-player')" style="cursor:pointer; vertical-align:middle; margin-right:8px;">arrow_back</span>설정</h2>
+                </div>
+            </div>
         
-        <!-- 1. 플리 (현재 재생 목록) 뷰 -->
-        <div id="currentPlaylistView" class="view">
-            <div class="header-row">
-                <h2>플레이 리스트</h2>
+            <div class="settings-group">
+                <h3>🎨 인터페이스 및 테마</h3>
+                <div class="setting-row">
+                    <span class="setting-label">다크/라이트 모드</span>
+                    <label class="switch">
+                        <input type="checkbox" id="setDarkModeToggle" onchange="toggleDarkMode()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">RGB 회전 글로우</span>
+                    <label class="switch">
+                        <input type="checkbox" id="setRgbToggle" checked onchange="updateVisualConfig()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">리듬 펄스 효과</span>
+                    <label class="switch">
+                        <input type="checkbox" id="setPulseToggle" checked onchange="updateVisualConfig()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
-            <ul class="list-container" id="nowPlayingList">
-                <p id="emptyPliText" style="text-align:center; color:#ccc; font-size:13px; margin-top:40px;">현재 대기 중인 곡이 없습니다.</p>
-            </ul>
-        </div>
-
-        <!-- 2. 메인 플레이어 뷰 -->
-        <div id="playerView" class="view active">
-            <div class="app-title">PLAY</div>
-            <div class="album-art" id="albumArt"></div>
-            <div class="song-info">
-                <h2 id="title">선택된 곡 없음</h2>
-                <p id="artist">재생목록에서 곡을 추가하세요</p>
-            </div>
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar" id="progress"></div>
-            </div>
-            <div class="controls">
-                <button id="shuffleBtn" title="랜덤 재생"><span class="material-symbols-outlined">shuffle</span></button>
-                <button id="prevBtn" title="이전 곡"><span class="material-symbols-outlined">skip_previous</span></button>
-                <button id="playBtn" class="play-btn" title="재생/일시정지"><span class="material-symbols-outlined">play_arrow</span></button>
-                <button id="nextBtn" title="다음 곡"><span class="material-symbols-outlined">skip_next</span></button>
-                <button id="repeatBtn" title="반복 재생"><span class="material-symbols-outlined">repeat</span></button>
-            </div>
-        </div>
-
-        <!-- 3. 재생목록 (폴더 리스트) 뷰 -->
-        <div id="playlistsView" class="view">
-            <div class="header-row">
-                <h2>나의 재생목록</h2>
-                <button class="action-btn" onclick="createNewFolder()">+ 새 목록</button>
-            </div>
-            <ul class="list-container" id="folderList">
-                <!-- 폴더 동적 렌더링 영역 -->
-            </ul>
-        </div>
-
-        <!-- 4. 특정 재생목록 (폴더 상세) 뷰 -->
-        <div id="folderDetailView" class="view">
-            <div class="header-row">
-                <h2>
-                    <span class="material-symbols-outlined back-btn" onclick="showView('playlistsView', 'nav-list')">arrow_back</span>
-                    <span id="detailFolderName" style="outline:none;">폴더명</span>
-                </h2>
-                <label class="action-btn">
-                    + 곡 추가
-                    <input type="file" accept="audio/*" multiple style="display:none;" onchange="addSongsToCurrentFolder(this)">
-                </label>
-            </div>
-            <ul class="list-container" id="detailSongList">
-                <!-- 곡 동적 렌더링 영역 -->
-            </ul>
-        </div>
-
-        <!-- 하단 네비게이션 -->
-        <div class="bottom-nav">
-            <button class="nav-btn" id="nav-pli" onclick="showView('currentPlaylistView', 'nav-pli')">
-                <span class="nav-text">플리</span>
-            </button>
-            <button class="nav-btn active" id="nav-player" onclick="showView('playerView', 'nav-player')">
-                <span class="peach-icon">🍑</span>
-            </button>
-            <button class="nav-btn" id="nav-list" onclick="showView('playlistsView', 'nav-list')">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-        </div>
-
-    </div>
-
-    <!-- 숨겨진 오디오 객체 -->
-    <audio id="audio"></audio>
-
-    <!-- Firebase SDK (모듈 방식) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         
-        // 유저 제공 Firebase 설정
-        const firebaseConfig = {
-            apiKey: "AIzaSyCFhPO1Ttt1mZJ2DWU5R6yuLx3r9_L7mPI",
-            authDomain: "isvmlivepage.firebaseapp.com",
-            projectId: "isvmlivepage",
-            storageBucket: "isvmlivepage.firebasestorage.app",
-            messagingSenderId: "447061552997",
-            appId: "1:447061552997:web:d5b4fd5d148e93b81e7b8c"
-        };
+            <div class="settings-group">
+                <h3>🎵 사운드 설정</h3>
+                <div class="setting-row" onclick="openEqModal()" style="cursor:pointer;">
+                    <span class="setting-label">이퀄라이저</span>
+                    <span class="material-symbols-outlined" style="color:var(--gray); font-size:20px;">chevron_right</span>
+                </div>
+            </div>
         
-        // 서버 연결 대기 상태 (필요 시 주석 해제 후 연동 가능)
-        // const app = initializeApp(firebaseConfig);
-        // console.log("Firebase Standby.");
-    </script>
+            <div class="settings-group">
+                <h3>📂 라이브러리</h3>
+                <div class="setting-row" onclick="showToast('이미지 캐시가 정리되었습니다.')">
+                    <span class="setting-label" style="color:#ff4757;">이미지 캐시 삭제</span>
+                </div>
+            </div>
+        </div>
+        <div id="playlistsView" class="view"><div class="sticky-header"><div class="header-row"><h2>나의 재생목록</h2><button class="action-btn" onclick="openCreateFolderModal()">+ 새 목록</button></div></div><ul class="list-container" id="folderList"></ul></div>
+        <div id="folderDetailView" class="view"><div class="sticky-header"><div class="header-row" id="folderHeaderDefault"><h2><span class="material-symbols-outlined" onclick="showView('playlistsView', 'nav-list')" style="cursor:pointer; vertical-align:middle; margin-right:8px;">arrow_back</span><span id="detailFolderName"></span></h2><div class="header-actions"><button class="action-btn" onclick="playAllInFolder()">전체 재생</button><button class="action-btn" onclick="toggleFolderEditMode()">편집</button></div></div><div class="header-row" id="folderHeaderEdit" style="display:none;"><button class="text-action-btn gray" onclick="selectAllFolder()">전체선택</button><h2 id="folderSelectedCount" style="font-size:14px; color:var(--text);">0개 선택됨</h2><div class="header-actions"><button class="text-action-btn" onclick="handleFolderMultiAdd()" style="color:var(--primary);">+ 담기</button><button class="text-action-btn delete" id="folderDeleteBtn" onclick="handleFolderMultiDelete()">삭제</button><button class="text-action-btn" onclick="toggleFolderEditMode()">완료</button></div></div></div><ul class="list-container" id="detailSongList"></ul><div class="floating-btn-wrap"><label class="action-btn">+ 곡 추가<input type="file" id="folderFileInput" accept="audio/*" multiple style="display:none;"></label></div></div>
+        <div class="bottom-nav"><button class="nav-btn" id="nav-pli" onclick="showView('currentPlaylistView', 'nav-pli')">플리</button><button class="nav-btn active" id="nav-player" onclick="showView('playerView', 'nav-player')"><span class="peach-icon">🍑</span></button><button class="nav-btn" id="nav-list" onclick="showView('playlistsView', 'nav-list')"><span class="material-symbols-outlined">menu</span></button></div>
+        <div id="eqModal" class="eq-modal-overlay" onclick="closeEqModal()">
+            <div class="eq-modal-content" onclick="event.stopPropagation()">
+                <div class="eq-header">
+                    <h3 style="margin:0; font-size:17px;">이퀄라이저</h3>
+                    <span class="material-symbols-outlined" onclick="closeEqModal()" style="cursor:pointer; color:var(--gray);">close</span>
+                </div>
+                <div class="eq-presets">
+                    <button class="preset-btn active" id="preset-flat" onclick="applyPreset('flat')">Flat</button>
+                    <button class="preset-btn" id="preset-bass" onclick="applyPreset('bass')">Bass Boost</button>
+                    <button class="preset-btn" id="preset-vocal" onclick="applyPreset('vocal')">Vocal</button>
+                </div>
+                <div class="eq-sliders">
+                    <div class="eq-slider-box"><span>60Hz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" oninput="updateEQ(0, this.value)"></div>
+                    <div class="eq-slider-box"><span>310Hz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" oninput="updateEQ(1, this.value)"></div>
+                    <div class="eq-slider-box"><span>1kHz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" oninput="updateEQ(2, this.value)"></div>
+                    <div class="eq-slider-box"><span>3.3kHz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" oninput="updateEQ(3, this.value)"></div>
+                    <div class="eq-slider-box"><span>12kHz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" oninput="updateEQ(4, this.value)"></div>
+                </div>
+            </div>
+        </div>
+        <div id="eqModal" class="eq-modal-overlay" onclick="closeEqModal()">
+            <div class="eq-modal-content" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0; font-size:17px;">이퀄라이저</h3>
+                    <span class="material-symbols-outlined" onclick="closeEqModal()" style="cursor:pointer; color:var(--gray);">close</span>
+                </div>
+                <div class="eq-presets" style="display:flex; gap:10px; margin-bottom:20px; overflow-x:auto;">
+                    <button class="preset-btn active" id="preset-flat" onclick="applyPreset('flat')">Flat</button>
+                    <button class="preset-btn" id="preset-bass" onclick="applyPreset('bass')">Bass Boost</button>
+                    <button class="preset-btn" id="preset-vocal" onclick="applyPreset('vocal')">Vocal</button>
+                </div>
+                <div class="eq-sliders" style="display:flex; justify-content:space-around; flex:1; align-items:center;">
+                    <div class="eq-slider-box"><span style="font-size:10px; color:var(--gray);">60Hz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" step="1" oninput="updateEQ(0, this.value)"></div>
+                    <div class="eq-slider-box"><span style="font-size:10px; color:var(--gray);">310Hz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" step="1" oninput="updateEQ(1, this.value)"></div>
+                    <div class="eq-slider-box"><span style="font-size:10px; color:var(--gray);">1kHz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" step="1" oninput="updateEQ(2, this.value)"></div>
+                    <div class="eq-slider-box"><span style="font-size:10px; color:var(--gray);">3.3kHz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" step="1" oninput="updateEQ(3, this.value)"></div>
+                    <div class="eq-slider-box"><span style="font-size:10px; color:var(--gray);">12kHz</span><input type="range" class="eq-slider" min="-12" max="12" value="0" step="1" oninput="updateEQ(4, this.value)"></div>
+                </div>
+            </div>
+        </div>
+    </div><audio id="audio" crossorigin="anonymous"></audio>
+<script>
+    let audioContext, analyser, dataArray, source, animationId;
+    const folders = { '기본 재생목록': [] };
+    let playQueue = [], currentSongIndex = -1, isPlaying = false, isShuffle = false, repeatMode = 0, isPliEditMode = false, pliSelected = new Set(), isFolderEditMode = false, folderSelected = new Set(), currentOpenFolder = '', sortableInstance = null, pendingConfirmAction = null, pendingInputCallback = null, contextTargetFolder = '';
+    const config = { showRgb: true, showPulse: true, version: "v47_EQ" };
+    const audio = document.getElementById('audio'), playBtn = document.getElementById('playBtn'), albumArt = document.getElementById('albumArt'), rgbGlow = document.getElementById('rgbGlow'), progress = document.getElementById('progress'), progressThumb = document.getElementById('progressThumb'), progressContainer = document.getElementById('progressContainer'), albumWrapper = document.getElementById('albumWrapper');
+    function formatTime(s) { if (!s || isNaN(s)) return "0:00"; let m = Math.floor(s / 60); let sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
+    let isDraggingBar = false;
+    const updateProgressUI = (e) => { const rect = progressContainer.getBoundingClientRect(); let p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * 100; progress.style.width = p + "%"; progressThumb.style.left = p + "%"; if (audio.duration) document.getElementById('currentTime').innerText = formatTime((p / 100) * audio.duration); };
+    const startDrag = (e) => { isDraggingBar = true; updateProgressUI(e.touches ? e.touches[0] : e); };
+    const doDrag = (e) => { if (isDraggingBar) updateProgressUI(e.touches ? e.touches[0] : e); };
+    const endDrag = (e) => { if (isDraggingBar) { isDraggingBar = false; const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const rect = progressContainer.getBoundingClientRect(); let p = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)); if (audio.duration) audio.currentTime = p * audio.duration; } };
+    progressContainer.addEventListener('mousedown', startDrag); window.addEventListener('mousemove', doDrag); window.addEventListener('mouseup', endDrag);
+    progressContainer.addEventListener('touchstart', startDrag, {passive: false}); window.addEventListener('touchmove', doDrag, {passive: false}); window.addEventListener('touchend', endDrag);
+    let touchStartX = 0; albumWrapper.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true}); albumWrapper.addEventListener('touchend', (e) => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) diff > 0 ? nextSong() : prevSong(); }, {passive: true});
+    function toggleDarkMode() { const isDark = document.getElementById('setDarkModeToggle').checked; document.getElementById('mainApp').classList.toggle('dark-mode', isDark); showToast(isDark ? "다크 모드 적용" : "라이트 모드 적용"); }
+    function renderQueue() { const ul = document.getElementById('nowPlayingList'); ul.innerHTML = ''; document.getElementById('emptyPliText').style.display = playQueue.length ? 'none' : 'block'; document.getElementById('pliTotalCount').innerText = `(${playQueue.length})`; const selCount = pliSelected.size; document.getElementById('pliSelectedCount').innerText = `${selCount}개 선택됨`; document.getElementById('pliDeleteBtn').classList.toggle('active', selCount > 0); playQueue.forEach((s, i) => { const li = document.createElement('li'); li.className = `list-item ${i === currentSongIndex ? 'playing-now' : ''} ${isPliEditMode ? 'edit-mode' : ''} ${pliSelected.has(i) ? 'selected' : ''}`; li.innerHTML = `<div class="check-area" onclick="togglePliSelect(${i})"><div class="check-circle"></div></div><div class="text-area song-item-text">${s.name}</div><div class="drag-handle"><span class="material-symbols-outlined">menu</span></div><div class="icon-area delete-btn-pli"><span class="material-symbols-outlined">close</span></div>`; li.querySelector('.song-item-text').onclick = () => isPliEditMode ? togglePliSelect(i) : playFromQueue(i); li.querySelector('.delete-btn-pli').onclick = (ev) => { ev.stopPropagation(); removeFromQueue(i); }; ul.appendChild(li); }); }
+    function renderFolderDetail() { const ul = document.getElementById('detailSongList'); ul.innerHTML = ''; folders[currentOpenFolder].forEach((s, i) => { const li = document.createElement('li'); li.className = `list-item ${isFolderEditMode ? 'edit-mode' : ''} ${folderSelected.has(i) ? 'selected' : ''}`; li.innerHTML = `<div class="check-area" onclick="toggleFolderSelect(${i})"><div class="check-circle"></div></div><div class="text-area song-title-area">${s.name}</div><div class="icon-area add-btn-folder"><span class="material-symbols-outlined">add_circle</span></div>`; li.querySelector('.song-title-area').onclick = () => isFolderEditMode ? toggleFolderSelect(i) : handlePlayNow(currentOpenFolder, i); li.querySelector('.add-btn-folder').onclick = (e) => { e.stopPropagation(); checkAndAddToQueue(folders[currentOpenFolder][i]); }; ul.appendChild(li); }); const selCount = folderSelected.size; document.getElementById('folderSelectedCount').innerText = `${selCount}개 선택됨`; document.getElementById('folderDeleteBtn').classList.toggle('active', selCount > 0); }
+    function handlePliMultiDelete() { if(pliSelected.size === 0) return; showConfirmModal(`${pliSelected.size}곡을 삭제할까요?`, "삭제", () => { const sorted = Array.from(pliSelected).sort((a,b)=>b-a); sorted.forEach(i => playQueue.splice(i,1)); pliSelected.clear(); if(playQueue.length === 0) resetUI(); renderQueue(); }); }
+    function handleFolderMultiDelete() { if (folderSelected.size === 0) return; showConfirmModal(`${folderSelected.size}곡을 삭제할까요?`, "삭제", () => { const sorted = Array.from(folderSelected).sort((a,b)=>b-a); sorted.forEach(i => folders[currentOpenFolder].splice(i,1)); folderSelected.clear(); renderFolderDetail(); renderFolderList(); showToast("삭제되었습니다."); }); }
+    function removeFromQueue(i) { showConfirmModal("삭제할까요?", "삭제", () => { playQueue.splice(i,1); if(playQueue.length === 0) resetUI(); renderQueue(); }); }
+    function checkAndAddToQueue(songObj) { const isDuplicate = playQueue.some(s => s.name === songObj.name && s.artist === songObj.artist); if (isDuplicate) { showConfirmModal("이미 대기열에 있는 곡입니다.<br>그래도 추가하시겠습니까?", "추가", () => { playQueue.push({...songObj}); showToast("추가되었습니다."); renderQueue(); }); } else { playQueue.push({...songObj}); showToast("대기열에 추가되었습니다."); renderQueue(); } }
+    function showVersionPopup() { showConfirmModal(`현재 버전: ${config.version}<br>내가 직접 이퀄라이저 추가`, "닫기", null); }
+    let eqFilters = []; // 전역 변수 추가
 
-    <!-- 앱 핵심 구동 스크립트 -->
-    <script>
-        // --- 앱 데이터 상태 ---
-        // 폴더 및 폴더 내의 파일 객체 저장
-        const folders = {
-            '기본 재생목록': [] // { name: "곡 이름", file: File 객체, url: Blob URL }
-        };
-        let currentOpenFolder = '';
+// 1. 모달 제어 함수
+function openEqModal() { document.getElementById('eqModal').classList.add('active'); }
+function closeEqModal() { document.getElementById('eqModal').classList.remove('active'); }
 
-        // 현재 '플리(대기열)' 
-        let playQueue = []; 
-        let currentSongIndex = -1;
-        
-        // 플레이어 상태
-        let isPlaying = false;
-        let isShuffle = false;
-        let repeatMode = 0; // 0: 반복없음, 1: 전체반복, 2: 한곡반복
+// 2. 엔진 초기화 (이걸로 기존 initAnalyser 함수를 교체)
+function initAnalyser() {
+    if (audioContext) return;
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    source = audioContext.createMediaElementSource(audio);
 
-        // DOM 요소
-        const audio = document.getElementById('audio');
-        const playBtn = document.getElementById('playBtn');
-        const progress = document.getElementById('progress');
-        const progressContainer = document.getElementById('progressContainer');
-        const albumArt = document.getElementById('albumArt');
-        
-        // --- 1. 뷰 및 네비게이션 전환 ---
-        window.showView = function(viewId, activeNavId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+    // 5밴드 필터 생성
+    const freqs = [60, 310, 1000, 3300, 12000];
+    eqFilters = freqs.map(f => {
+        const flt = audioContext.createBiquadFilter();
+        flt.type = 'peaking'; flt.frequency.value = f; flt.Q.value = 1.4; flt.gain.value = 0;
+        return flt;
+    });
 
-            if (activeNavId) {
-                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(activeNavId).classList.add('active');
-            }
-            if(viewId === 'playlistsView') renderFolderList();
-        }
+    // 연결: source -> Filters -> Analyser -> Destination
+    let node = source; 
+    eqFilters.forEach(f => { node.connect(f); node = f; });
+    node.connect(analyser); 
+    analyser.connect(audioContext.destination);
 
-        // --- 2. 재생목록(폴더) 관리 ---
-        function renderFolderList() {
-            const ul = document.getElementById('folderList');
-            ul.innerHTML = '';
-            for (let folderName in folders) {
-                const li = document.createElement('li');
-                li.className = 'list-item';
-                li.onclick = () => openFolder(folderName);
-                li.innerHTML = `
-                    <span class="text">${folderName} <span style="color:#ccc; font-size:12px;">(${folders[folderName].length})</span></span>
-                    <span class="material-symbols-outlined icon">chevron_right</span>
-                `;
-                ul.appendChild(li);
-            }
-        }
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    updatePulse();
+}
 
-        window.createNewFolder = function() {
-            const name = prompt("새 재생목록 이름을 입력하세요:", "새 재생목록");
-            if (name && !folders[name]) {
-                folders[name] = [];
-                renderFolderList();
-            } else if (folders[name]) {
-                alert("이미 존재하는 이름입니다.");
-            }
-        }
+// 3. EQ 조절 및 프리셋
+function updateEQ(i, v) { 
+    if (eqFilters[i]) eqFilters[i].gain.value = parseFloat(v); 
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+}
 
-        window.openFolder = function(folderName) {
-            currentOpenFolder = folderName;
-            document.getElementById('detailFolderName').innerText = folderName;
-            renderFolderDetail();
-            showView('folderDetailView', 'nav-list');
-        }
-
-        function renderFolderDetail() {
-            const ul = document.getElementById('detailSongList');
-            ul.innerHTML = '';
-            const songs = folders[currentOpenFolder];
-            
-            if(songs.length === 0) {
-                ul.innerHTML = `<p style="text-align:center; color:#ccc; font-size:13px; margin-top:30px;">등록된 곡이 없습니다.<br>+ 곡 추가 버튼을 눌러주세요.</p>`;
-                return;
-            }
-
-            songs.forEach((song, index) => {
-                const li = document.createElement('li');
-                li.className = 'list-item';
-                li.innerHTML = `
-                    <span class="text" onclick="addToQueueAndPlay('${currentOpenFolder}', ${index})">${song.name}</span>
-                    <span class="material-symbols-outlined delete-btn" onclick="deleteFromFolder(${index})">close</span>
-                `;
-                ul.appendChild(li);
-            });
-        }
-
-        window.addSongsToCurrentFolder = function(input) {
-            const files = Array.from(input.files);
-            files.forEach(file => {
-                folders[currentOpenFolder].push({
-                    name: file.name.replace(/\.[^/.]+$/, ""), // 확장자 제거
-                    file: file,
-                    url: URL.createObjectURL(file) // 로컬 구동용 임시 URL 생성
-                });
-            });
-            input.value = ''; 
-            renderFolderDetail();
-        }
-
-        window.deleteFromFolder = function(index) {
-            event.stopPropagation(); // 재생 방지
-            folders[currentOpenFolder].splice(index, 1);
-            renderFolderDetail();
-        }
-
-        // --- 3. 플리(대기열) 관리 및 재생 ---
-        window.addToQueueAndPlay = function(folderName, songIndex) {
-            const song = folders[folderName][songIndex];
-            
-            // 이미 대기열에 있는지 확인
-            const existIndex = playQueue.findIndex(q => q.url === song.url);
-            if(existIndex === -1) {
-                playQueue.push(song);
-                currentSongIndex = playQueue.length - 1;
-            } else {
-                currentSongIndex = existIndex;
-            }
-
-            renderQueue();
-            loadSong(currentSongIndex);
-            playAudio();
-            showView('playerView', 'nav-player');
-        }
-
-        function renderQueue() {
-            const ul = document.getElementById('nowPlayingList');
-            document.getElementById('emptyPliText').style.display = playQueue.length ? 'none' : 'block';
-            ul.innerHTML = '';
-
-            playQueue.forEach((song, index) => {
-                const li = document.createElement('li');
-                li.className = `list-item ${index === currentSongIndex ? 'playing-now' : ''}`;
-                li.innerHTML = `
-                    <span class="text" style="${index === currentSongIndex ? 'color:#ff6b81; font-weight:500;' : ''}" onclick="playFromQueue(${index})">${song.name}</span>
-                    <span class="material-symbols-outlined delete-btn" onclick="removeFromQueue(${index})">close</span>
-                `;
-                ul.appendChild(li);
-            });
-        }
-
-        window.playFromQueue = function(index) {
-            currentSongIndex = index;
-            renderQueue();
-            loadSong(currentSongIndex);
-            playAudio();
-            showView('playerView', 'nav-player');
-        }
-
-        window.removeFromQueue = function(index) {
-            event.stopPropagation();
-            playQueue.splice(index, 1);
-            if(index === currentSongIndex) {
-                pauseAudio();
-                if(playQueue.length > 0) {
-                    currentSongIndex = 0;
-                    loadSong(currentSongIndex);
-                } else {
-                    document.getElementById('title').innerText = "선택된 곡 없음";
-                    document.getElementById('artist').innerText = "재생목록에서 곡을 추가하세요";
-                    audio.src = '';
-                }
-            } else if (index < currentSongIndex) {
-                currentSongIndex--;
-            }
-            renderQueue();
-        }
-
-        // --- 4. 오디오 컨트롤 (핵심 기능) ---
-        function loadSong(index) {
-            if(index < 0 || index >= playQueue.length) return;
-            const song = playQueue[index];
-            document.getElementById('title').innerText = song.name;
-            document.getElementById('artist').innerText = "로컬 오디오 재생 중";
-            audio.src = song.url;
-        }
-
-        function playAudio() {
-            if(playQueue.length === 0) return;
-            isPlaying = true;
-            audio.play();
-            playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
-            albumArt.classList.add('playing');
-        }
-
-        function pauseAudio() {
-            isPlaying = false;
-            audio.pause();
-            playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
-            albumArt.classList.remove('playing');
-        }
-
-        playBtn.addEventListener('click', () => {
-            isPlaying ? pauseAudio() : playAudio();
-        });
-
-        // 프로그레스 바 업데이트
-        audio.addEventListener('timeupdate', () => {
-            if(audio.duration) {
-                const percent = (audio.currentTime / audio.duration) * 100;
-                progress.style.width = `${percent}%`;
-            }
-        });
-
-        // 프로그레스 바 클릭하여 이동
-        progressContainer.addEventListener('click', (e) => {
-            if(!audio.duration) return;
-            const width = progressContainer.clientWidth;
-            const clickX = e.offsetX;
-            const duration = audio.duration;
-            audio.currentTime = (clickX / width) * duration;
-        });
-
-        // 곡 종료 시 자동 다음 곡
-        audio.addEventListener('ended', () => {
-            if(repeatMode === 2) { // 한 곡 반복
-                playAudio();
-            } else {
-                nextSong();
-            }
-        });
-
-        // 이전/다음 곡 버튼
-        document.getElementById('prevBtn').addEventListener('click', () => {
-            if(playQueue.length === 0) return;
-            currentSongIndex--;
-            if (currentSongIndex < 0) currentSongIndex = playQueue.length - 1;
-            renderQueue();
-            loadSong(currentSongIndex);
-            playAudio();
-        });
-
-        function nextSong() {
-            if(playQueue.length === 0) return;
-            
-            if (isShuffle) {
-                currentSongIndex = Math.floor(Math.random() * playQueue.length);
-            } else {
-                currentSongIndex++;
-                if (currentSongIndex > playQueue.length - 1) {
-                    currentSongIndex = 0; // 끝까지 가면 처음으로
-                    if(repeatMode === 0) { // 반복 끄기 상태면 재생 멈춤
-                        loadSong(currentSongIndex);
-                        renderQueue();
-                        pauseAudio();
-                        return;
-                    }
-                }
-            }
-            renderQueue();
-            loadSong(currentSongIndex);
-            playAudio();
-        }
-        document.getElementById('nextBtn').addEventListener('click', nextSong);
-
-        // 셔플(랜덤) 버튼
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        shuffleBtn.addEventListener('click', () => {
-            isShuffle = !isShuffle;
-            shuffleBtn.classList.toggle('active-state', isShuffle);
-        });
-
-        // 반복 버튼 상태
-        const repeatBtn = document.getElementById('repeatBtn');
-        repeatBtn.addEventListener('click', () => {
-            repeatMode = (repeatMode + 1) % 3;
-            if(repeatMode === 0) {
-                repeatBtn.classList.remove('active-state');
-                repeatBtn.innerHTML = '<span class="material-symbols-outlined">repeat</span>';
-            } else if(repeatMode === 1) {
-                repeatBtn.classList.add('active-state');
-                repeatBtn.innerHTML = '<span class="material-symbols-outlined">repeat</span>';
-            } else if(repeatMode === 2) {
-                repeatBtn.classList.add('active-state');
-                repeatBtn.innerHTML = '<span class="material-symbols-outlined">repeat_one</span>';
-            }
-        });
-
-        // 초기화
-        renderFolderList();
-
-    </script>
+function applyPreset(t) {
+    const p = { 'flat': [0, 0, 0, 0, 0], 'bass': [8, 4, 0, 0, 0], 'vocal': [0, 2, 6, 2, 0] }[t];
+    const sliders = document.querySelectorAll('.eq-slider');
+    p.forEach((v, i) => { 
+        if(eqFilters[i]) eqFilters[i].gain.value = v; 
+        sliders[i].value = v; 
+    });
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`preset-${t}`).classList.add('active');
+}
+    function updatePulse() { if (!isPlaying) { albumArt.style.transform = "scale(1)"; rgbGlow.style.transform = "scale(1)"; return; } animationId = requestAnimationFrame(updatePulse); analyser.getByteFrequencyData(dataArray); let avg = (dataArray[0] + dataArray[1] + dataArray[2]) / 3; let scale = config.showPulse ? 1 + (avg / 1500) : 1; albumArt.style.transform = `scale(${scale})`; rgbGlow.style.transform = `scale(${scale * 1.08})`; }
+    function updateVisualConfig() { config.showRgb = document.getElementById('setRgbToggle').checked; config.showPulse = document.getElementById('setPulseToggle').checked; albumWrapper.classList.toggle('rgb-on', config.showRgb); if(!isPlaying) updatePulse(); }
+    async function getSongMetadata(file) { return new Promise((resolve) => { window.jsmediatags.read(file, { onSuccess: (tag) => { const t = tag.tags; let coverUrl = null; if (t.picture) { const { data, format } = t.picture; let base64 = ""; for (let i = 0; i < data.length; i++) base64 += String.fromCharCode(data[i]); coverUrl = `data:${format};base64,${window.btoa(base64)}`; } resolve({ name: t.title || file.name.replace(/\.[^/.]+$/, ""), artist: t.artist || "Unknown Artist", cover: coverUrl }); }, onError: () => resolve({ name: file.name.replace(/\.[^/.]+$/, ""), artist: "로컬 곡", cover: null }) }); }); }
+    function loadSong(i) { if (i < 0 || i >= playQueue.length) return; currentSongIndex = i; const s = playQueue[i]; document.getElementById('title').innerText = s.name; document.getElementById('artist').innerText = s.artist; albumArt.style.backgroundImage = s.cover ? `url(${s.cover})` : ''; audio.src = s.url; audio.load(); }
+    async function playAudio() { if (!audio.src) return; initAnalyser(); if (audioContext.state === 'suspended') await audioContext.resume(); isPlaying = true; audio.play().then(() => { playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>'; updatePulse(); }).catch(() => isPlaying = false); }
+    function pauseAudio() { isPlaying = false; audio.pause(); playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>'; cancelAnimationFrame(animationId); }
+    function nextSong() { if (!playQueue.length) return; isShuffle ? currentSongIndex = Math.floor(Math.random() * playQueue.length) : currentSongIndex = (currentSongIndex + 1) % playQueue.length; loadSong(currentSongIndex); playAudio(); renderQueue(); }
+    function prevSong() { if (!playQueue.length) return; currentSongIndex = (currentSongIndex - 1 + playQueue.length) % playQueue.length; loadSong(currentSongIndex); playAudio(); renderQueue(); }
+    shuffleBtn.onclick = () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active-state', isShuffle); showToast(isShuffle ? "랜덤 재생 켬" : "랜덤 재생 끔"); };
+    repeatBtn.onclick = () => { repeatMode = (repeatMode + 1) % 3; const icons = ['repeat', 'repeat', 'repeat_one']; repeatBtn.innerHTML = `<span class="material-symbols-outlined">${icons[repeatMode]}</span>`; repeatBtn.classList.toggle('active-state', repeatMode !== 0); };
+    audio.onended = () => repeatMode === 2 ? playAudio() : nextSong();
+    audio.ontimeupdate = () => { if (!isDraggingBar && audio.duration) { const p = (audio.currentTime / audio.duration) * 100; progress.style.width = p + "%"; progressThumb.style.left = p + "%"; document.getElementById('currentTime').innerText = formatTime(audio.currentTime); document.getElementById('totalTime').innerText = formatTime(audio.duration); } };
+    let pressTimer; function setupLongPress(el, name) { const start = (e) => { pressTimer = setTimeout(() => openContextMenu(e, name), 600); }; const cancel = () => clearTimeout(pressTimer); el.addEventListener('mousedown', start); el.addEventListener('touchstart', start, {passive:true}); el.addEventListener('mouseup', cancel); el.addEventListener('touchend', cancel); el.addEventListener('touchmove', cancel); }
+    function openContextMenu(e, name) { if(e) e.preventDefault(); contextTargetFolder = name; document.getElementById('contextTitle').innerText = name; document.getElementById('contextMenuModal').style.display = 'flex'; }
+    function closeContextMenu() { document.getElementById('contextMenuModal').style.display = 'none'; }
+    function contextEditTitle() { closeContextMenu(); openInputModal("이름 수정", (n) => { if (n && !folders[n]) { folders[n] = folders[contextTargetFolder]; delete folders[contextTargetFolder]; renderFolderList(); showToast("수정되었습니다."); } }, contextTargetFolder); }
+    function contextDeleteFolder() { closeContextMenu(); showConfirmModal(`'${contextTargetFolder}' 폴더를 삭제할까요?`, "삭제", () => { delete folders[contextTargetFolder]; renderFolderList(); showToast("삭제되었습니다."); }); }
+    function contextPlayAll() { closeContextMenu(); playAllInFolder(contextTargetFolder); }
+    function renderFolderList() { const ul = document.getElementById('folderList'); ul.innerHTML = ''; for (let n in folders) { const li = document.createElement('li'); li.className = 'list-item'; li.innerHTML = `<div class="text-area" onclick="openFolder('${n}')">${n} (${folders[n].length})</div><div class="icon-area"><span class="material-symbols-outlined">chevron_right</span></div>`; setupLongPress(li, n); ul.appendChild(li); } }
+    function openFolder(n) { currentOpenFolder = n; document.getElementById('detailFolderName').innerText = n.length > 10 ? n.substring(0, 10) + "..." : n; isFolderEditMode = false; folderSelected.clear(); renderFolderDetail(); showView('folderDetailView', 'nav-list'); }
+    function toggleFolderEditMode() { isFolderEditMode = !isFolderEditMode; folderSelected.clear(); document.getElementById('folderHeaderDefault').style.display = isFolderEditMode ? 'none' : 'flex'; document.getElementById('folderHeaderEdit').style.display = isFolderEditMode ? 'flex' : 'none'; renderFolderDetail(); }
+    function toggleFolderSelect(i) { if(folderSelected.has(i)) folderSelected.delete(i); else folderSelected.add(i); renderFolderDetail(); }
+    function handlePlayNow(f, i) { const s = folders[f][i]; playQueue.push({...s}); currentSongIndex = playQueue.length - 1; loadSong(currentSongIndex); playAudio(); renderQueue(); showView('playerView', 'nav-player'); }
+    function handleFolderMultiAdd() { folderSelected.forEach(i => playQueue.push({...folders[currentOpenFolder][i]})); showToast("대기열에 추가되었습니다."); toggleFolderEditMode(); renderQueue(); }
+    function playAllInFolder(name) { const target = name || currentOpenFolder; if(!folders[target].length) return; folders[target].forEach(s => playQueue.push({...s})); loadSong(playQueue.length - folders[target].length); playAudio(); renderQueue(); showView('playerView', 'nav-player'); }
+    function selectAllFolder() { const curr = folders[currentOpenFolder]; if(folderSelected.size === curr.length) folderSelected.clear(); else curr.forEach((_,i) => folderSelected.add(i)); renderFolderDetail(); }
+    function togglePliEditMode() { isPliEditMode = !isPliEditMode; pliSelected.clear(); document.getElementById('pliHeaderDefault').style.display = isPliEditMode ? 'none' : 'flex'; document.getElementById('pliHeaderEdit').style.display = isPliEditMode ? 'flex' : 'none'; renderQueue(); if(isPliEditMode) initSortable(); else if(sortableInstance) sortableInstance.destroy(); }
+    function initSortable() { sortableInstance = new Sortable(document.getElementById('nowPlayingList'), { handle: '.drag-handle', animation: 150, onEnd: (evt) => { const item = playQueue.splice(evt.oldIndex, 1)[0]; playQueue.splice(evt.newIndex, 0, item); renderQueue(); } }); }
+    function selectAllPli() { if(pliSelected.size === playQueue.length) pliSelected.clear(); else playQueue.forEach((_,i) => pliSelected.add(i)); renderQueue(); }
+    function togglePliSelect(i) { if(pliSelected.has(i)) pliSelected.delete(i); else pliSelected.add(i); renderQueue(); }
+    function openSettingsMenu() { document.getElementById('settingsMenuModal').style.display = 'flex'; }
+    function closeSettingsMenu() { document.getElementById('settingsMenuModal').style.display = 'none'; }
+    function showView(v, n) { document.querySelectorAll('.view').forEach(x => x.classList.remove('active')); document.getElementById(v).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); if(n) document.getElementById(n).classList.add('active'); if(v === 'playlistsView') renderFolderList(); if(v === 'currentPlaylistView') renderQueue(); }
+    function showToast(m) { const t = document.getElementById('toastMsg'); t.innerText = m; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2000); }
+    function showConfirmModal(m, c, a) { document.getElementById('modalMsg').innerHTML = m; document.getElementById('modalConfirmBtn').innerText = c; pendingConfirmAction = a; document.getElementById('customModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+    function executeModalConfirm() { if(pendingConfirmAction) pendingConfirmAction(); closeModal(); }
+    function openInputModal(t, c) { document.getElementById('inputModalTitle').innerText = t; document.getElementById('modalInputArea').value = ""; document.getElementById('inputModal').style.display = 'flex'; pendingInputCallback = c; }
+    function closeInputModal() { document.getElementById('inputModal').style.display = 'none'; }
+    document.getElementById('inputModalConfirmBtn').onclick = () => { const v = document.getElementById('modalInputArea').value.trim(); if(v) pendingInputCallback(v); closeInputModal(); };
+    function playFromQueue(i) { loadSong(i); playAudio(); showView('playerView', 'nav-player'); }
+    function resetUI() { document.getElementById('title').innerText = "선택된 곡 없음"; albumArt.style.backgroundImage = ''; audio.src = ''; isPlaying=false; pauseAudio(); }
+    function openCreateFolderModal() { openInputModal("새 재생목록", (n) => { if(!folders[n]) { folders[n] = []; renderFolderList(); showToast("생성되었습니다."); } }); }
+    function initScrollEvents() { document.querySelectorAll('.view').forEach(v => { let st; v.addEventListener('scroll', () => { v.classList.add('scrolling'); clearTimeout(st); st = setTimeout(() => v.classList.remove('scrolling'), 3000); }); }); }
+    document.getElementById('pliFileInput').onchange = async (e) => { for(const f of Array.from(e.target.files)) { const m = await getSongMetadata(f); playQueue.push({...m, url: URL.createObjectURL(f)}); } renderQueue(); if(currentSongIndex===-1) loadSong(0); e.target.value=''; };
+    document.getElementById('folderFileInput').onchange = async (e) => { for(const f of Array.from(e.target.files)) { const m = await getSongMetadata(f); folders[currentOpenFolder].push({...m, url: URL.createObjectURL(f)}); } renderFolderDetail(); renderFolderList(); e.target.value=''; };
+    playBtn.onclick = () => isPlaying ? pauseAudio() : playAudio();
+    renderFolderList(); initScrollEvents();
+</script>
 </body>
 </html>
