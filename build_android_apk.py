@@ -107,8 +107,8 @@ android {
         applicationId "com.gungdi.player"
         minSdk 26
         targetSdk 34
-        versionCode 6
-        versionName "6.0-clean-ratio"
+        versionCode 7
+        versionName "7.0-bigger-buttons-lyrics"
     }
 
     signingConfigs {
@@ -274,11 +274,11 @@ dependencies {
         android:scaleType="fitXY"
         android:contentDescription="앨범 커버" />
 
-    <!-- 2. 우측 상단 고정 정사각형(32dp) 위젯 설정 버튼 (절대 찌그러지지 않음) -->
+    <!-- 2. 우측 상단 고정 정사각형(38dp) 위젯 설정 버튼 (절대 찌그러지지 않음) -->
     <ImageView
         android:id="@+id/card_btn_settings"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="10dp"
@@ -286,11 +286,11 @@ dependencies {
         android:scaleType="fitCenter"
         android:contentDescription="위젯 설정" />
 
-    <!-- 3. 하단 플로팅 컨트롤 카드 (고정 높이 82dp로 비율 완벽 유지) -->
+    <!-- 3. 하단 플로팅 컨트롤 카드 (고정 높이 92dp로 큼직한 버튼 + 완벽 비율 유지) -->
     <FrameLayout
         android:id="@+id/card_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="82dp"
+        android:layout_height="92dp"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
@@ -312,7 +312,7 @@ dependencies {
             android:gravity="center_vertical"
             android:paddingStart="14dp"
             android:paddingEnd="10dp"
-            android:paddingBottom="5dp">
+            android:paddingBottom="6dp">
 
             <LinearLayout
                 android:id="@+id/card_info_box"
@@ -320,7 +320,7 @@ dependencies {
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:paddingEnd="6dp">
+                android:paddingEnd="4dp">
 
                 <TextView
                     android:id="@+id/card_title"
@@ -328,7 +328,7 @@ dependencies {
                     android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:textSize="13.5sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="#222328"
                     android:text="노래를 재생해 보세요" />
@@ -350,7 +350,7 @@ dependencies {
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:singleLine="true"
-                    android:textSize="10.5sp"
+                    android:textSize="11sp"
                     android:textColor="#888B94"
                     android:text="1/21" />
             </LinearLayout>
@@ -363,16 +363,16 @@ dependencies {
 
                 <ImageView
                     android:id="@+id/card_btn_prev"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="5dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:padding="2dp"
                     android:scaleType="fitCenter"
                     android:contentDescription="이전곡" />
 
                 <ImageView
                     android:id="@+id/card_btn_play"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
                     android:layout_marginStart="2dp"
                     android:layout_marginEnd="2dp"
                     android:scaleType="fitCenter"
@@ -380,9 +380,9 @@ dependencies {
 
                 <ImageView
                     android:id="@+id/card_btn_next"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="5dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:padding="2dp"
                     android:scaleType="fitCenter"
                     android:contentDescription="다음곡" />
             </LinearLayout>
@@ -392,7 +392,7 @@ dependencies {
         <ImageView
             android:id="@+id/card_progress_img"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
+            android:layout_height="3.5dp"
             android:layout_gravity="bottom"
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp"
@@ -403,7 +403,7 @@ dependencies {
 </RelativeLayout>
 """)
 
-    # 9. Layout 2: 슬림 바 위젯 레이아웃 (4x1 가로형 - 정사각형 48dp 앨범아트 + 네이티브 TextView + 정원형 버튼)
+    # 9. Layout 2: 슬림 바 위젯 레이아웃 (4x1 가로형 - 정사각형 52dp 앨범아트 + 네이티브 TextView + 큼직한 정원형 버튼)
     write_text("app/src/main/res/layout/gungdi_mini_widget.xml", """
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -414,7 +414,7 @@ dependencies {
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="68dp"
+        android:layout_height="76dp"
         android:layout_gravity="center_vertical">
 
         <!-- 반투명 화이트/다크 라운드 바 배경 -->
@@ -432,13 +432,13 @@ dependencies {
             android:gravity="center_vertical"
             android:paddingStart="10dp"
             android:paddingEnd="8dp"
-            android:paddingBottom="4dp">
+            android:paddingBottom="5dp">
 
-            <!-- 좌측 1:1 정사각형(46dp) 라운드 앨범 표지 -->
+            <!-- 좌측 1:1 정사각형(52dp) 라운드 앨범 표지 -->
             <ImageView
                 android:id="@+id/mini_album_img"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="앨범 표지" />
 
@@ -449,7 +449,7 @@ dependencies {
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="10dp"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="4dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -458,7 +458,7 @@ dependencies {
                     android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:textSize="13.5sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="#222328"
                     android:text="노래를 재생해 보세요" />
@@ -470,12 +470,12 @@ dependencies {
                     android:layout_marginTop="2dp"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:textSize="11sp"
+                    android:textSize="11.5sp"
                     android:textColor="#686B73"
                     android:text="궁디 AI Studio · 1/21" />
             </LinearLayout>
 
-            <!-- 우측 컨트롤 버튼들 (정사각형 dp + fitCenter로 항상 완벽한 원형 유지) -->
+            <!-- 우측 컨트롤 버튼들 (시원시원한 크기 + 정사각형 fitCenter로 항상 완벽한 원형 유지) -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -484,16 +484,16 @@ dependencies {
 
                 <ImageView
                     android:id="@+id/mini_btn_prev"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:padding="5dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:padding="2dp"
                     android:scaleType="fitCenter"
                     android:contentDescription="이전곡" />
 
                 <ImageView
                     android:id="@+id/mini_btn_play"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
                     android:layout_marginStart="2dp"
                     android:layout_marginEnd="2dp"
                     android:scaleType="fitCenter"
@@ -501,18 +501,18 @@ dependencies {
 
                 <ImageView
                     android:id="@+id/mini_btn_next"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:padding="5dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:padding="2dp"
                     android:scaleType="fitCenter"
                     android:contentDescription="다음곡" />
 
                 <ImageView
                     android:id="@+id/mini_btn_settings"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:layout_marginStart="2dp"
-                    android:padding="3dp"
+                    android:padding="2dp"
                     android:scaleType="fitCenter"
                     android:contentDescription="위젯 설정" />
             </LinearLayout>
@@ -522,7 +522,7 @@ dependencies {
         <ImageView
             android:id="@+id/mini_progress_img"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
+            android:layout_height="3.5dp"
             android:layout_gravity="bottom"
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp"
@@ -723,7 +723,7 @@ public class WidgetCanvasRenderer {
     }
 
     /**
-     * 3) 1:1 정원형 광채 재생/일시정지 버튼 아이콘 (정사각형 ImageView + fitCenter로 찌부짜부 0%)
+     * 3) 1:1 정원형 광채 재생/일시정지 버튼 아이콘 (큼직하고 시원시원한 비율 + fitCenter로 찌부짜부 0%)
      */
     public static Bitmap renderPlayButton(int sizePx, boolean isPlaying) {
         int s = Math.max(96, Math.min(180, sizePx));
@@ -732,12 +732,12 @@ public class WidgetCanvasRenderer {
 
         float cx = s * 0.5f;
         float cy = s * 0.5f;
-        float playRadius = s * 0.38f;
+        float playRadius = s * 0.405f;
 
         // 바깥쪽 핑크 후광 링 (아이유 '라일락' 위젯 스타일)
         Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloPaint.setColor(Color.argb(52, 232, 118, 148));
-        canvas.drawCircle(cx, cy, playRadius * 1.24f, haloPaint);
+        haloPaint.setColor(Color.argb(56, 232, 118, 148));
+        canvas.drawCircle(cx, cy, playRadius * 1.21f, haloPaint);
 
         // 메인 로즈핑크 원형 버튼
         Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -748,26 +748,26 @@ public class WidgetCanvasRenderer {
                 Shader.TileMode.CLAMP));
         canvas.drawCircle(cx, cy, playRadius, circlePaint);
 
-        // 내부 둥근 ▶ 또는 ⏸ 아이콘
-        drawRoundedPlayOrPause(canvas, cx, cy, playRadius * 0.44f, isPlaying, Color.WHITE);
+        // 내부 둥근 ▶ 또는 ⏸ 아이콘 (훨씬 또렷하고 크게!)
+        drawRoundedPlayOrPause(canvas, cx, cy, playRadius * 0.50f, isPlaying, Color.WHITE);
         return out;
     }
 
     /**
-     * 4) 1:1 정사각형 이전곡(◀◀) / 다음곡(▶▶) 둥근 버튼 아이콘
+     * 4) 1:1 정사각형 이전곡(◀◀) / 다음곡(▶▶) 둥근 버튼 아이콘 (기존 대비 45% 확대!)
      */
     public static Bitmap renderSkipButton(int sizePx, boolean isPrev, boolean isDark) {
         int s = Math.max(72, Math.min(140, sizePx));
         Bitmap out = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(out);
 
-        int color = isDark ? Color.parseColor("#E2E6F0") : Color.parseColor("#555860");
-        drawRoundedDoubleSkip(canvas, s * 0.5f, s * 0.5f, s * 0.25f, isPrev, color);
+        int color = isDark ? Color.parseColor("#E8ECF5") : Color.parseColor("#4D5058");
+        drawRoundedDoubleSkip(canvas, s * 0.5f, s * 0.5f, s * 0.36f, isPrev, color);
         return out;
     }
 
     /**
-     * 5) 1:1 정사각형 톱니바퀴(⚙) 설정 아이콘 (폰트 깨짐/찌그러짐 없이 기하학 도형으로 깔끔하게 렌더링)
+     * 5) 1:1 정사각형 톱니바퀴(⚙) 설정 아이콘 (폰트 깨짐/찌그러짐 없이 기하학 도형으로 큼직하고 깔끔하게 렌더링)
      */
     public static Bitmap renderSettingsButton(int sizePx, boolean withDarkBadge, boolean isDark) {
         int s = Math.max(72, Math.min(128, sizePx));
@@ -779,19 +779,19 @@ public class WidgetCanvasRenderer {
 
         if (withDarkBadge) {
             Paint badgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            badgePaint.setColor(Color.argb(120, 20, 22, 28));
-            canvas.drawCircle(cx, cy, s * 0.44f, badgePaint);
+            badgePaint.setColor(Color.argb(128, 20, 22, 28));
+            canvas.drawCircle(cx, cy, s * 0.45f, badgePaint);
         }
 
-        int gearColor = withDarkBadge ? Color.WHITE : (isDark ? Color.parseColor("#B8BDCB") : Color.parseColor("#777B84"));
+        int gearColor = withDarkBadge ? Color.WHITE : (isDark ? Color.parseColor("#C2C7D6") : Color.parseColor("#6E727B"));
         Paint toothPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         toothPaint.setColor(gearColor);
         toothPaint.setStyle(Paint.Style.STROKE);
-        toothPaint.setStrokeWidth(s * 0.085f);
+        toothPaint.setStrokeWidth(s * 0.095f);
         toothPaint.setStrokeCap(Paint.Cap.ROUND);
 
-        float outerR = s * 0.25f;
-        float innerR = s * 0.14f;
+        float outerR = s * 0.30f;
+        float innerR = s * 0.16f;
         for (int i = 0; i < 8; i++) {
             double rad = Math.toRadians(i * 45.0);
             float x1 = cx + (float) Math.cos(rad) * innerR;
@@ -804,8 +804,8 @@ public class WidgetCanvasRenderer {
         Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         ringPaint.setColor(gearColor);
         ringPaint.setStyle(Paint.Style.STROKE);
-        ringPaint.setStrokeWidth(s * 0.075f);
-        canvas.drawCircle(cx, cy, s * 0.16f, ringPaint);
+        ringPaint.setStrokeWidth(s * 0.085f);
+        canvas.drawCircle(cx, cy, s * 0.19f, ringPaint);
 
         return out;
     }
@@ -962,7 +962,7 @@ public class GungdiWidgetProvider extends AppWidgetProvider {
                 WidgetCanvasRenderer.renderRoundedAlbumCover(context, wPx, hPx, cornerRadius));
 
         int barW = Math.max(220, wPx - (int) (20 * scale));
-        int barH = (int) (82 * scale);
+        int barH = (int) (92 * scale);
         views.setImageViewBitmap(R.id.card_bar_bg,
                 WidgetCanvasRenderer.renderFloatingBarBackground(barW, barH, barH * 0.25f, isDark, opacity, false));
 
@@ -1074,7 +1074,7 @@ public class GungdiMiniWidgetProvider extends AppWidgetProvider {
 
         float scale = Math.min(2.2f, Math.max(1.5f, context.getResources().getDisplayMetrics().density));
         int barW = Math.max(320, Math.min(680, (int) (wDp * scale)));
-        int barH = (int) (68 * scale);
+        int barH = (int) (76 * scale);
 
         boolean isDark = PlaybackStateStore.widgetDarkMode;
         int opacity = PlaybackStateStore.widgetOpacity;

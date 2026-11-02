@@ -369,6 +369,193 @@
             margin-top: 6px;
         }
 
+        /* =========================================================
+           가사 (Lyrics) 카드 & 타임싱크/스크롤 뷰어 스타일
+           ========================================================= */
+        .album-wrapper {
+            cursor: pointer;
+        }
+        .lp-lyrics-hint {
+            position: absolute;
+            bottom: 4px;
+            z-index: 6;
+            background: rgba(20, 22, 28, 0.72);
+            backdrop-filter: blur(6px);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 11px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.22);
+            pointer-events: none;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .lyrics-card-panel {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 274px;
+            margin: 22px auto 10px auto;
+            background: var(--sub-bg);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 12px 14px;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.06);
+        }
+        .lyrics-card-panel.active {
+            display: flex;
+            animation: fadeInLyrics 0.22s ease-out;
+        }
+        @keyframes fadeInLyrics {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .lyrics-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .lyrics-source-badge {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 3px 9px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .lyrics-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lyrics-mini-btn {
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.15s;
+        }
+        .lyrics-mini-btn:active {
+            transform: scale(0.95);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .lyrics-scroll-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 6px 26px 6px;
+            text-align: center;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .lyrics-scroll-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .lyrics-scroll-box::-webkit-scrollbar-thumb {
+            background: rgba(153,153,153,0.28);
+            border-radius: 4px;
+        }
+        .lyric-line {
+            font-size: 14.5px;
+            line-height: 1.75;
+            color: var(--sub-text);
+            margin: 5px 0;
+            padding: 3px 8px;
+            border-radius: 10px;
+            transition: color 0.22s ease, transform 0.22s ease, font-weight 0.22s ease, background 0.22s ease;
+            word-break: keep-all;
+        }
+        .lyric-line.timed {
+            cursor: pointer;
+        }
+        .lyric-line.timed:active {
+            background: var(--primary-light);
+        }
+        .lyric-line.active {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 15.5px;
+            transform: scale(1.03);
+            background: var(--primary-light);
+        }
+        .lyric-section-tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 2px 9px;
+            border-radius: 10px;
+            margin: 12px 0 4px 0;
+            letter-spacing: 0.4px;
+        }
+        .lyrics-empty-box {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-size: 13px;
+            gap: 10px;
+            line-height: 1.5;
+        }
+        .song-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .song-meta-row .song-badge {
+            margin-bottom: 0;
+        }
+        .lyrics-pill-toggle {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--sub-text);
+            background: var(--sub-bg);
+            border: 1px solid var(--border);
+            padding: 3px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .lyrics-pill-toggle.has-lyrics {
+            color: var(--primary);
+            border-color: rgba(255, 107, 129, 0.35);
+            background: var(--primary-light);
+        }
+        .lyrics-pill-toggle.active-view {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
         /* =================================================
            [좌측 탭] 유튜브 뮤직 / 애플 뮤직 스타일 큐레이션 홈
            ================================================= */
@@ -1337,6 +1524,21 @@
             </div>
         </div>
 
+        <!-- 가사 직접 입력 / 수정 모달 -->
+        <div id="lyricsEditModal" class="modal-overlay" onclick="closeLyricsEditModal()">
+            <div class="modal-content" style="max-width:340px;" onclick="event.stopPropagation()">
+                <h3 style="margin:0 0 4px 0; font-size:16px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    <span>🎤 가사 등록 / 수정</span>
+                </h3>
+                <p id="lyricsEditSongTitle" style="margin:0 0 8px 0; font-size:12px; color:var(--primary); font-weight:600;"></p>
+                <textarea id="lyricsEditTextarea" rows="8" placeholder="여기에 가사를 입력하거나 붙여넣으세요.&#10;(일반 가사 또는 [00:12.30] 타임싱크 가사 모두 지원)" style="width:100%; padding:10px; margin:4px 0 10px 0; border:1px solid var(--border); border-radius:12px; box-sizing:border-box; background:var(--sub-bg); color:var(--text); font-family:inherit; font-size:13px; line-height:1.55; resize:none; outline:none;"></textarea>
+                <div style="display:flex; gap:8px;">
+                    <button class="action-btn" style="flex:1; background:var(--sub-bg); border:none; color:var(--sub-text);" onclick="closeLyricsEditModal()">취소</button>
+                    <button class="action-btn" style="flex:1; background:var(--primary); border:none; color:white; font-weight:700;" onclick="saveCustomLyricsFromModal()">저장하기</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 앱 종료 확인 커스텀 모달 -->
         <div id="exitConfirmModal" class="modal-overlay" onclick="closeExitModal()">
             <div class="exit-modal-card" onclick="event.stopPropagation()">
@@ -1399,7 +1601,7 @@
                 <span class="material-symbols-outlined settings-btn" onclick="openSettingsMenu()">settings</span>
             </div>
             <div class="player-content">
-                <div class="album-wrapper rgb-on" id="albumWrapper">
+                <div class="album-wrapper rgb-on" id="albumWrapper" title="터치하면 가사 보기로 전환됩니다">
                     <div class="rgb-glow" id="rgbGlow"></div>
                     <div class="album-art" id="albumArt">
                         <div class="album-disc" id="albumDisc">
@@ -1407,10 +1609,31 @@
                             <span class="album-art-sub" id="albumArtSub">GUNGDI STUDIO</span>
                         </div>
                     </div>
+                    <div class="lp-lyrics-hint" id="lpLyricsHint">📜 터치하면 가사</div>
                 </div>
+
+                <!-- 🎤 가사 보기 카드 패널 (LP 앨범 표지 터치 또는 [📜 가사] 버튼 클릭 시 전환) -->
+                <div class="lyrics-card-panel" id="lyricsCardPanel">
+                    <div class="lyrics-card-header">
+                        <span class="lyrics-source-badge" id="lyricsSourceBadge">🎤 ID3 가사</span>
+                        <div class="lyrics-header-actions">
+                            <button class="lyrics-mini-btn" onclick="openLyricsEditModal()">✏️ 가사편집</button>
+                            <button class="lyrics-mini-btn" onclick="toggleLyricsMode(false)">💿 앨범보기</button>
+                        </div>
+                    </div>
+                    <div class="lyrics-scroll-box" id="lyricsScrollBox">
+                        <div class="lyrics-empty-box">노래를 재생하면 MP3 속 내장 가사를 자동으로 불러옵니다.</div>
+                    </div>
+                </div>
+
                 <div class="player-bottom-area">
                     <div class="song-info">
-                        <span class="song-badge" id="songBadge">AI ORIGINAL</span>
+                        <div class="song-meta-row">
+                            <span class="song-badge" id="songBadge">AI ORIGINAL</span>
+                            <button class="lyrics-pill-toggle" id="lyricsTogglePill" onclick="toggleLyricsMode()">
+                                <span id="lyricsPillText">📜 가사 보기</span>
+                            </button>
+                        </div>
                         <h2 id="title">선택된 곡 없음</h2>
                         <p id="artist">추천 탭에서 내 AI 곡을 바로 들어보세요</p>
                     </div>
@@ -2554,11 +2777,26 @@
     window.addEventListener('touchend', endDrag);
 
     let touchStartX = 0;
-    albumWrapper.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
-    albumWrapper.addEventListener('touchend', (e) => {
-        const diff = touchStartX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 50) diff > 0 ? nextSong(true) : prevSong();
+    let touchStartY = 0;
+    let lastTouchToggleTime = 0;
+    albumWrapper.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
     }, { passive: true });
+    albumWrapper.addEventListener('touchend', (e) => {
+        const diffX = touchStartX - e.changedTouches[0].clientX;
+        const diffY = touchStartY - e.changedTouches[0].clientY;
+        if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+            diffX > 0 ? nextSong(true) : prevSong();
+        } else if (Math.abs(diffX) < 14 && Math.abs(diffY) < 14) {
+            lastTouchToggleTime = Date.now();
+            toggleLyricsMode(true);
+        }
+    }, { passive: true });
+    albumWrapper.addEventListener('click', () => {
+        if (Date.now() - lastTouchToggleTime < 450) return;
+        toggleLyricsMode(true);
+    });
 
     function toggleDarkMode() {
         const isDark = document.getElementById('setDarkModeToggle').checked;
@@ -3680,9 +3918,15 @@
        오디오 메타데이터 추출 및 재생 컨트롤
        ========================================================================= */
     async function getSongMetadata(file) {
+        let binaryLyrics = null;
+        try {
+            const buf = await file.arrayBuffer();
+            binaryLyrics = extractLyricsFromArrayBuffer(buf);
+        } catch (e) {}
+
         return new Promise((resolve) => {
             if (!window.jsmediatags) {
-                resolve({ name: file.name.replace(/\.[^/.]+$/, ""), artist: "로컬 음악", cover: null });
+                resolve({ name: file.name.replace(/\.[^/.]+$/, ""), artist: "로컬 음악", cover: null, lyrics: binaryLyrics || null });
                 return;
             }
             window.jsmediatags.read(file, {
@@ -3699,16 +3943,19 @@
                         }
                         coverUrl = `data:${format};base64,${window.btoa(base64)}`;
                     }
+                    const tagLyrics = extractLyricsFromJsMediaTags(t) || binaryLyrics || null;
                     resolve({
                         name: t.title || file.name.replace(/\.[^/.]+$/, ""),
                         artist: t.artist || "로컬 아티스트",
-                        cover: coverUrl
+                        cover: coverUrl,
+                        lyrics: tagLyrics
                     });
                 },
                 onError: () => resolve({
                     name: file.name.replace(/\.[^/.]+$/, ""),
                     artist: "로컬 음악",
-                    cover: null
+                    cover: null,
+                    lyrics: binaryLyrics || null
                 })
             });
         });
@@ -3748,8 +3995,9 @@
         }
 
         setMainPlayerCoverDisplay(s);
+        renderLyricsForCurrentSong();
 
-        if (s.isAi && !s.cover && s.id) {
+        if (s.isAi && s.id && (!s.cover || s.lyrics === undefined)) {
             ensureSingleSongCover(s.id);
         }
 
@@ -3969,6 +4217,7 @@
             progressThumb.style.left = p + "%";
             document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
             document.getElementById('totalTime').innerText = formatTime(audio.duration);
+            syncLyricsPlaybackPosition(audio.currentTime, audio.duration);
 
             const now = Date.now();
             if (now - lastWidgetProgressSync > 1200) {
@@ -4388,6 +4637,16 @@
             closeSettingsMenu();
             return;
         }
+        if (document.getElementById('lyricsEditModal') && document.getElementById('lyricsEditModal').style.display === 'flex') {
+            closeLyricsEditModal();
+            return;
+        }
+
+        // 가사 카드가 열려 있는 상태에서 메인 화면 뒤로가기 시 LP판으로 복귀
+        if (currentViewId === 'playerView' && isLyricsModeActive) {
+            toggleLyricsMode(false);
+            return;
+        }
 
         // 2순위: 편집 모드 중이면 편집 모드 종료
         if (currentViewId === 'libraryView' && isPliEditMode) {
@@ -4517,17 +4776,23 @@
        스마트폰/PC 파일 선택기로 오디오 추가 + 로컬 오디오 파일도 IndexedDB 영구 보관
        ========================================================================= */
     async function syncLocalFileCoverWithAiSong(file, meta) {
-        if (!meta || !meta.cover) return;
+        if (!meta) return;
         const cleanFileName = file.name.replace(/\.[^/.]+$/, "").trim();
         const matchedAi = AI_SONGS.find(s =>
             s.name === cleanFileName ||
             cleanFileName.includes(s.name) ||
             s.name.includes(cleanFileName)
         );
-        if (matchedAi && !matchedAi.cover) {
+        if (!matchedAi) return;
+        if (meta.cover && !matchedAi.cover) {
             matchedAi.cover = meta.cover;
             await setCachedCover(`ai_song_${matchedAi.id}`, meta.cover);
             applyExtractedCoverToAllLists(matchedAi.id, meta.cover);
+        }
+        if (meta.lyrics && !matchedAi.lyrics) {
+            matchedAi.lyrics = meta.lyrics;
+            await setCachedLyrics(`ai_song_${matchedAi.id}`, meta.lyrics);
+            applyExtractedLyricsToAllLists(matchedAi.id, meta.lyrics);
         }
     }
 
@@ -4538,7 +4803,7 @@
             const m = await getSongMetadata(f);
             await syncLocalFileCoverWithAiSong(f, m);
             const localKey = `local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-            await saveLocalAudioRecord(localKey, f, m.cover);
+            await saveLocalAudioRecord(localKey, f, m.cover, m.lyrics);
             playQueue.push({ ...m, localKey, url: URL.createObjectURL(f), isAi: false });
         }
         saveAppState();
@@ -4559,7 +4824,7 @@
             const m = await getSongMetadata(f);
             await syncLocalFileCoverWithAiSong(f, m);
             const localKey = `local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-            await saveLocalAudioRecord(localKey, f, m.cover);
+            await saveLocalAudioRecord(localKey, f, m.cover, m.lyrics);
             folders[currentOpenFolder].push({ ...m, localKey, url: URL.createObjectURL(f), isAi: false });
         }
         saveAppState();
@@ -4572,17 +4837,429 @@
     playBtn.onclick = () => isPlaying ? pauseAudio() : playAudio();
 
     /* =========================================================================
-       [IndexedDB 캐시: AI 앨범 표지 + 로컬 오디오 파일 영구 보존]
+       [가사(Lyrics) 시스템: ID3v2 USLT/SYLT/TXXX 추출 + LRC 타임싱크 + 수동 편집]
+       ========================================================================= */
+    let isLyricsModeActive = false;
+    let currentParsedLyrics = []; // [{ time: number|null, text: string, isSection: boolean }]
+    let currentActiveLyricIndex = -1;
+    const CUSTOM_LYRICS_STORAGE_KEY = "gungdi_custom_lyrics_v1";
+
+    function getCustomLyricsMap() {
+        try {
+            return JSON.parse(localStorage.getItem(CUSTOM_LYRICS_STORAGE_KEY) || "{}");
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveCustomLyricsForSong(songKey, lyricsText) {
+        try {
+            const map = getCustomLyricsMap();
+            if (lyricsText && lyricsText.trim()) {
+                map[songKey] = lyricsText.trim();
+            } else {
+                delete map[songKey];
+            }
+            localStorage.setItem(CUSTOM_LYRICS_STORAGE_KEY, JSON.stringify(map));
+        } catch (e) {}
+    }
+
+    function getSongLyricsCacheKey(song) {
+        if (!song) return "";
+        if (song.id) return `ai_song_${song.id}`;
+        if (song.localKey) return song.localKey;
+        return `name_${(song.name || '').trim()}`;
+    }
+
+    function toggleLyricsMode(forceState) {
+        const nextState = typeof forceState === 'boolean' ? forceState : !isLyricsModeActive;
+        isLyricsModeActive = nextState;
+        const albumWrap = document.getElementById('albumWrapper');
+        const lyricsPanel = document.getElementById('lyricsCardPanel');
+        const pillBtn = document.getElementById('lyricsTogglePill');
+        const pillText = document.getElementById('lyricsTogglePillText');
+
+        if (isLyricsModeActive) {
+            if (albumWrap) albumWrap.style.display = 'none';
+            if (lyricsPanel) lyricsPanel.classList.add('active');
+            if (pillBtn) pillBtn.classList.add('active');
+            if (pillText) pillText.innerText = '💿 LP판 보기';
+            renderLyricsForCurrentSong();
+        } else {
+            if (lyricsPanel) lyricsPanel.classList.remove('active');
+            if (albumWrap) albumWrap.style.display = 'flex';
+            if (pillBtn) pillBtn.classList.remove('active');
+            if (pillText) pillText.innerText = '📜 가사 보기';
+        }
+    }
+
+    function parseLyricsLines(rawLyrics) {
+        if (!rawLyrics || typeof rawLyrics !== 'string') return [];
+        const lines = rawLyrics.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        const parsed = [];
+        const lrcRegex = /^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\](.*)$/;
+        const sectionRegex = /^\[(Verse|Chorus|Pre-Chorus|Bridge|Intro|Outro|Hook|Interlude|Solo|Drop|Instrumental|절|후렴|브릿지|간주)[^\]]*\]$/i;
+
+        for (let rawLine of lines) {
+            let trimmed = rawLine.trim();
+            const lrcMatch = trimmed.match(lrcRegex);
+            if (lrcMatch) {
+                const mins = parseInt(lrcMatch[1], 10);
+                const secs = parseInt(lrcMatch[2], 10);
+                const msRaw = lrcMatch[3] || "0";
+                const ms = parseInt(msRaw.padEnd(3, '0').slice(0, 3), 10);
+                const timeSec = mins * 60 + secs + (ms / 1000);
+                const text = (lrcMatch[4] || "").trim();
+                if (text) {
+                    parsed.push({
+                        time: timeSec,
+                        text,
+                        isSection: sectionRegex.test(text)
+                    });
+                }
+            } else if (trimmed.length > 0) {
+                parsed.push({
+                    time: null,
+                    text: trimmed,
+                    isSection: sectionRegex.test(trimmed)
+                });
+            } else if (parsed.length > 0 && !parsed[parsed.length - 1].isSpacer) {
+                parsed.push({ time: null, text: "", isSection: false, isSpacer: true });
+            }
+        }
+        return parsed;
+    }
+
+    function escapeHtmlSafe(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderLyricsForCurrentSong() {
+        const box = document.getElementById('lyricsScrollBox');
+        const hintEl = document.getElementById('lpLyricsHint');
+        if (!box) return;
+
+        const currentSong = playQueue[currentSongIndex];
+        if (!currentSong) {
+            currentParsedLyrics = [];
+            box.innerHTML = `<div class="lyrics-empty-state"><span class="empty-icon">🍑</span>재생 중인 곡이 없습니다.<br>곡을 재생하면 MP3에 내장된 가사를 자동으로 불러옵니다.</div>`;
+            if (hintEl) hintEl.innerHTML = `<span>📜</span> 가사 보기`;
+            return;
+        }
+
+        const customMap = getCustomLyricsMap();
+        const cacheKey = getSongLyricsCacheKey(currentSong);
+        const nameKey = `name_${(currentSong.name || '').trim()}`;
+        const rawLyrics = customMap[cacheKey] || customMap[nameKey] || currentSong.lyrics || "";
+
+        if (hintEl) {
+            hintEl.innerHTML = rawLyrics
+                ? `<span>📜</span> 가사 보기 · 터치`
+                : `<span>📜</span> 가사 패널 열기`;
+        }
+
+        if (!rawLyrics || !rawLyrics.trim()) {
+            currentParsedLyrics = [];
+            currentActiveLyricIndex = -1;
+            box.innerHTML = `
+                <div class="lyrics-empty-state">
+                    <span class="empty-icon">📝</span>
+                    <div>이 곡에 내장된 가사(ID3 USLT)를 찾지 못했거나<br>아직 분석 중입니다.</div>
+                    <button class="lyrics-action-btn" onclick="openLyricsEditModal()" style="margin-top:4px; padding:7px 14px; font-size:0.78rem;">✏️ 직접 가사 입력 / 붙여넣기</button>
+                </div>`;
+            return;
+        }
+
+        currentParsedLyrics = parseLyricsLines(rawLyrics);
+        currentActiveLyricIndex = -1;
+
+        box.innerHTML = currentParsedLyrics.map((item, idx) => {
+            if (item.isSpacer) {
+                return `<div style="height:10px;"></div>`;
+            }
+            if (item.isSection) {
+                return `<div class="lyric-section-tag" data-lyric-idx="${idx}">${escapeHtmlSafe(item.text)}</div>`;
+            }
+            const clickAttr = (typeof item.time === 'number')
+                ? `onclick="seekToLyricTime(${item.time})"`
+                : '';
+            return `<div class="lyric-line" id="lyric-line-${idx}" data-lyric-idx="${idx}" ${clickAttr}>${escapeHtmlSafe(item.text)}</div>`;
+        }).join('');
+
+        syncLyricsPlaybackPosition(audio.currentTime || 0, audio.duration || 0);
+    }
+
+    function seekToLyricTime(sec) {
+        if (!audio.src || isNaN(sec)) return;
+        audio.currentTime = Math.max(0, sec);
+        if (!isPlaying) playAudio();
+    }
+
+    function syncLyricsPlaybackPosition(currentTime, duration) {
+        if (!isLyricsModeActive || !currentParsedLyrics.length) return;
+        const box = document.getElementById('lyricsScrollBox');
+        if (!box) return;
+
+        const hasTimedLines = currentParsedLyrics.some(l => typeof l.time === 'number');
+        let targetIdx = -1;
+
+        if (hasTimedLines) {
+            for (let i = 0; i < currentParsedLyrics.length; i++) {
+                const t = currentParsedLyrics[i].time;
+                if (typeof t === 'number' && currentTime + 0.25 >= t) {
+                    targetIdx = i;
+                }
+            }
+        } else if (duration > 5 && currentTime > 0) {
+            // 일반 줄글 가사인 경우 재생 진행률(10% ~ 92% 구간)에 맞춰 하이라이트 줄을 자연스럽게 이동
+            const playableIndices = [];
+            currentParsedLyrics.forEach((item, idx) => {
+                if (!item.isSpacer && !item.isSection) playableIndices.push(idx);
+            });
+            if (playableIndices.length > 0) {
+                const effectiveRatio = Math.min(1, Math.max(0, (currentTime - duration * 0.05) / (duration * 0.86)));
+                const pickOrder = Math.min(playableIndices.length - 1, Math.floor(effectiveRatio * playableIndices.length));
+                targetIdx = playableIndices[pickOrder];
+            }
+        }
+
+        if (targetIdx !== -1 && targetIdx !== currentActiveLyricIndex) {
+            currentActiveLyricIndex = targetIdx;
+            const allLines = box.querySelectorAll('.lyric-line');
+            allLines.forEach(el => {
+                const idx = parseInt(el.getAttribute('data-lyric-idx'), 10);
+                el.classList.toggle('active-line', idx === targetIdx);
+                el.classList.toggle('past-line', idx < targetIdx);
+            });
+            const activeEl = document.getElementById(`lyric-line-${targetIdx}`);
+            if (activeEl) {
+                const targetScrollTop = activeEl.offsetTop - (box.clientHeight / 2) + (activeEl.clientHeight / 2);
+                box.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+            }
+        }
+    }
+
+    function openLyricsEditModal() {
+        const currentSong = playQueue[currentSongIndex];
+        if (!currentSong) {
+            showToast("먼저 노래를 선택해 주세요.");
+            return;
+        }
+        const customMap = getCustomLyricsMap();
+        const cacheKey = getSongLyricsCacheKey(currentSong);
+        const nameKey = `name_${(currentSong.name || '').trim()}`;
+        const existing = customMap[cacheKey] || customMap[nameKey] || currentSong.lyrics || "";
+        const textarea = document.getElementById('lyricsEditTextarea');
+        if (textarea) textarea.value = existing;
+        ensureHistoryGuard();
+        document.getElementById('lyricsEditModal').style.display = 'flex';
+        setTimeout(() => { if (textarea) textarea.focus(); }, 60);
+    }
+
+    function closeLyricsEditModal() {
+        const modal = document.getElementById('lyricsEditModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function saveCustomLyricsFromModal() {
+        const currentSong = playQueue[currentSongIndex];
+        if (!currentSong) {
+            closeLyricsEditModal();
+            return;
+        }
+        const textarea = document.getElementById('lyricsEditTextarea');
+        const val = textarea ? textarea.value.trim() : "";
+        const cacheKey = getSongLyricsCacheKey(currentSong);
+        saveCustomLyricsForSong(cacheKey, val);
+        currentSong.lyrics = val || null;
+        if (currentSong.id) {
+            await setCachedLyrics(`ai_song_${currentSong.id}`, val || "");
+            applyExtractedLyricsToAllLists(currentSong.id, val || null);
+        }
+        closeLyricsEditModal();
+        renderLyricsForCurrentSong();
+        showToast(val ? "가사가 저장되었습니다! 📜" : "가사가 초기화되었습니다.");
+    }
+
+    function extractLyricsFromJsMediaTags(tags) {
+        if (!tags) return null;
+        // 1. 표준 lyrics / USLT 프레임
+        if (tags.lyrics) {
+            if (typeof tags.lyrics === 'string' && tags.lyrics.trim()) return tags.lyrics.trim();
+            if (typeof tags.lyrics.lyrics === 'string' && tags.lyrics.lyrics.trim()) return tags.lyrics.lyrics.trim();
+            if (typeof tags.lyrics.text === 'string' && tags.lyrics.text.trim()) return tags.lyrics.text.trim();
+        }
+        if (tags.USLT) {
+            const u = tags.USLT.data || tags.USLT;
+            if (typeof u === 'string' && u.trim()) return u.trim();
+            if (u && typeof u.lyrics === 'string' && u.lyrics.trim()) return u.lyrics.lyrics.trim ? u.lyrics.lyrics.trim() : u.lyrics.trim();
+            if (u && typeof u.text === 'string' && u.text.trim()) return u.text.trim();
+        }
+        // 2. TXXX 사용자 정의 프레임 (LYRICS, UNSYNCEDLYRICS, PROMPT 등)
+        for (const k of Object.keys(tags)) {
+            const item = tags[k];
+            if (!item) continue;
+            const desc = String(item.description || item.id || k).toUpperCase();
+            if (desc.includes('LYRIC') || desc.includes('USLT') || desc.includes('UNSYNCED')) {
+                const d = item.data || item.text || item.value;
+                if (typeof d === 'string' && d.trim().length > 8) return d.trim();
+                if (d && typeof d.lyrics === 'string' && d.lyrics.trim()) return d.lyrics.trim();
+            }
+        }
+        return null;
+    }
+
+    function decodeId3TextBytes(bytes, encodingByte) {
+        if (!bytes || !bytes.length) return "";
+        try {
+            if (encodingByte === 1 || encodingByte === 2) {
+                // UTF-16 with BOM (1) or UTF-16BE (2)
+                let offset = 0;
+                let decoderLabel = encodingByte === 2 ? 'utf-16be' : 'utf-16le';
+                if (bytes.length >= 2) {
+                    if (bytes[0] === 0xFF && bytes[1] === 0xFE) {
+                        decoderLabel = 'utf-16le';
+                        offset = 2;
+                    } else if (bytes[0] === 0xFE && bytes[1] === 0xFF) {
+                        decoderLabel = 'utf-16be';
+                        offset = 2;
+                    }
+                }
+                return new TextDecoder(decoderLabel).decode(bytes.subarray(offset)).replace(/\0/g, '').trim();
+            }
+            // UTF-8 (3) 또는 ISO-8859-1 (0) - 한국어 깨짐 방지를 위해 UTF-8 우선 디코딩
+            return new TextDecoder('utf-8', { fatal: false }).decode(bytes).replace(/\0/g, '').trim();
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function extractLyricsFromArrayBuffer(buffer) {
+        try {
+            const bytes = new Uint8Array(buffer);
+            if (bytes.length < 14 || bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) return null;
+            const version = bytes[3]; // 2, 3, or 4
+            const id3Size = ((bytes[6] & 0x7f) << 21) | ((bytes[7] & 0x7f) << 14) | ((bytes[8] & 0x7f) << 7) | (bytes[9] & 0x7f);
+            const limit = Math.min(bytes.length, id3Size + 10);
+
+            let pos = 10;
+            // 확장 헤더 건너뛰기
+            if ((bytes[5] & 0x40) !== 0 && pos + 4 < limit) {
+                const extSize = version === 4
+                    ? (((bytes[pos] & 0x7f) << 21) | ((bytes[pos+1] & 0x7f) << 14) | ((bytes[pos+2] & 0x7f) << 7) | (bytes[pos+3] & 0x7f))
+                    : ((bytes[pos] << 24) | (bytes[pos+1] << 16) | (bytes[pos+2] << 8) | bytes[pos+3]);
+                if (extSize > 0) pos += extSize;
+            }
+
+            let fallbackCommentCandidate = null;
+
+            while (pos + 10 <= limit) {
+                if (bytes[pos] === 0) break; // padding 도달
+                const frameId = String.fromCharCode(bytes[pos], bytes[pos+1], bytes[pos+2], bytes[pos+3]);
+                const s0 = bytes[pos+4], s1 = bytes[pos+5], s2 = bytes[pos+6], s3 = bytes[pos+7];
+                const frameSize = version === 4
+                    ? (((s0 & 0x7f) << 21) | ((s1 & 0x7f) << 14) | ((s2 & 0x7f) << 7) | (s3 & 0x7f))
+                    : ((s0 << 24) | (s1 << 16) | (s2 << 8) | s3);
+
+                if (frameSize <= 0 || pos + 10 + frameSize > limit) break;
+                const body = bytes.subarray(pos + 10, pos + 10 + frameSize);
+
+                if (frameId === 'USLT' && body.length > 4) {
+                    const enc = body[0];
+                    // body[1..3] = 3-byte language code (e.g. 'eng', 'kor', 'xxx')
+                    let contentStart = 4;
+                    if (enc === 1 || enc === 2) {
+                        // UTF-16 null terminator (0x00 0x00) 건너뛰기
+                        while (contentStart + 1 < body.length) {
+                            if (body[contentStart] === 0 && body[contentStart + 1] === 0) {
+                                contentStart += 2;
+                                break;
+                            }
+                            contentStart += 2;
+                        }
+                    } else {
+                        while (contentStart < body.length) {
+                            if (body[contentStart] === 0) {
+                                contentStart += 1;
+                                break;
+                            }
+                            contentStart += 1;
+                        }
+                    }
+                    const text = decodeId3TextBytes(body.subarray(contentStart), enc);
+                    if (text && text.length > 4) return text;
+                } else if (frameId === 'TXXX' && body.length > 2) {
+                    const enc = body[0];
+                    let sep = 1;
+                    if (enc === 1 || enc === 2) {
+                        while (sep + 1 < body.length) {
+                            if (body[sep] === 0 && body[sep + 1] === 0) break;
+                            sep += 2;
+                        }
+                        const desc = decodeId3TextBytes(body.subarray(1, sep), enc).toUpperCase();
+                        const val = decodeId3TextBytes(body.subarray(Math.min(body.length, sep + 2)), enc);
+                        if ((desc.includes('LYRIC') || desc.includes('USLT') || desc.includes('PROMPT')) && val.length > 10) {
+                            return val;
+                        }
+                    } else {
+                        while (sep < body.length && body[sep] !== 0) sep++;
+                        const desc = decodeId3TextBytes(body.subarray(1, sep), enc).toUpperCase();
+                        const val = decodeId3TextBytes(body.subarray(Math.min(body.length, sep + 1)), enc);
+                        if ((desc.includes('LYRIC') || desc.includes('USLT') || desc.includes('PROMPT')) && val.length > 10) {
+                            return val;
+                        }
+                    }
+                } else if (frameId === 'COMM' && body.length > 4 && !fallbackCommentCandidate) {
+                    const enc = body[0];
+                    let contentStart = 4;
+                    if (enc === 1 || enc === 2) {
+                        while (contentStart + 1 < body.length) {
+                            if (body[contentStart] === 0 && body[contentStart + 1] === 0) {
+                                contentStart += 2;
+                                break;
+                            }
+                            contentStart += 2;
+                        }
+                    } else {
+                        while (contentStart < body.length) {
+                            if (body[contentStart] === 0) {
+                                contentStart += 1;
+                                break;
+                            }
+                            contentStart += 1;
+                        }
+                    }
+                    const commText = decodeId3TextBytes(body.subarray(contentStart), enc);
+                    if (commText && commText.includes('\n') && commText.length > 30) {
+                        fallbackCommentCandidate = commText;
+                    }
+                }
+
+                pos += 10 + frameSize;
+            }
+            return fallbackCommentCandidate;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /* =========================================================================
+       [IndexedDB 캐시: AI 앨범 표지 + 내장 가사 + 로컬 오디오 파일 영구 보존]
        ========================================================================= */
     const COVER_DB_NAME = "GungdiCoverCacheDB_v3";
     const COVER_STORE_NAME = "covers";
+    const LYRICS_STORE_NAME = "lyrics";
     const LOCAL_AUDIO_STORE = "local_audio";
     const extractingSongIds = new Set();
 
     function openCoverDB() {
         return new Promise((resolve, reject) => {
             if (!window.indexedDB) return reject("No IndexedDB");
-            const req = indexedDB.open(COVER_DB_NAME, 1);
+            const req = indexedDB.open(COVER_DB_NAME, 2);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains(COVER_STORE_NAME)) {
@@ -4591,18 +5268,21 @@
                 if (!db.objectStoreNames.contains(LOCAL_AUDIO_STORE)) {
                     db.createObjectStore(LOCAL_AUDIO_STORE);
                 }
+                if (!db.objectStoreNames.contains(LYRICS_STORE_NAME)) {
+                    db.createObjectStore(LYRICS_STORE_NAME);
+                }
             };
             req.onsuccess = () => resolve(req.result);
             req.onerror = () => reject(req.error);
         });
     }
 
-    async function saveLocalAudioRecord(localKey, fileBlob, coverDataUrl) {
+    async function saveLocalAudioRecord(localKey, fileBlob, coverDataUrl, lyricsText = null) {
         try {
             const db = await openCoverDB();
             return await new Promise((resolve) => {
                 const tx = db.transaction(LOCAL_AUDIO_STORE, "readwrite");
-                tx.objectStore(LOCAL_AUDIO_STORE).put({ blob: fileBlob, cover: coverDataUrl || null }, localKey);
+                tx.objectStore(LOCAL_AUDIO_STORE).put({ blob: fileBlob, cover: coverDataUrl || null, lyrics: lyricsText || null }, localKey);
                 tx.oncomplete = () => resolve(true);
                 tx.onerror = () => resolve(false);
             });
@@ -4633,6 +5313,7 @@
                 if (rec && rec.blob) {
                     s.url = URL.createObjectURL(rec.blob);
                     if (rec.cover) s.cover = rec.cover;
+                    if (rec.lyrics) s.lyrics = rec.lyrics;
                     changed = true;
                 }
             }
@@ -4644,6 +5325,7 @@
                     if (rec && rec.blob) {
                         s.url = URL.createObjectURL(rec.blob);
                         if (rec.cover) s.cover = rec.cover;
+                        if (rec.lyrics) s.lyrics = rec.lyrics;
                         changed = true;
                     }
                 }
@@ -4675,6 +5357,34 @@
             return await new Promise((resolve) => {
                 const tx = db.transaction(COVER_STORE_NAME, "readwrite");
                 tx.objectStore(COVER_STORE_NAME).put(dataUrl, key);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function getCachedLyrics(key) {
+        try {
+            const db = await openCoverDB();
+            return await new Promise((resolve) => {
+                const tx = db.transaction(LYRICS_STORE_NAME, "readonly");
+                const req = tx.objectStore(LYRICS_STORE_NAME).get(key);
+                req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function setCachedLyrics(key, lyricsText) {
+        try {
+            const db = await openCoverDB();
+            return await new Promise((resolve) => {
+                const tx = db.transaction(LYRICS_STORE_NAME, "readwrite");
+                tx.objectStore(LYRICS_STORE_NAME).put(lyricsText, key);
                 tx.oncomplete = () => resolve(true);
                 tx.onerror = () => resolve(false);
             });
@@ -4755,7 +5465,7 @@
         }
     }
 
-    async function extractCoverFromSongUrl(song) {
+    async function extractCoverAndLyricsFromSongUrl(song, needCover = true, needLyrics = true) {
         const tryUrls = [song.url];
         if (song.fallbackUrl) tryUrls.push(song.fallbackUrl);
 
@@ -4767,39 +5477,58 @@
                 if (!res.ok) continue;
 
                 const buffer = await res.arrayBuffer();
+                let foundCover = null;
+                let foundLyrics = null;
 
                 if (window.jsmediatags) {
                     const blob = new Blob([buffer], { type: "audio/mpeg" });
-                    const tagCover = await new Promise((resolve) => {
+                    const tagParsed = await new Promise((resolve) => {
                         window.jsmediatags.read(blob, {
                             onSuccess: (tag) => {
+                                let coverUrl = null;
                                 const pic = tag.tags && tag.tags.picture;
-                                if (!pic || !pic.data || !pic.data.length) return resolve(null);
-                                const { data, format } = pic;
-                                let binary = "";
-                                const u8 = new Uint8Array(data);
-                                const chunkSize = 8192;
-                                for (let i = 0; i < u8.length; i += chunkSize) {
-                                    binary += String.fromCharCode.apply(null, u8.subarray(i, i + chunkSize));
+                                if (needCover && pic && pic.data && pic.data.length) {
+                                    const { data, format } = pic;
+                                    let binary = "";
+                                    const u8 = new Uint8Array(data);
+                                    const chunkSize = 8192;
+                                    for (let i = 0; i < u8.length; i += chunkSize) {
+                                        binary += String.fromCharCode.apply(null, u8.subarray(i, i + chunkSize));
+                                    }
+                                    const fmt = (format && format.includes('/')) ? format : 'image/jpeg';
+                                    coverUrl = `data:${fmt};base64,${window.btoa(binary)}`;
                                 }
-                                const fmt = (format && format.includes('/')) ? format : 'image/jpeg';
-                                resolve(`data:${fmt};base64,${window.btoa(binary)}`);
+                                const lyr = needLyrics ? extractLyricsFromJsMediaTags(tag.tags) : null;
+                                resolve({ cover: coverUrl, lyrics: lyr });
                             },
-                            onError: () => resolve(null)
+                            onError: () => resolve({ cover: null, lyrics: null })
                         });
                     });
-                    if (tagCover && await validateImageDataUrl(tagCover)) {
-                        return tagCover;
+                    if (tagParsed.cover && await validateImageDataUrl(tagParsed.cover)) {
+                        foundCover = tagParsed.cover;
+                    }
+                    if (tagParsed.lyrics) {
+                        foundLyrics = tagParsed.lyrics;
                     }
                 }
 
-                const directCover = extractApicFromArrayBuffer(buffer);
-                if (directCover && await validateImageDataUrl(directCover)) {
-                    return directCover;
+                if (needCover && !foundCover) {
+                    const directCover = extractApicFromArrayBuffer(buffer);
+                    if (directCover && await validateImageDataUrl(directCover)) {
+                        foundCover = directCover;
+                    }
+                }
+
+                if (needLyrics && !foundLyrics) {
+                    foundLyrics = extractLyricsFromArrayBuffer(buffer);
+                }
+
+                if (foundCover || foundLyrics !== null) {
+                    return { cover: foundCover, lyrics: foundLyrics || "" };
                 }
             } catch (e) {}
         }
-        return null;
+        return { cover: null, lyrics: null };
     }
 
     function applyExtractedCoverToAllLists(songId, coverDataUrl) {
@@ -4833,23 +5562,71 @@
         }
     }
 
+    function applyExtractedLyricsToAllLists(songId, lyricsText) {
+        const aiTarget = AI_SONGS.find(s => s.id === songId);
+        if (aiTarget) aiTarget.lyrics = lyricsText;
+
+        if (spotlightSong && spotlightSong.id === songId) {
+            spotlightSong.lyrics = lyricsText;
+        }
+        hotPickSongs.forEach(s => { if (s.id === songId) s.lyrics = lyricsText; });
+        quickPickSongs.forEach(s => { if (s.id === songId) s.lyrics = lyricsText; });
+        shuffledThemes.forEach(t => {
+            t.songs.forEach(s => { if (s.id === songId) s.lyrics = lyricsText; });
+        });
+
+        playQueue.forEach((s, idx) => {
+            if (s.id === songId) {
+                s.lyrics = lyricsText;
+                if (idx === currentSongIndex) {
+                    renderLyricsForCurrentSong();
+                }
+            }
+        });
+        for (const fName in folders) {
+            folders[fName].forEach(s => {
+                if (s.id === songId) s.lyrics = lyricsText;
+            });
+        }
+    }
+
     async function ensureSingleSongCover(songId) {
         const song = AI_SONGS.find(s => s.id === songId);
-        if (!song || song.cover || extractingSongIds.has(songId)) return;
+        if (!song || (song.cover && song.lyrics !== undefined) || extractingSongIds.has(songId)) return;
         extractingSongIds.add(songId);
         try {
-            const cached = await getCachedCover(`ai_song_${song.id}`);
-            if (cached && await validateImageDataUrl(cached)) {
-                applyExtractedCoverToAllLists(song.id, cached);
-                renderQueue();
-                return;
+            let hasCover = !!song.cover;
+            let hasLyrics = song.lyrics !== undefined;
+
+            if (!hasCover) {
+                const cachedCover = await getCachedCover(`ai_song_${song.id}`);
+                if (cachedCover && await validateImageDataUrl(cachedCover)) {
+                    applyExtractedCoverToAllLists(song.id, cachedCover);
+                    renderQueue();
+                    hasCover = true;
+                }
             }
-            const coverDataUrl = await extractCoverFromSongUrl(song);
-            if (coverDataUrl) {
-                await setCachedCover(`ai_song_${song.id}`, coverDataUrl);
-                applyExtractedCoverToAllLists(song.id, coverDataUrl);
+
+            if (!hasLyrics) {
+                const cachedLyrics = await getCachedLyrics(`ai_song_${song.id}`);
+                if (cachedLyrics !== null) {
+                    applyExtractedLyricsToAllLists(song.id, cachedLyrics || "");
+                    hasLyrics = true;
+                }
+            }
+
+            if (hasCover && hasLyrics) return;
+
+            const extracted = await extractCoverAndLyricsFromSongUrl(song, !hasCover, !hasLyrics);
+            if (extracted.cover) {
+                await setCachedCover(`ai_song_${song.id}`, extracted.cover);
+                applyExtractedCoverToAllLists(song.id, extracted.cover);
                 renderQueue();
                 if (currentLibraryTab === 'folders') renderFolderList();
+            }
+            if (!hasLyrics && extracted.lyrics !== null) {
+                await setCachedLyrics(`ai_song_${song.id}`, extracted.lyrics);
+                applyExtractedLyricsToAllLists(song.id, extracted.lyrics);
             }
         } finally {
             extractingSongIds.delete(songId);
@@ -4859,11 +5636,18 @@
     async function loadAllAiSongCovers() {
         let updatedFromCache = false;
         for (const song of AI_SONGS) {
-            if (song.cover) continue;
-            const cached = await getCachedCover(`ai_song_${song.id}`);
-            if (cached && await validateImageDataUrl(cached)) {
-                applyExtractedCoverToAllLists(song.id, cached);
-                updatedFromCache = true;
+            if (!song.cover) {
+                const cached = await getCachedCover(`ai_song_${song.id}`);
+                if (cached && await validateImageDataUrl(cached)) {
+                    applyExtractedCoverToAllLists(song.id, cached);
+                    updatedFromCache = true;
+                }
+            }
+            if (song.lyrics === undefined) {
+                const cachedLyr = await getCachedLyrics(`ai_song_${song.id}`);
+                if (cachedLyr !== null) {
+                    applyExtractedLyricsToAllLists(song.id, cachedLyr || "");
+                }
             }
         }
         if (updatedFromCache) {
