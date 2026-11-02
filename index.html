@@ -158,7 +158,7 @@
             padding-bottom: 15px;
         }
         .album-wrapper {
-            margin: 26px auto 10px auto;
+            margin: auto;
             width: 270px;
             height: 270px;
             flex-shrink: 0;
@@ -312,13 +312,14 @@
         .controls .nav-skip-btn {
             width: 52px;
             height: 52px;
-            color: var(--text);
-            opacity: 0.78;
+            color: #ff8598;
+            background: rgba(255, 133, 152, 0.11);
+            opacity: 0.96;
         }
         .controls .nav-skip-btn:hover, .controls .nav-skip-btn:active {
             opacity: 1;
-            background: var(--primary-light);
-            color: var(--primary);
+            background: rgba(255, 133, 152, 0.24);
+            color: #ff6b81;
         }
         .controls .nav-skip-btn svg {
             width: 34px;
@@ -330,9 +331,9 @@
             height: 64px;
             padding: 0;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff758c 0%, #ff6b81 55%, #ee5269 100%);
+            background: linear-gradient(135deg, #ffb6c1 0%, #ff8fa3 55%, #ff758f 100%);
             color: #ffffff;
-            box-shadow: 0 0 0 7px rgba(255, 107, 129, 0.14), 0 8px 22px rgba(255, 107, 129, 0.36);
+            box-shadow: 0 0 0 7px rgba(255, 143, 163, 0.18), 0 8px 22px rgba(255, 117, 143, 0.32);
         }
         .controls .play-btn svg {
             width: 30px;
@@ -376,29 +377,15 @@
             cursor: pointer;
         }
         .lp-lyrics-hint {
-            position: absolute;
-            bottom: 4px;
-            z-index: 6;
-            background: rgba(20, 22, 28, 0.72);
-            backdrop-filter: blur(6px);
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 11px;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.22);
-            pointer-events: none;
-            transition: transform 0.2s ease, opacity 0.2s ease;
+            display: none !important;
         }
         .lyrics-card-panel {
             display: none;
             flex-direction: column;
             width: 100%;
-            height: 274px;
-            margin: 22px auto 10px auto;
+            flex: 1;
+            min-height: 0;
+            margin: 4px auto 10px auto;
             background: var(--sub-bg);
             border: 1px solid var(--border);
             border-radius: 22px;
@@ -410,6 +397,20 @@
         .lyrics-card-panel.active {
             display: flex;
             animation: fadeInLyrics 0.22s ease-out;
+        }
+        /* 가사 보기가 켜졌을 때 하단 곡 제목/여백을 컴팩트하게 줄여 오디오 컨트롤 바로 위까지 가사창 확대 */
+        .player-content.lyrics-mode-on .song-info {
+            margin-bottom: 8px;
+        }
+        .player-content.lyrics-mode-on .song-info h2 {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        .player-content.lyrics-mode-on .song-info p {
+            display: none;
+        }
+        .player-content.lyrics-mode-on .progress-section {
+            margin-bottom: 16px;
         }
         @keyframes fadeInLyrics {
             from { opacity: 0; transform: scale(0.97); }
@@ -423,36 +424,71 @@
             margin-bottom: 4px;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
+            gap: 4px;
         }
         .lyrics-source-badge {
             font-size: 11px;
             font-weight: 700;
             color: var(--primary);
             background: var(--primary-light);
-            padding: 3px 9px;
+            padding: 3px 8px;
             border-radius: 10px;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+            white-space: nowrap;
         }
         .lyrics-header-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+        .lyrics-zoom-group {
+            display: inline-flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1px 3px;
+            gap: 2px;
+        }
+        .lyrics-zoom-btn {
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .lyrics-zoom-btn:active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .lyrics-zoom-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 30px;
+            text-align: center;
         }
         .lyrics-mini-btn {
             border: 1px solid var(--border);
             background: var(--card-bg);
             color: var(--text);
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 12px;
             cursor: pointer;
             font-family: inherit;
             display: inline-flex;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
+            white-space: nowrap;
             transition: all 0.15s;
         }
         .lyrics-mini-btn:active {
@@ -463,10 +499,12 @@
         .lyrics-scroll-box {
             flex: 1;
             overflow-y: auto;
-            padding: 12px 6px 26px 6px;
+            padding: 14px 8px 34px 8px;
             text-align: center;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
+            --lyric-base-size: 15px;
+            --lyric-active-size: 17px;
         }
         .lyrics-scroll-box::-webkit-scrollbar {
             width: 4px;
@@ -476,14 +514,17 @@
             border-radius: 4px;
         }
         .lyric-line {
-            font-size: 14.5px;
-            line-height: 1.75;
+            font-size: var(--lyric-base-size, 15px);
+            line-height: 1.78;
             color: var(--sub-text);
-            margin: 5px 0;
-            padding: 3px 8px;
-            border-radius: 10px;
-            transition: color 0.22s ease, transform 0.22s ease, font-weight 0.22s ease, background 0.22s ease;
+            margin: 6px 0;
+            padding: 5px 10px;
+            border-radius: 12px;
+            transition: color 0.2s ease, transform 0.2s ease, font-weight 0.2s ease, background 0.2s ease;
             word-break: keep-all;
+        }
+        .lyric-line.past-line {
+            opacity: 0.58;
         }
         .lyric-line.timed {
             cursor: pointer;
@@ -491,12 +532,24 @@
         .lyric-line.timed:active {
             background: var(--primary-light);
         }
-        .lyric-line.active {
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 15.5px;
-            transform: scale(1.03);
-            background: var(--primary-light);
+        .lyric-line.active,
+        .lyric-line.active-line {
+            color: #e0114f !important;
+            font-weight: 800;
+            font-size: var(--lyric-active-size, 17px);
+            transform: scale(1.04);
+            background: rgba(224, 17, 79, 0.13);
+            box-shadow: 0 2px 10px rgba(224, 17, 79, 0.10);
+        }
+        .dark-mode .lyric-line.active,
+        .dark-mode .lyric-line.active-line {
+            color: #ff2e63 !important;
+            background: rgba(255, 46, 99, 0.18);
+        }
+        .lyric-line.active::before,
+        .lyric-line.active-line::before {
+            content: '🎵 ';
+            font-size: 0.88em;
         }
         .lyric-section-tag {
             display: inline-block;
@@ -1600,7 +1653,7 @@
                 <h2 class="app-title">PLAY</h2>
                 <span class="material-symbols-outlined settings-btn" onclick="openSettingsMenu()">settings</span>
             </div>
-            <div class="player-content">
+            <div class="player-content" id="playerContentArea">
                 <div class="album-wrapper rgb-on" id="albumWrapper" title="터치하면 가사 보기로 전환됩니다">
                     <div class="rgb-glow" id="rgbGlow"></div>
                     <div class="album-art" id="albumArt">
@@ -1609,7 +1662,6 @@
                             <span class="album-art-sub" id="albumArtSub">GUNGDI STUDIO</span>
                         </div>
                     </div>
-                    <div class="lp-lyrics-hint" id="lpLyricsHint">📜 터치하면 가사</div>
                 </div>
 
                 <!-- 🎤 가사 보기 카드 패널 (LP 앨범 표지 터치 또는 [📜 가사] 버튼 클릭 시 전환) -->
@@ -1617,8 +1669,13 @@
                     <div class="lyrics-card-header">
                         <span class="lyrics-source-badge" id="lyricsSourceBadge">🎤 ID3 가사</span>
                         <div class="lyrics-header-actions">
-                            <button class="lyrics-mini-btn" onclick="openLyricsEditModal()">✏️ 가사편집</button>
-                            <button class="lyrics-mini-btn" onclick="toggleLyricsMode(false)">💿 앨범보기</button>
+                            <div class="lyrics-zoom-group" title="가사 글자 크기 조절">
+                                <button class="lyrics-zoom-btn" onclick="changeLyricsFontSize(-1)">가-</button>
+                                <span class="lyrics-zoom-label" id="lyricsZoomLabel">100%</span>
+                                <button class="lyrics-zoom-btn" onclick="changeLyricsFontSize(1)">가+</button>
+                            </div>
+                            <button class="lyrics-mini-btn" onclick="openLyricsEditModal()">✏️ 편집</button>
+                            <button class="lyrics-mini-btn" onclick="toggleLyricsMode(false)">💿 LP판</button>
                         </div>
                     </div>
                     <div class="lyrics-scroll-box" id="lyricsScrollBox">
@@ -2683,6 +2740,7 @@
                 albumWrapper.classList.toggle('rgb-on', config.showRgb !== false);
                 updateLpSpinState();
                 applyWidgetConfigUI();
+                syncAppSystemBarsToAndroid(!!config.darkMode);
             }
             if (typeof state.isShuffle === 'boolean') {
                 isShuffle = state.isShuffle;
@@ -2798,10 +2856,19 @@
         toggleLyricsMode(true);
     });
 
+    function syncAppSystemBarsToAndroid(isDark) {
+        try {
+            if (window.Android && typeof window.Android.setAppSystemBars === 'function') {
+                window.Android.setAppSystemBars(!!isDark);
+            }
+        } catch (e) {}
+    }
+
     function toggleDarkMode() {
         const isDark = document.getElementById('setDarkModeToggle').checked;
         config.darkMode = isDark;
         document.getElementById('mainApp').classList.toggle('dark-mode', isDark);
+        syncAppSystemBarsToAndroid(isDark);
         saveAppState();
         showToast(isDark ? "다크 모드 적용" : "라이트 모드 적용");
     }
@@ -4843,6 +4910,70 @@
     let currentParsedLyrics = []; // [{ time: number|null, text: string, isSection: boolean }]
     let currentActiveLyricIndex = -1;
     const CUSTOM_LYRICS_STORAGE_KEY = "gungdi_custom_lyrics_v1";
+    const LYRICS_SCALE_STORAGE_KEY = "gungdi_lyrics_scale_idx_v1";
+    const LYRICS_FONT_SCALES = [80, 90, 100, 115, 130, 145, 165];
+    let currentLyricsScaleIdx = 2; // 기본 100%
+
+    try {
+        const savedScaleIdx = parseInt(localStorage.getItem(LYRICS_SCALE_STORAGE_KEY), 10);
+        if (!isNaN(savedScaleIdx) && savedScaleIdx >= 0 && savedScaleIdx < LYRICS_FONT_SCALES.length) {
+            currentLyricsScaleIdx = savedScaleIdx;
+        }
+    } catch (e) {}
+
+    function applyLyricsFontScale() {
+        const pct = LYRICS_FONT_SCALES[currentLyricsScaleIdx] || 100;
+        const basePx = (15 * pct / 100).toFixed(1) + 'px';
+        const activePx = (17.2 * pct / 100).toFixed(1) + 'px';
+        const box = document.getElementById('lyricsScrollBox');
+        const label = document.getElementById('lyricsZoomLabel');
+        if (box) {
+            box.style.setProperty('--lyric-base-size', basePx);
+            box.style.setProperty('--lyric-active-size', activePx);
+        }
+        if (label) {
+            label.innerText = `${pct}%`;
+        }
+    }
+
+    function changeLyricsFontSize(delta) {
+        const nextIdx = Math.max(0, Math.min(LYRICS_FONT_SCALES.length - 1, currentLyricsScaleIdx + delta));
+        if (nextIdx === currentLyricsScaleIdx) {
+            showToast(delta > 0 ? "최대 글자 크기입니다." : "최소 글자 크기입니다.");
+            return;
+        }
+        currentLyricsScaleIdx = nextIdx;
+        try { localStorage.setItem(LYRICS_SCALE_STORAGE_KEY, String(currentLyricsScaleIdx)); } catch (e) {}
+        applyLyricsFontScale();
+    }
+
+    // 두 손가락 핀치 줌(확대/축소) 제스처로도 가사 크기 조절 지원
+    (function initLyricsPinchZoom() {
+        const box = document.getElementById('lyricsScrollBox');
+        if (!box) return;
+        let startDist = 0;
+        box.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                startDist = Math.hypot(dx, dy);
+            }
+        }, { passive: true });
+        box.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches.length === 2 && startDist > 20) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.hypot(dx, dy);
+                if (dist - startDist > 36) {
+                    startDist = dist;
+                    changeLyricsFontSize(1);
+                } else if (startDist - dist > 36) {
+                    startDist = dist;
+                    changeLyricsFontSize(-1);
+                }
+            }
+        }, { passive: true });
+    })();
 
     function getCustomLyricsMap() {
         try {
@@ -4874,21 +5005,25 @@
     function toggleLyricsMode(forceState) {
         const nextState = typeof forceState === 'boolean' ? forceState : !isLyricsModeActive;
         isLyricsModeActive = nextState;
+        const playerContent = document.getElementById('playerContentArea');
         const albumWrap = document.getElementById('albumWrapper');
         const lyricsPanel = document.getElementById('lyricsCardPanel');
         const pillBtn = document.getElementById('lyricsTogglePill');
-        const pillText = document.getElementById('lyricsTogglePillText');
+        const pillText = document.getElementById('lyricsPillText') || document.getElementById('lyricsTogglePillText');
+
+        if (playerContent) playerContent.classList.toggle('lyrics-mode-on', isLyricsModeActive);
 
         if (isLyricsModeActive) {
             if (albumWrap) albumWrap.style.display = 'none';
             if (lyricsPanel) lyricsPanel.classList.add('active');
-            if (pillBtn) pillBtn.classList.add('active');
+            if (pillBtn) pillBtn.classList.add('active-view');
             if (pillText) pillText.innerText = '💿 LP판 보기';
+            applyLyricsFontScale();
             renderLyricsForCurrentSong();
         } else {
             if (lyricsPanel) lyricsPanel.classList.remove('active');
             if (albumWrap) albumWrap.style.display = 'flex';
-            if (pillBtn) pillBtn.classList.remove('active');
+            if (pillBtn) pillBtn.classList.remove('active-view');
             if (pillText) pillText.innerText = '📜 가사 보기';
         }
     }
@@ -4940,14 +5075,15 @@
 
     function renderLyricsForCurrentSong() {
         const box = document.getElementById('lyricsScrollBox');
-        const hintEl = document.getElementById('lpLyricsHint');
+        const pillBtn = document.getElementById('lyricsTogglePill');
         if (!box) return;
+        applyLyricsFontScale();
 
         const currentSong = playQueue[currentSongIndex];
         if (!currentSong) {
             currentParsedLyrics = [];
-            box.innerHTML = `<div class="lyrics-empty-state"><span class="empty-icon">🍑</span>재생 중인 곡이 없습니다.<br>곡을 재생하면 MP3에 내장된 가사를 자동으로 불러옵니다.</div>`;
-            if (hintEl) hintEl.innerHTML = `<span>📜</span> 가사 보기`;
+            if (pillBtn) pillBtn.classList.remove('has-lyrics');
+            box.innerHTML = `<div class="lyrics-empty-box"><span style="font-size:28px;">🍑</span><div>재생 중인 곡이 없습니다.<br>곡을 재생하면 MP3에 내장된 가사를 자동으로 불러옵니다.</div></div>`;
             return;
         }
 
@@ -4956,20 +5092,18 @@
         const nameKey = `name_${(currentSong.name || '').trim()}`;
         const rawLyrics = customMap[cacheKey] || customMap[nameKey] || currentSong.lyrics || "";
 
-        if (hintEl) {
-            hintEl.innerHTML = rawLyrics
-                ? `<span>📜</span> 가사 보기 · 터치`
-                : `<span>📜</span> 가사 패널 열기`;
+        if (pillBtn) {
+            pillBtn.classList.toggle('has-lyrics', !!(rawLyrics && rawLyrics.trim()));
         }
 
         if (!rawLyrics || !rawLyrics.trim()) {
             currentParsedLyrics = [];
             currentActiveLyricIndex = -1;
             box.innerHTML = `
-                <div class="lyrics-empty-state">
-                    <span class="empty-icon">📝</span>
+                <div class="lyrics-empty-box">
+                    <span style="font-size:26px;">📝</span>
                     <div>이 곡에 내장된 가사(ID3 USLT)를 찾지 못했거나<br>아직 분석 중입니다.</div>
-                    <button class="lyrics-action-btn" onclick="openLyricsEditModal()" style="margin-top:4px; padding:7px 14px; font-size:0.78rem;">✏️ 직접 가사 입력 / 붙여넣기</button>
+                    <button class="lyrics-mini-btn" onclick="openLyricsEditModal()" style="margin-top:4px; padding:7px 14px; font-size:12px;">✏️ 직접 가사 입력 / 붙여넣기</button>
                 </div>`;
             return;
         }
@@ -4984,10 +5118,10 @@
             if (item.isSection) {
                 return `<div class="lyric-section-tag" data-lyric-idx="${idx}">${escapeHtmlSafe(item.text)}</div>`;
             }
-            const clickAttr = (typeof item.time === 'number')
-                ? `onclick="seekToLyricTime(${item.time})"`
-                : '';
-            return `<div class="lyric-line" id="lyric-line-${idx}" data-lyric-idx="${idx}" ${clickAttr}>${escapeHtmlSafe(item.text)}</div>`;
+            const isTimed = typeof item.time === 'number';
+            const clickAttr = isTimed ? `onclick="seekToLyricTime(${item.time})"` : '';
+            const timedClass = isTimed ? 'timed' : '';
+            return `<div class="lyric-line ${timedClass}" id="lyric-line-${idx}" data-lyric-idx="${idx}" ${clickAttr}>${escapeHtmlSafe(item.text)}</div>`;
         }).join('');
 
         syncLyricsPlaybackPosition(audio.currentTime || 0, audio.duration || 0);

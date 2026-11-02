@@ -107,8 +107,8 @@ android {
         applicationId "com.gungdi.player"
         minSdk 26
         targetSdk 34
-        versionCode 7
-        versionName "7.0-bigger-buttons-lyrics"
+        versionCode 8
+        versionName "8.0-peach-controls-fullscreen"
     }
 
     signingConfigs {
@@ -734,17 +734,17 @@ public class WidgetCanvasRenderer {
         float cy = s * 0.5f;
         float playRadius = s * 0.405f;
 
-        // 바깥쪽 핑크 후광 링 (아이유 '라일락' 위젯 스타일)
+        // 바깥쪽 연한 복숭아 핑크 후광 링
         Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloPaint.setColor(Color.argb(56, 232, 118, 148));
+        haloPaint.setColor(Color.argb(56, 255, 143, 163));
         canvas.drawCircle(cx, cy, playRadius * 1.21f, haloPaint);
 
-        // 메인 로즈핑크 원형 버튼
+        // 메인 연한 복숭아 핑크 원형 버튼 (하단 네비게이션 복숭아 톤과 통일)
         Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         circlePaint.setShader(new LinearGradient(
                 cx - playRadius, cy - playRadius,
                 cx + playRadius, cy + playRadius,
-                Color.parseColor("#EE829B"), Color.parseColor("#C26B82"),
+                Color.parseColor("#FFB6C1"), Color.parseColor("#FF8598"),
                 Shader.TileMode.CLAMP));
         canvas.drawCircle(cx, cy, playRadius, circlePaint);
 
@@ -754,14 +754,14 @@ public class WidgetCanvasRenderer {
     }
 
     /**
-     * 4) 1:1 정사각형 이전곡(◀◀) / 다음곡(▶▶) 둥근 버튼 아이콘 (기존 대비 45% 확대!)
+     * 4) 1:1 정사각형 이전곡(◀◀) / 다음곡(▶▶) 둥근 버튼 아이콘 (복숭아 핑크 컬러 적용!)
      */
     public static Bitmap renderSkipButton(int sizePx, boolean isPrev, boolean isDark) {
         int s = Math.max(72, Math.min(140, sizePx));
         Bitmap out = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(out);
 
-        int color = isDark ? Color.parseColor("#E8ECF5") : Color.parseColor("#4D5058");
+        int color = Color.parseColor("#FF8598");
         drawRoundedDoubleSkip(canvas, s * 0.5f, s * 0.5f, s * 0.36f, isPrev, color);
         return out;
     }
@@ -1432,12 +1432,16 @@ package com.gungdi.player;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -1461,10 +1465,15 @@ public class MainActivity extends Activity {
         instance = this;
 
         Window window = getWindow();
-        if (window != null) {
-            window.setStatusBarColor(Color.parseColor("#121318"));
-            window.setNavigationBarColor(Color.parseColor("#121318"));
+        if (window != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            window.setAttributes(lp);
         }
+
+        SharedPreferences sp = getSharedPreferences("gungdi_app_ui_prefs", MODE_PRIVATE);
+        boolean savedAppDark = sp.getBoolean("app_dark_mode", false);
+        applySystemBarTheme(savedAppDark);
 
         requestNotificationPermissionIfNeeded();
         PlaybackStateStore.loadIfNeeded(this);
@@ -1630,6 +1639,47 @@ public class MainActivity extends Activity {
         }
     }
 
+    @SuppressWarnings("deprecation")
+    private void applySystemBarTheme(final boolean isDark) {
+        runOnUiThread(() -> {
+            try {
+                SharedPreferences sp = getSharedPreferences("gungdi_app_ui_prefs", MODE_PRIVATE);
+                sp.edit().putBoolean("app_dark_mode", isDark).apply();
+
+                Window window = getWindow();
+                if (window == null) return;
+                int bgColor = isDark ? Color.parseColor("#121318") : Color.parseColor("#FFFFFF");
+                window.setStatusBarColor(bgColor);
+                window.setNavigationBarColor(bgColor);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WindowInsetsController controller = window.getInsetsController();
+                    if (controller != null) {
+                        int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                        controller.setSystemBarsAppearance(isDark ? 0 : mask, mask);
+                    }
+                }
+                View decor = window.getDecorView();
+                if (decor != null) {
+                    int flags = decor.getSystemUiVisibility();
+                    if (!isDark) {
+                        flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                        }
+                    } else {
+                        flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                        }
+                    }
+                    decor.setSystemUiVisibility(flags);
+                }
+            } catch (Exception ignored) {}
+        });
+    }
+
     private void triggerMediaServiceUpdate() {
         Intent serviceIntent = new Intent(MainActivity.this, MediaPlaybackService.class);
         try {
@@ -1660,6 +1710,11 @@ public class MainActivity extends Activity {
         public void updateWidgetStyle(boolean darkMode, int opacity) {
             PlaybackStateStore.saveWidgetStyle(MainActivity.this, darkMode, opacity);
             GungdiWidgetProvider.updateAllWidgets(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void setAppSystemBars(boolean isDark) {
+            applySystemBarTheme(isDark);
         }
 
         @JavascriptInterface
