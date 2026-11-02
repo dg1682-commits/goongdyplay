@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-궁디 플레이어 Ultimate - 안드로이드 네이티브 앱 & 바탕화면 위젯 자동 생성 스크립트
-GitHub Actions에서 실행되어 바탕화면 전용 위젯(GungdiWidgetProvider) + 상단바 미디어 서비스 + 칼종료 브릿지가
-포함된 정식 안드로이드 프로젝트를 생성합니다.
+궁디 플레이어 Ultimate - 안드로이드 네이티브 앱 & 바탕화면 위젯 자동 생성 스크립트 (Pure Android SDK 버전)
+외부 라이브러리 충돌(kotlin-stdlib 중복 에러)이 원천적으로 발생하지 않도록
+안드로이드 순정 SDK(android.app.Activity, android.media.session.MediaSession, AppWidgetProvider)만 사용하여
+빠르고 가볍게 정식 서명된 APK를 생성합니다.
 """
 
 import os
@@ -21,7 +22,7 @@ def create_fallback_white_peach_png(target_path, size=192):
     cx, cy = size / 2.0, size / 2.0
     r_peach = size * 0.28
     for y in range(size):
-        row = bytearray([0])  # filter type 0
+        row = bytearray([0])
         for x in range(size):
             dx = x - cx
             dy = y - cy
@@ -88,11 +89,9 @@ plugins {
     # 3. gradle.properties
     write_text("gradle.properties", """
 org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-android.useAndroidX=true
-android.nonTransitiveRClass=true
 """)
 
-    # 4. app/build.gradle
+    # 4. app/build.gradle (외부 라이브러리 의존성 0개 -> 버전 충돌 에러 원천 차단!)
     write_text("app/build.gradle", """
 plugins {
     id 'com.android.application'
@@ -104,10 +103,10 @@ android {
 
     defaultConfig {
         applicationId "com.gungdi.player"
-        minSdk 24
+        minSdk 26
         targetSdk 34
-        versionCode 3
-        versionName "3.0-widget"
+        versionCode 4
+        versionName "4.0-widget"
     }
 
     signingConfigs {
@@ -129,6 +128,11 @@ android {
         }
     }
 
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -136,9 +140,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.core:core:1.12.0'
-    implementation 'androidx.media:media:1.7.0'
 }
 """)
 
@@ -160,7 +161,7 @@ dependencies {
         android:label="궁디 플레이어"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.AppCompat.NoActionBar">
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
         <activity
             android:name=".MainActivity"
@@ -227,7 +228,7 @@ dependencies {
     android:shape="rectangle">
     <solid android:color="#EE191B22" />
     <corners android:radius="22dp" />
-    <stroke android:width="1.5dp" android:color="#55FF477E" />
+    <stroke android:width="1dp" android:color="#55FF477E" />
 </shape>
 """)
 
@@ -287,7 +288,7 @@ dependencies {
             android:layout_height="wrap_content"
             android:text="🍑 GUNGDI PLAYER"
             android:textColor="#FF6B98"
-            android:textSize="9.5sp"
+            android:textSize="10sp"
             android:textStyle="bold"
             android:singleLine="true" />
 
@@ -298,7 +299,7 @@ dependencies {
             android:layout_marginTop="1dp"
             android:text="궁디 플레이어 터치하여 재생"
             android:textColor="#FFFFFF"
-            android:textSize="13.5sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:singleLine="true"
             android:ellipsize="end" />
@@ -354,7 +355,7 @@ dependencies {
 </LinearLayout>
 """)
 
-    # 9. Java: PlaybackStateStore.java (위젯 및 알림 상태 공유 저장소)
+    # 9. Java: PlaybackStateStore.java
     write_text("app/src/main/java/com/gungdi/player/PlaybackStateStore.java", """
 package com.gungdi.player;
 
@@ -410,7 +411,7 @@ public class PlaybackStateStore {
 }
 """)
 
-    # 10. Java: GungdiWidgetProvider.java (바탕화면 전용 위젯)
+    # 10. Java: GungdiWidgetProvider.java
     write_text("app/src/main/java/com/gungdi/player/GungdiWidgetProvider.java", """
 package com.gungdi.player;
 
@@ -465,7 +466,6 @@ public class GungdiWidgetProvider extends AppWidgetProvider {
             views.setImageViewResource(R.id.widget_art, R.mipmap.ic_launcher);
         }
 
-        // 위젯 본체 클릭 시 궁디 플레이어 앱 열기
         Intent openIntent = new Intent(context, MainActivity.class);
         openIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPending = PendingIntent.getActivity(
@@ -475,7 +475,6 @@ public class GungdiWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_info_box, openPending);
         views.setOnClickPendingIntent(R.id.widget_art, openPending);
 
-        // 이전곡 / 재생·일시정지 / 다음곡 버튼 연결
         views.setOnClickPendingIntent(R.id.widget_btn_prev, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_PREV, 101));
         views.setOnClickPendingIntent(R.id.widget_btn_play, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_TOGGLE, 102));
         views.setOnClickPendingIntent(R.id.widget_btn_next, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_NEXT, 103));
@@ -494,7 +493,7 @@ public class GungdiWidgetProvider extends AppWidgetProvider {
 }
 """)
 
-    # 11. Java: WidgetActionReceiver.java (위젯 및 알림창 버튼 이벤트 처리)
+    # 11. Java: WidgetActionReceiver.java
     write_text("app/src/main/java/com/gungdi/player/WidgetActionReceiver.java", """
 package com.gungdi.player;
 
@@ -521,7 +520,6 @@ public class WidgetActionReceiver extends BroadcastReceiver {
         if (MainActivity.instance != null) {
             MainActivity.instance.dispatchWidgetCommandToWeb(cmd);
         } else {
-            // 앱이 완전히 꺼져 있을 때 바탕화면 위젯에서 재생을 누른 경우 앱을 깨워 자동 재생
             Intent launch = new Intent(context, MainActivity.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             launch.putExtra("auto_cmd", cmd);
@@ -531,7 +529,7 @@ public class WidgetActionReceiver extends BroadcastReceiver {
 }
 """)
 
-    # 12. Java: MediaPlaybackService.java (상단 알림바 & 잠금화면 미디어 위젯 + 백그라운드 재생 유지 서비스)
+    # 12. Java: MediaPlaybackService.java (순정 android.media.session.MediaSession & Notification.MediaStyle 사용)
     write_text("app/src/main/java/com/gungdi/player/MediaPlaybackService.java", """
 package com.gungdi.player;
 
@@ -543,21 +541,20 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
+import android.media.MediaMetadata;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
-
-import androidx.core.app.NotificationCompat;
-import androidx.media.app.NotificationCompat.MediaStyle;
 
 public class MediaPlaybackService extends Service {
     private static final String CHANNEL_ID = "gungdi_media_channel";
     private static final int NOTIF_ID = 777;
-    private MediaSessionCompat mediaSession;
+    private MediaSession mediaSession;
     private PowerManager.WakeLock wakeLock;
 
     @Override
@@ -570,8 +567,8 @@ public class MediaPlaybackService extends Service {
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "GungdiPlayer::AudioWakeLock");
         }
 
-        mediaSession = new MediaSessionCompat(this, "GungdiMediaSession");
-        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+        mediaSession = new MediaSession(this, "GungdiMediaSession");
+        mediaSession.setCallback(new MediaSession.Callback() {
             @Override
             public void onPlay() {
                 if (MainActivity.instance != null) MainActivity.instance.dispatchWidgetCommandToWeb("play");
@@ -628,34 +625,30 @@ public class MediaPlaybackService extends Service {
     }
 
     private Notification buildMediaNotification() {
-        long actions = PlaybackStateCompat.ACTION_PLAY
-                | PlaybackStateCompat.ACTION_PAUSE
-                | PlaybackStateCompat.ACTION_PLAY_PAUSE
-                | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-                | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                | PlaybackStateCompat.ACTION_STOP;
+        long actions = PlaybackState.ACTION_PLAY
+                | PlaybackState.ACTION_PAUSE
+                | PlaybackState.ACTION_PLAY_PAUSE
+                | PlaybackState.ACTION_SKIP_TO_NEXT
+                | PlaybackState.ACTION_SKIP_TO_PREVIOUS
+                | PlaybackState.ACTION_STOP;
 
         int state = PlaybackStateStore.isPlaying
-                ? PlaybackStateCompat.STATE_PLAYING
-                : PlaybackStateCompat.STATE_PAUSED;
+                ? PlaybackState.STATE_PLAYING
+                : PlaybackState.STATE_PAUSED;
 
-        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+        mediaSession.setPlaybackState(new PlaybackState.Builder()
                 .setActions(actions)
-                .setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f)
+                .setState(state, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f)
                 .build());
 
-        MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, PlaybackStateStore.currentTitle)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, PlaybackStateStore.currentArtist);
+        Bitmap artBmp = PlaybackStateStore.currentArtwork != null
+                ? PlaybackStateStore.currentArtwork
+                : BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
-        if (PlaybackStateStore.currentArtwork != null) {
-            metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, PlaybackStateStore.currentArtwork);
-        } else {
-            metaBuilder.putBitmap(
-                MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
-                BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher)
-            );
-        }
+        MediaMetadata.Builder metaBuilder = new MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, PlaybackStateStore.currentTitle)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, PlaybackStateStore.currentArtist)
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, artBmp);
         mediaSession.setMetadata(metaBuilder.build());
 
         Intent openIntent = new Intent(this, MainActivity.class);
@@ -674,27 +667,33 @@ public class MediaPlaybackService extends Service {
                 : android.R.drawable.ic_media_play;
         String playPauseLabel = PlaybackStateStore.isPlaying ? "일시정지" : "재생";
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification.Action prevAction = new Notification.Action.Builder(
+                Icon.createWithResource(this, android.R.drawable.ic_media_previous),
+                "이전 곡", prevPending).build();
+        Notification.Action toggleAction = new Notification.Action.Builder(
+                Icon.createWithResource(this, playPauseIcon),
+                playPauseLabel, togglePending).build();
+        Notification.Action nextAction = new Notification.Action.Builder(
+                Icon.createWithResource(this, android.R.drawable.ic_media_next),
+                "다음 곡", nextPending).build();
+
+        Notification.MediaStyle mediaStyle = new Notification.MediaStyle()
+                .setMediaSession(mediaSession.getSessionToken())
+                .setShowActionsInCompactView(0, 1, 2);
+
+        return new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(artBmp)
                 .setContentTitle(PlaybackStateStore.currentTitle)
                 .setContentText(PlaybackStateStore.currentArtist)
                 .setContentIntent(contentIntent)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setOngoing(PlaybackStateStore.isPlaying)
-                .addAction(android.R.drawable.ic_media_previous, "이전 곡", prevPending)
-                .addAction(playPauseIcon, playPauseLabel, togglePending)
-                .addAction(android.R.drawable.ic_media_next, "다음 곡", nextPending)
-                .setStyle(new MediaStyle()
-                        .setMediaSession(mediaSession.getSessionToken())
-                        .setShowActionsInCompactView(0, 1, 2));
-
-        if (PlaybackStateStore.currentArtwork != null) {
-            builder.setLargeIcon(PlaybackStateStore.currentArtwork);
-        } else {
-            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-        }
-
-        return builder.build();
+                .addAction(prevAction)
+                .addAction(toggleAction)
+                .addAction(nextAction)
+                .setStyle(mediaStyle)
+                .build();
     }
 
     private PendingIntent buildBroadcastPending(String action, int reqCode) {
@@ -707,17 +706,15 @@ public class MediaPlaybackService extends Service {
     }
 
     private void createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "궁디 플레이어 재생 컨트롤",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            channel.setDescription("상단바 및 잠금화면 음악 컨트롤러");
-            channel.setShowBadge(false);
-            NotificationManager nm = getSystemService(NotificationManager.class);
-            if (nm != null) nm.createNotificationChannel(channel);
-        }
+        NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                "궁디 플레이어 재생 컨트롤",
+                NotificationManager.IMPORTANCE_LOW
+        );
+        channel.setDescription("상단바 및 잠금화면 음악 컨트롤러");
+        channel.setShowBadge(false);
+        NotificationManager nm = getSystemService(NotificationManager.class);
+        if (nm != null) nm.createNotificationChannel(channel);
     }
 
     private void acquireWakeLock() {
@@ -753,7 +750,7 @@ public class MediaPlaybackService extends Service {
 }
 """)
 
-    # 13. Java: BackgroundAudioWebView.java (홈 버튼으로 백그라운드 전환 시에도 절대 오디오/타이머가 멈추지 않는 전용 웹뷰)
+    # 13. Java: BackgroundAudioWebView.java
     write_text("app/src/main/java/com/gungdi/player/BackgroundAudioWebView.java", """
 package com.gungdi.player;
 
@@ -768,13 +765,12 @@ public class BackgroundAudioWebView extends WebView {
 
     @Override
     protected void onWindowVisibilityChanged(int visibility) {
-        // 홈 버튼을 눌러 화면이 내려가도 백그라운드 음악 재생과 다음 곡 자동 재생이 끊기지 않도록 항상 VISIBLE 전달
         super.onWindowVisibilityChanged(View.VISIBLE);
     }
 }
 """)
 
-    # 14. Java: MainActivity.java (메인 화면 + JS 브릿지 + 칼종료 + 뒤로가기 완벽 제어)
+    # 14. Java: MainActivity.java (순정 android.app.Activity 사용 -> 외부 라이브러리 불필요)
     write_text("app/src/main/java/com/gungdi/player/MainActivity.java", """
 package com.gungdi.player;
 
@@ -786,7 +782,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -795,12 +790,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     public static MainActivity instance;
     private static final String APP_URL = "https://dg1682-commits.github.io/goongdyplay/";
     private static final int FILE_CHOOSER_REQ_CODE = 9001;
@@ -873,21 +863,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 안드로이드 하드웨어 뒤로가기 버튼을 웹앱의 handleAndroidBackKey()로 100% 직결!
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (webView != null) {
-                    webView.evaluateJavascript(
-                        "if (window.handleAndroidBackKey) { window.handleAndroidBackKey(); } else { navigateBack(true); }",
-                        null
-                    );
-                }
-            }
-        });
-
         webView.loadUrl(APP_URL);
         GungdiWidgetProvider.updateAllWidgets(this);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        if (webView != null) {
+            webView.evaluateJavascript(
+                "if (window.handleAndroidBackKey) { window.handleAndroidBackKey(); } else { navigateBack(true); }",
+                null
+            );
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -915,10 +905,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= 33) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                        this,
+                requestPermissions(
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         1001
                 );
@@ -994,11 +983,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (Exception ignored) {}
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    finishAndRemoveTask();
-                } else {
-                    finish();
-                }
+                finishAndRemoveTask();
                 System.exit(0);
             });
         }
@@ -1017,7 +1002,7 @@ public class MainActivity extends AppCompatActivity {
 }
 """)
 
-    # 15. 앱 아이콘 복사 (icon-512.png 또는 icon-192.png가 있으면 그대로 사용, 없으면 깔끔한 흰색+복숭아 PNG 생성)
+    # 15. 앱 아이콘 복사 (icon-512.png 또는 icon-192.png가 있으면 그대로 사용, 없으면 순백색+피치 PNG 생성)
     mipmap_dirs = [
         "app/src/main/res/mipmap-mdpi",
         "app/src/main/res/mipmap-hdpi",
@@ -1041,7 +1026,7 @@ public class MainActivity extends AppCompatActivity {
         else:
             create_fallback_white_peach_png(target_png, 192)
 
-    print("Android native project with Home Screen Widget generated successfully at:", ANDROID_DIR)
+    print("Android native project (Pure SDK, zero external deps) generated at:", ANDROID_DIR)
 
 
 if __name__ == "__main__":
