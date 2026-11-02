@@ -171,32 +171,59 @@
         }
         .rgb-on .rgb-glow { display: block; }
         @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes lpSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .album-art {
             width: 236px;
             height: 236px;
             z-index: 2;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            background-size: cover;
-            background-position: center;
             border-radius: 50%;
             border: 3px solid #fff;
             box-shadow: 0 10px 30px rgba(0,0,0,0.16);
             transition: transform 0.1s ease-out;
             will-change: transform;
+            position: relative;
+            overflow: hidden;
+        }
+        /* LP판 회전 레이어: 재생 시 천천히 회전하며 일시정지 시 현재 각도에서 멈춤 */
+        .album-disc {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            background-size: cover;
+            background-position: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
             position: relative;
+            animation: lpSpin 18s linear infinite;
+            animation-play-state: paused;
+            will-change: transform;
+        }
+        .album-disc.spinning {
+            animation-play-state: running;
+        }
+        /* LP판 결 & 중앙 홀 디테일 (은은한 레코드판 질감) */
+        .album-disc::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at center, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.85) 4.5%, rgba(0,0,0,0.22) 5%, rgba(0,0,0,0.12) 13%, transparent 13.5%),
+                repeating-radial-gradient(circle at center, transparent 0px, transparent 6px, rgba(255,255,255,0.03) 6.5px, rgba(0,0,0,0.03) 7px);
+            pointer-events: none;
+            z-index: 3;
         }
         .album-art::after {
             content: '';
             position: absolute;
             inset: 0;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.22) 0%, transparent 60%);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 60%);
             pointer-events: none;
+            z-index: 4;
         }
         .album-art-emoji {
             font-size: 56px;
@@ -1182,8 +1209,10 @@
                 <div class="album-wrapper rgb-on" id="albumWrapper">
                     <div class="rgb-glow" id="rgbGlow"></div>
                     <div class="album-art" id="albumArt">
-                        <span class="album-art-emoji" id="albumArtEmoji">🍑</span>
-                        <span class="album-art-sub" id="albumArtSub">GUNGDI STUDIO</span>
+                        <div class="album-disc" id="albumDisc">
+                            <span class="album-art-emoji" id="albumArtEmoji">🍑</span>
+                            <span class="album-art-sub" id="albumArtSub">GUNGDI STUDIO</span>
+                        </div>
                     </div>
                 </div>
                 <div class="player-bottom-area">
@@ -1366,6 +1395,13 @@
                     <span class="setting-label">리듬 펄스 효과</span>
                     <label class="switch">
                         <input type="checkbox" id="setPulseToggle" checked onchange="updateVisualConfig()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">LP판 회전 효과</span>
+                    <label class="switch">
+                        <input type="checkbox" id="setLpSpinToggle" checked onchange="updateVisualConfig()">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -1795,14 +1831,16 @@
         darkMode: false,
         showRgb: true,
         showPulse: true,
+        showLpSpin: true,
         eqPreset: 'flat',
         eqGains: [0, 0, 0, 0, 0],
-        version: "v49_AI_Curation"
+        version: "v50_LP_Edition"
     };
 
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
     const albumArt = document.getElementById('albumArt');
+    const albumDisc = document.getElementById('albumDisc');
     const albumArtEmoji = document.getElementById('albumArtEmoji');
     const albumArtSub = document.getElementById('albumArtSub');
     const rgbGlow = document.getElementById('rgbGlow');
@@ -1812,6 +1850,12 @@
     const albumWrapper = document.getElementById('albumWrapper');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const repeatBtn = document.getElementById('repeatBtn');
+
+    function updateLpSpinState() {
+        if (!albumDisc) return;
+        const shouldSpin = isPlaying && (config.showLpSpin !== false);
+        albumDisc.classList.toggle('spinning', shouldSpin);
+    }
 
     /* =========================================================================
        배열 랜덤 셔플 유틸리티 (Fisher-Yates)
@@ -1887,7 +1931,10 @@
                 document.getElementById('mainApp').classList.toggle('dark-mode', !!config.darkMode);
                 document.getElementById('setRgbToggle').checked = config.showRgb !== false;
                 document.getElementById('setPulseToggle').checked = config.showPulse !== false;
+                const lpToggle = document.getElementById('setLpSpinToggle');
+                if (lpToggle) lpToggle.checked = config.showLpSpin !== false;
                 albumWrapper.classList.toggle('rgb-on', config.showRgb !== false);
+                updateLpSpinState();
             }
             if (typeof state.isShuffle === 'boolean') {
                 isShuffle = state.isShuffle;
@@ -1916,8 +1963,10 @@
     }
 
     function clearSavedData() {
-        showConfirmModal("저장된 테마, EQ 설정 및 플레이리스트를 초기화할까요?", "초기화", () => {
+        showConfirmModal("저장된 테마, EQ 설정, 앨범 표지 캐시 및 플레이리스트를 초기화할까요?", "초기화", () => {
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            try { indexedDB.deleteDatabase("GungdiCoverCacheDB"); } catch (e) {}
+            try { indexedDB.deleteDatabase("GungdiCoverCacheDB_v2"); } catch (e) {}
             folders = { '기본 재생목록': [] };
             renderFolderList();
             showToast("초기화되었습니다.");
@@ -2677,7 +2726,10 @@
     function updateVisualConfig() {
         config.showRgb = document.getElementById('setRgbToggle').checked;
         config.showPulse = document.getElementById('setPulseToggle').checked;
+        const lpToggle = document.getElementById('setLpSpinToggle');
+        if (lpToggle) config.showLpSpin = lpToggle.checked;
         albumWrapper.classList.toggle('rgb-on', config.showRgb);
+        updateLpSpinState();
         saveAppState();
         if (!isPlaying) updatePulse();
     }
@@ -2716,6 +2768,23 @@
         });
     }
 
+    function setMainPlayerCoverDisplay(s) {
+        if (!s) return;
+        if (s.cover) {
+            albumDisc.style.background = '';
+            albumDisc.style.backgroundImage = `url('${s.cover}')`;
+            albumArtEmoji.style.display = 'none';
+            albumArtSub.style.display = 'none';
+        } else {
+            albumDisc.style.backgroundImage = '';
+            albumDisc.style.background = s.gradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
+            albumArtEmoji.innerText = s.emoji || '🍑';
+            albumArtEmoji.style.display = 'block';
+            albumArtSub.innerText = s.eng || 'GUNGDI STUDIO';
+            albumArtSub.style.display = 'block';
+        }
+    }
+
     function loadSong(i) {
         if (i < 0 || i >= playQueue.length) return;
         currentSongIndex = i;
@@ -2730,18 +2799,11 @@
             badgeEl.classList.remove('show');
         }
 
-        if (s.cover) {
-            albumArt.style.background = '';
-            albumArt.style.backgroundImage = `url('${s.cover}')`;
-            albumArtEmoji.style.display = 'none';
-            albumArtSub.style.display = 'none';
-        } else {
-            albumArt.style.backgroundImage = '';
-            albumArt.style.background = s.gradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
-            albumArtEmoji.innerText = s.emoji || '🍑';
-            albumArtEmoji.style.display = 'block';
-            albumArtSub.innerText = s.eng || 'GUNGDI STUDIO';
-            albumArtSub.style.display = 'block';
+        setMainPlayerCoverDisplay(s);
+
+        // 만약 아직 커버가 추출되지 않은 AI 곡이라면 즉시 최우선으로 커버 추출 시도
+        if (s.isAi && !s.cover && s.id) {
+            ensureSingleSongCover(s.id);
         }
 
         progress.style.width = "0%";
@@ -2766,8 +2828,10 @@
         } catch (e) {}
 
         isPlaying = true;
+        updateLpSpinState();
         audio.play().then(() => {
             playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+            updateLpSpinState();
             updatePulse();
             renderRecommendView();
         }).catch(() => {
@@ -2778,16 +2842,19 @@
                 audio.load();
                 audio.play().then(() => {
                     playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+                    updateLpSpinState();
                     updatePulse();
                     renderRecommendView();
                 }).catch(() => {
                     isPlaying = false;
+                    updateLpSpinState();
                     playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
                     showToast(`오디오 파일을 찾을 수 없습니다: ${curr.name}`);
                 });
                 return;
             }
             isPlaying = false;
+            updateLpSpinState();
             playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
             showToast("오디오 파일을 재생할 수 없습니다.");
         });
@@ -2795,6 +2862,7 @@
 
     function pauseAudio() {
         isPlaying = false;
+        updateLpSpinState();
         audio.pause();
         playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
         cancelAnimationFrame(animationId);
@@ -3106,8 +3174,8 @@
         document.getElementById('title').innerText = "선택된 곡 없음";
         document.getElementById('artist').innerText = "추천 탭에서 내 AI 곡을 바로 들어보세요";
         document.getElementById('songBadge').classList.remove('show');
-        albumArt.style.backgroundImage = '';
-        albumArt.style.background = 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
+        albumDisc.style.backgroundImage = '';
+        albumDisc.style.background = 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
         albumArtEmoji.innerText = '🍑';
         albumArtEmoji.style.display = 'block';
         albumArtSub.innerText = 'GUNGDI STUDIO';
@@ -3142,13 +3210,30 @@
     }
 
     /* =========================================================================
-       스마트폰 파일 선택기로 오디오 추가
+       스마트폰/PC 파일 선택기로 오디오 추가 (동일 이름 AI 곡 표지 자동 매칭 포함)
        ========================================================================= */
+    async function syncLocalFileCoverWithAiSong(file, meta) {
+        if (!meta || !meta.cover) return;
+        const cleanFileName = file.name.replace(/\.[^/.]+$/, "").trim();
+        const matchedAi = AI_SONGS.find(s =>
+            s.name === cleanFileName ||
+            cleanFileName.includes(s.name) ||
+            s.name.includes(cleanFileName)
+        );
+        if (matchedAi && !matchedAi.cover) {
+            matchedAi.cover = meta.cover;
+            await setCachedCover(`ai_song_${matchedAi.id}`, meta.cover);
+            applyExtractedCoverToAllLists(matchedAi.id, meta.cover);
+            renderRecommendView();
+        }
+    }
+
     document.getElementById('pliFileInput').onchange = async (e) => {
         const files = Array.from(e.target.files || []);
         if (!files.length) return;
         for (const f of files) {
             const m = await getSongMetadata(f);
+            await syncLocalFileCoverWithAiSong(f, m);
             playQueue.push({ ...m, url: URL.createObjectURL(f), isAi: false });
         }
         switchLibraryTab('queue');
@@ -3166,6 +3251,7 @@
         if (!files.length || !currentOpenFolder) return;
         for (const f of files) {
             const m = await getSongMetadata(f);
+            await syncLocalFileCoverWithAiSong(f, m);
             folders[currentOpenFolder].push({ ...m, url: URL.createObjectURL(f), isAi: false });
         }
         renderFolderDetail();
@@ -3176,6 +3262,271 @@
 
     playBtn.onclick = () => isPlaying ? pauseAudio() : playAudio();
 
+    /* =========================================================================
+       [실제 MP3 파일 내장 ID3 앨범 표지(APIC) 자동 추출 & IndexedDB 영구 캐시]
+       - 1순위: jsmediatags 정식 파서 (전체 파일 기준, 이미지 잘림 방지)
+       - 2순위: 바이너리 APIC 직접 파서 (JPEG / PNG / WebP 지원)
+       - 추출된 이미지가 실제 유효한 이미지인지 검증(Image onload) 후 적용하며,
+         표지가 없는 파일은 기존 그라데이션+이모지 디자인을 그대로 유지합니다.
+       ========================================================================= */
+    const COVER_DB_NAME = "GungdiCoverCacheDB_v2";
+    const COVER_STORE_NAME = "covers";
+    const extractingSongIds = new Set();
+
+    function openCoverDB() {
+        return new Promise((resolve, reject) => {
+            if (!window.indexedDB) return reject("No IndexedDB");
+            const req = indexedDB.open(COVER_DB_NAME, 1);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(COVER_STORE_NAME)) {
+                    db.createObjectStore(COVER_STORE_NAME);
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async function getCachedCover(key) {
+        try {
+            const db = await openCoverDB();
+            return await new Promise((resolve) => {
+                const tx = db.transaction(COVER_STORE_NAME, "readonly");
+                const req = tx.objectStore(COVER_STORE_NAME).get(key);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function setCachedCover(key, dataUrl) {
+        try {
+            const db = await openCoverDB();
+            return await new Promise((resolve) => {
+                const tx = db.transaction(COVER_STORE_NAME, "readwrite");
+                tx.objectStore(COVER_STORE_NAME).put(dataUrl, key);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // 추출된 DataURL이 실제로 렌더링 가능한 정상 이미지인지 검증
+    function validateImageDataUrl(dataUrl) {
+        if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+            return Promise.resolve(false);
+        }
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img.naturalWidth > 0 && img.naturalHeight > 0);
+            img.onerror = () => resolve(false);
+            img.src = dataUrl;
+        });
+    }
+
+    // 바이너리에서 직접 ID3v2 APIC 프레임의 JPEG / PNG / WebP 이미지를 추출하는 백업 파서
+    function extractApicFromArrayBuffer(buffer) {
+        try {
+            const bytes = new Uint8Array(buffer);
+            if (bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) return null;
+            const id3Size = ((bytes[6] & 0x7f) << 21) | ((bytes[7] & 0x7f) << 14) | ((bytes[8] & 0x7f) << 7) | (bytes[9] & 0x7f);
+            const limit = Math.min(bytes.length - 10, id3Size + 10);
+
+            let apicPos = -1;
+            for (let i = 10; i < limit - 4; i++) {
+                if (bytes[i] === 0x41 && bytes[i+1] === 0x50 && bytes[i+2] === 0x49 && bytes[i+3] === 0x43) {
+                    apicPos = i;
+                    break;
+                }
+            }
+            if (apicPos === -1) return null;
+
+            const version = bytes[3];
+            const s0 = bytes[apicPos + 4], s1 = bytes[apicPos + 5], s2 = bytes[apicPos + 6], s3 = bytes[apicPos + 7];
+            const frameSize = version === 4
+                ? (((s0 & 0x7f) << 21) | ((s1 & 0x7f) << 14) | ((s2 & 0x7f) << 7) | (s3 & 0x7f))
+                : ((s0 << 24) | (s1 << 16) | (s2 << 8) | s3);
+
+            if (frameSize <= 0) return null;
+            const frameStart = apicPos + 10;
+            const frameEnd = Math.min(bytes.length, frameStart + frameSize);
+
+            let imgStart = -1;
+            let mime = "image/jpeg";
+            for (let i = frameStart; i < Math.min(frameStart + 256, frameEnd - 12); i++) {
+                // JPEG (FF D8 FF)
+                if (bytes[i] === 0xFF && bytes[i+1] === 0xD8 && bytes[i+2] === 0xFF) {
+                    imgStart = i;
+                    mime = "image/jpeg";
+                    break;
+                }
+                // PNG (89 50 4E 47)
+                if (bytes[i] === 0x89 && bytes[i+1] === 0x50 && bytes[i+2] === 0x4E && bytes[i+3] === 0x47) {
+                    imgStart = i;
+                    mime = "image/png";
+                    break;
+                }
+                // WebP ("RIFF" .... "WEBP")
+                if (bytes[i] === 0x52 && bytes[i+1] === 0x49 && bytes[i+2] === 0x46 && bytes[i+3] === 0x46 &&
+                    bytes[i+8] === 0x57 && bytes[i+9] === 0x45 && bytes[i+10] === 0x42 && bytes[i+11] === 0x50) {
+                    imgStart = i;
+                    mime = "image/webp";
+                    break;
+                }
+            }
+            if (imgStart === -1) return null;
+
+            const imgBytes = bytes.subarray(imgStart, frameEnd);
+            let binary = "";
+            const chunkSize = 8192;
+            for (let i = 0; i < imgBytes.length; i += chunkSize) {
+                binary += String.fromCharCode.apply(null, imgBytes.subarray(i, i + chunkSize));
+            }
+            return `data:${mime};base64,${window.btoa(binary)}`;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function extractCoverFromSongUrl(song) {
+        const tryUrls = [song.url];
+        if (song.fallbackUrl) tryUrls.push(song.fallbackUrl);
+
+        for (const rawUrl of tryUrls) {
+            if (!rawUrl) continue;
+            const encodedUrl = encodeURI(rawUrl);
+            try {
+                // 전체 파일을 가져와서 대용량 Suno 커버 이미지가 절대 잘리지 않도록 처리
+                const res = await fetch(encodedUrl);
+                if (!res.ok) continue;
+
+                const buffer = await res.arrayBuffer();
+
+                // 1순위: jsmediatags 정식 파서
+                if (window.jsmediatags) {
+                    const blob = new Blob([buffer], { type: "audio/mpeg" });
+                    const tagCover = await new Promise((resolve) => {
+                        window.jsmediatags.read(blob, {
+                            onSuccess: (tag) => {
+                                const pic = tag.tags && tag.tags.picture;
+                                if (!pic || !pic.data || !pic.data.length) return resolve(null);
+                                const { data, format } = pic;
+                                let binary = "";
+                                const u8 = new Uint8Array(data);
+                                const chunkSize = 8192;
+                                for (let i = 0; i < u8.length; i += chunkSize) {
+                                    binary += String.fromCharCode.apply(null, u8.subarray(i, i + chunkSize));
+                                }
+                                const fmt = (format && format.includes('/')) ? format : 'image/jpeg';
+                                resolve(`data:${fmt};base64,${window.btoa(binary)}`);
+                            },
+                            onError: () => resolve(null)
+                        });
+                    });
+                    if (tagCover && await validateImageDataUrl(tagCover)) {
+                        return tagCover;
+                    }
+                }
+
+                // 2순위: 바이너리 APIC 파서 (JPEG / PNG / WebP)
+                const directCover = extractApicFromArrayBuffer(buffer);
+                if (directCover && await validateImageDataUrl(directCover)) {
+                    return directCover;
+                }
+            } catch (e) {}
+        }
+        return null;
+    }
+
+    function applyExtractedCoverToAllLists(songId, coverDataUrl) {
+        const aiTarget = AI_SONGS.find(s => s.id === songId);
+        if (aiTarget) aiTarget.cover = coverDataUrl;
+
+        if (spotlightSong && spotlightSong.id === songId) {
+            spotlightSong.cover = coverDataUrl;
+        }
+        hotPickSongs.forEach(s => { if (s.id === songId) s.cover = coverDataUrl; });
+        quickPickSongs.forEach(s => { if (s.id === songId) s.cover = coverDataUrl; });
+        shuffledThemes.forEach(t => {
+            t.songs.forEach(s => { if (s.id === songId) s.cover = coverDataUrl; });
+        });
+
+        playQueue.forEach((s, idx) => {
+            if (s.id === songId) {
+                s.cover = coverDataUrl;
+                if (idx === currentSongIndex) {
+                    setMainPlayerCoverDisplay(s);
+                }
+            }
+        });
+        for (const fName in folders) {
+            folders[fName].forEach(s => {
+                if (s.id === songId) s.cover = coverDataUrl;
+            });
+        }
+    }
+
+    async function ensureSingleSongCover(songId) {
+        const song = AI_SONGS.find(s => s.id === songId);
+        if (!song || song.cover || extractingSongIds.has(songId)) return;
+        extractingSongIds.add(songId);
+        try {
+            const cached = await getCachedCover(`ai_song_${song.id}`);
+            if (cached && await validateImageDataUrl(cached)) {
+                applyExtractedCoverToAllLists(song.id, cached);
+                renderRecommendView();
+                renderQueue();
+                return;
+            }
+            const coverDataUrl = await extractCoverFromSongUrl(song);
+            if (coverDataUrl) {
+                await setCachedCover(`ai_song_${song.id}`, coverDataUrl);
+                applyExtractedCoverToAllLists(song.id, coverDataUrl);
+                renderRecommendView();
+                renderQueue();
+                if (currentLibraryTab === 'folders') renderFolderList();
+            }
+        } finally {
+            extractingSongIds.delete(songId);
+        }
+    }
+
+    async function loadAllAiSongCovers() {
+        // 1단계: IndexedDB에 캐시된 유효한 앨범 표지가 있으면 즉시 먼저 입힘
+        let updatedFromCache = false;
+        for (const song of AI_SONGS) {
+            if (song.cover) continue;
+            const cached = await getCachedCover(`ai_song_${song.id}`);
+            if (cached && await validateImageDataUrl(cached)) {
+                applyExtractedCoverToAllLists(song.id, cached);
+                updatedFromCache = true;
+            }
+        }
+        if (updatedFromCache) {
+            renderRecommendView();
+            renderQueue();
+            renderFolderList();
+        }
+
+        // 2단계: 화면 상단에 먼저 보이는 히어로 배너 곡과 핫픽 곡들부터 우선 추출 후 나머지 순차 추출
+        const priorityList = [
+            ...(spotlightSong ? [spotlightSong] : []),
+            ...hotPickSongs,
+            ...AI_SONGS
+        ];
+        const seenIds = new Set();
+        for (const item of priorityList) {
+            if (!item || seenIds.has(item.id)) continue;
+            seenIds.add(item.id);
+            await ensureSingleSongCover(item.id);
+        }
+    }
+
     /* 앱 초기 구동: 추천 큐레이션 랜덤 생성 및 렌더링 */
     loadAppState();
     randomizeCurationState();
@@ -3183,6 +3534,7 @@
     renderQueue();
     renderFolderList();
     initScrollEvents();
+    loadAllAiSongCovers();
 </script>
 </body>
 </html>
