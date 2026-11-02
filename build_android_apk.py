@@ -107,8 +107,8 @@ android {
         applicationId "com.gungdi.player"
         minSdk 26
         targetSdk 34
-        versionCode 5
-        versionName "5.0-iu-widget"
+        versionCode 6
+        versionName "6.0-clean-ratio"
     }
 
     signingConfigs {
@@ -227,10 +227,10 @@ dependencies {
     write_text("app/src/main/res/xml/gungdi_card_widget_info.xml", """
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="180dp"
-    android:minHeight="180dp"
-    android:minResizeWidth="140dp"
-    android:minResizeHeight="140dp"
+    android:minWidth="200dp"
+    android:minHeight="200dp"
+    android:minResizeWidth="150dp"
+    android:minResizeHeight="150dp"
     android:targetCellWidth="3"
     android:targetCellHeight="3"
     android:updatePeriodMillis="0"
@@ -245,9 +245,9 @@ dependencies {
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
-    android:minHeight="64dp"
+    android:minHeight="58dp"
     android:minResizeWidth="180dp"
-    android:minResizeHeight="56dp"
+    android:minResizeHeight="54dp"
     android:targetCellWidth="4"
     android:targetCellHeight="1"
     android:updatePeriodMillis="0"
@@ -257,137 +257,279 @@ dependencies {
     android:previewImage="@mipmap/ic_launcher" />
 """)
 
-    # 8. Layout 1: 아이유 스타일 앨범 카드 위젯 레이아웃 (Canvas 렌더링 이미지 + 투명 터치 영역 오버레이)
+    # 8. Layout 1: 아이유 스타일 앨범 카드 위젯 (네이티브 TextView + 정사각형 fitCenter 버튼으로 찌부짜부 0% 보장!)
     write_text("app/src/main/res/layout/gungdi_card_widget.xml", """
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/card_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="4dp">
 
-    <!-- 고해상도 캔버스로 그려지는 라운드 앨범아트 + 하단 플로팅 바 이미지 -->
+    <!-- 1. 위젯 실제 비율에 맞춰 Center-Crop + 라운드 처리된 앨범 표지 -->
     <ImageView
-        android:id="@+id/card_canvas_img"
+        android:id="@+id/card_album_img"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
-        android:contentDescription="궁디 플레이어 앨범 카드 위젯" />
+        android:contentDescription="앨범 커버" />
 
-    <!-- 상단 영역: 좌측/중앙 클릭 시 앱 열기, 우측 상단 클릭 시 위젯 설정 바로 열기 -->
-    <LinearLayout
+    <!-- 2. 우측 상단 고정 정사각형(32dp) 위젯 설정 버튼 (절대 찌그러지지 않음) -->
+    <ImageView
+        android:id="@+id/card_btn_settings"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="위젯 설정" />
+
+    <!-- 3. 하단 플로팅 컨트롤 카드 (고정 높이 82dp로 비율 완벽 유지) -->
+    <FrameLayout
+        android:id="@+id/card_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="82dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp">
 
+        <!-- 반투명 화이트/다크 라운드 카드 배경 -->
+        <ImageView
+            android:id="@+id/card_bar_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:contentDescription="하단 컨트롤 카드 배경" />
+
+        <!-- 좌측 텍스트(네이티브 TextView) + 우측 버튼(정사각형 fitCenter ImageView) -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="62"
-            android:orientation="horizontal">
-
-            <FrameLayout
-                android:id="@+id/card_hit_open_top"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <FrameLayout
-                android:id="@+id/card_hit_settings"
-                android:layout_width="54dp"
-                android:layout_height="54dp" />
-        </LinearLayout>
-
-        <!-- 하단 플로팅 바 터치 영역 (좌측 곡정보=앱열기 / 우측 이전·재생·다음 버튼) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="38"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:paddingLeft="14dp"
-            android:paddingRight="14dp"
-            android:paddingBottom="8dp">
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="5dp">
 
-            <FrameLayout
-                android:id="@+id/card_hit_open_info"
+            <LinearLayout
+                android:id="@+id/card_info_box"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="46" />
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingEnd="6dp">
 
-            <FrameLayout
-                android:id="@+id/card_hit_prev"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="17" />
+                <TextView
+                    android:id="@+id/card_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#222328"
+                    android:text="노래를 재생해 보세요" />
 
-            <FrameLayout
-                android:id="@+id/card_hit_play"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="20" />
+                <TextView
+                    android:id="@+id/card_artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:textSize="11.5sp"
+                    android:textColor="#686B73"
+                    android:text="궁디 AI Studio" />
 
-            <FrameLayout
-                android:id="@+id/card_hit_next"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="17" />
+                <TextView
+                    android:id="@+id/card_count"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:singleLine="true"
+                    android:textSize="10.5sp"
+                    android:textColor="#888B94"
+                    android:text="1/21" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/card_btn_prev"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="이전곡" />
+
+                <ImageView
+                    android:id="@+id/card_btn_play"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="재생 및 일시정지" />
+
+                <ImageView
+                    android:id="@+id/card_btn_next"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="다음곡" />
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-</FrameLayout>
+
+        <!-- 하단 얇은 실시간 진행바 -->
+        <ImageView
+            android:id="@+id/card_progress_img"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="6dp"
+            android:scaleType="fitXY"
+            android:contentDescription="진행바" />
+    </FrameLayout>
+</RelativeLayout>
 """)
 
-    # 9. Layout 2: 슬림 바 위젯 레이아웃 (4x1 가로형)
+    # 9. Layout 2: 슬림 바 위젯 레이아웃 (4x1 가로형 - 정사각형 48dp 앨범아트 + 네이티브 TextView + 정원형 버튼)
     write_text("app/src/main/res/layout/gungdi_mini_widget.xml", """
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mini_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="2dp">
+    android:padding="3dp">
 
-    <ImageView
-        android:id="@+id/mini_canvas_img"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:contentDescription="궁디 플레이어 미니 위젯" />
+        android:layout_height="68dp"
+        android:layout_gravity="center_vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:paddingLeft="8dp"
-        android:paddingRight="6dp">
-
-        <FrameLayout
-            android:id="@+id/mini_hit_open"
-            android:layout_width="0dp"
+        <!-- 반투명 화이트/다크 라운드 바 배경 -->
+        <ImageView
+            android:id="@+id/mini_bar_bg"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="54" />
+            android:scaleType="fitXY"
+            android:contentDescription="미니 위젯 배경" />
 
-        <FrameLayout
-            android:id="@+id/mini_hit_prev"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="13" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp">
 
-        <FrameLayout
-            android:id="@+id/mini_hit_play"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="15" />
+            <!-- 좌측 1:1 정사각형(46dp) 라운드 앨범 표지 -->
+            <ImageView
+                android:id="@+id/mini_album_img"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="앨범 표지" />
 
-        <FrameLayout
-            android:id="@+id/mini_hit_next"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="13" />
+            <!-- 중앙 곡 제목 & 아티스트·트랙번호 (네이티브 TextView로 글씨 찌그러짐 완벽 방지) -->
+            <LinearLayout
+                android:id="@+id/mini_info_box"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="6dp"
+                android:orientation="vertical">
 
-        <FrameLayout
-            android:id="@+id/mini_hit_settings"
-            android:layout_width="28dp"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/mini_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#222328"
+                    android:text="노래를 재생해 보세요" />
+
+                <TextView
+                    android:id="@+id/mini_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:textSize="11sp"
+                    android:textColor="#686B73"
+                    android:text="궁디 AI Studio · 1/21" />
+            </LinearLayout>
+
+            <!-- 우측 컨트롤 버튼들 (정사각형 dp + fitCenter로 항상 완벽한 원형 유지) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/mini_btn_prev"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:padding="5dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="이전곡" />
+
+                <ImageView
+                    android:id="@+id/mini_btn_play"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="재생 및 일시정지" />
+
+                <ImageView
+                    android:id="@+id/mini_btn_next"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:padding="5dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="다음곡" />
+
+                <ImageView
+                    android:id="@+id/mini_btn_settings"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="위젯 설정" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 하단 얇은 진행바 -->
+        <ImageView
+            android:id="@+id/mini_progress_img"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="5dp"
+            android:scaleType="fitXY"
+            android:contentDescription="진행바" />
+    </FrameLayout>
 </FrameLayout>
 """)
 
@@ -488,7 +630,7 @@ public class PlaybackStateStore {
 }
 """)
 
-    # 11. Java: WidgetCanvasRenderer.java (아이유 '라일락' 스타일 고해상도 위젯 & 슬림 위젯 드로잉 엔진)
+    # 11. Java: WidgetCanvasRenderer.java (개별 요소 분리 렌더링으로 찌부짜부 0% 보장!)
     write_text("app/src/main/java/com/gungdi/player/WidgetCanvasRenderer.java", """
 package com.gungdi.player;
 
@@ -505,37 +647,25 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Shader;
-import android.graphics.Typeface;
-import android.text.TextPaint;
-import android.text.TextUtils;
 
 public class WidgetCanvasRenderer {
 
     /**
-     * 1) 아이유 '라일락' 스타일 3x3 앨범 카드형 위젯 렌더링
-     * - 둥근 사각형 전체에 앨범 표지 꽉 차게 렌더링
-     * - 우측 상단에 반투명 ⚙ 설정 버튼 배치
-     * - 하단에 둥근 플로팅 카드(화이트 모드 / 다크 모드 + 투명도 15~100% 반영)
-     * - 좌측: 곡 제목, 아티스트, 곡 번호(6/46 스타일)
-     * - 우측: 동글동글한 ◀◀, 은은한 광채 원형 ▶/⏸, 동글동글한 ▶▶
-     * - 하단 끝: 얇고 세련된 실시간 진행 상태바
+     * 1) 앨범 커버 렌더링 (위젯 실제 가로/세로 비율에 맞춰 Center-Crop + 둥근 모서리로 찌그러짐 완벽 방지)
      */
-    public static Bitmap renderCardWidget(Context context, int widthPx, int heightPx) {
-        int w = Math.max(480, widthPx);
-        int h = Math.max(480, heightPx);
+    public static Bitmap renderRoundedAlbumCover(Context context, int widthPx, int heightPx, float radiusPx) {
+        int w = Math.max(96, Math.min(640, widthPx));
+        int h = Math.max(96, Math.min(640, heightPx));
         Bitmap out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(out);
 
-        float outerRadius = w * 0.085f;
-        RectF outerRect = new RectF(0, 0, w, h);
-
-        // 1. 배경 앨범 표지 그리기 (없으면 피치 그라데이션 + 기본 아이콘)
+        RectF rect = new RectF(0, 0, w, h);
         Bitmap art = PlaybackStateStore.currentArtwork;
         if (art == null) {
             art = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
         }
 
-        if (art != null) {
+        if (art != null && art.getWidth() > 0 && art.getHeight() > 0) {
             Paint artPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
             BitmapShader shader = new BitmapShader(art, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
             Matrix matrix = new Matrix();
@@ -546,258 +676,160 @@ public class WidgetCanvasRenderer {
             matrix.postTranslate(dx, dy);
             shader.setLocalMatrix(matrix);
             artPaint.setShader(shader);
-            canvas.drawRoundRect(outerRect, outerRadius, outerRadius, artPaint);
+            canvas.drawRoundRect(rect, radiusPx, radiusPx, artPaint);
         } else {
             Paint gradPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             gradPaint.setShader(new LinearGradient(0, 0, w, h,
                     Color.parseColor("#FF9A9E"), Color.parseColor("#FECFEF"), Shader.TileMode.CLAMP));
-            canvas.drawRoundRect(outerRect, outerRadius, outerRadius, gradPaint);
+            canvas.drawRoundRect(rect, radiusPx, radiusPx, gradPaint);
         }
+        return out;
+    }
 
-        // 2. 우측 상단 ⚙ 위젯 설정 아이콘 배지
-        float gearCx = w - w * 0.095f;
-        float gearCy = h * 0.095f;
-        float gearR = w * 0.048f;
-        Paint gearBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        gearBgPaint.setColor(Color.argb(115, 20, 22, 28));
-        canvas.drawCircle(gearCx, gearCy, gearR, gearBgPaint);
+    /**
+     * 2) 반투명 플로팅 컨트롤 카드 배경 (화이트/다크 모드 + 투명도 15~100% 실시간 반영)
+     */
+    public static Bitmap renderFloatingBarBackground(int widthPx, int heightPx, float radiusPx, boolean isDark, int opacityPct, boolean withBorder) {
+        int w = Math.max(200, Math.min(720, widthPx));
+        int h = Math.max(80, Math.min(280, heightPx));
+        Bitmap out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
 
-        TextPaint gearTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        gearTextPaint.setColor(Color.WHITE);
-        gearTextPaint.setTextSize(gearR * 1.15f);
-        gearTextPaint.setTextAlign(Paint.Align.CENTER);
-        Paint.FontMetrics gfm = gearTextPaint.getFontMetrics();
-        canvas.drawText("⚙", gearCx, gearCy - (gfm.ascent + gfm.descent) * 0.5f, gearTextPaint);
-
-        // 3. 하단 플로팅 컨트롤 카드 (아이유 라일락 위젯 비율 그대로!)
-        float cardMarginX = w * 0.055f;
-        float cardMarginBottom = h * 0.055f;
-        float cardHeight = h * 0.31f;
-        float cardTop = h - cardMarginBottom - cardHeight;
-        RectF barRect = new RectF(cardMarginX, cardTop, w - cardMarginX, h - cardMarginBottom);
-        float barRadius = cardHeight * 0.25f;
-
-        boolean isDark = PlaybackStateStore.widgetDarkMode;
-        int opacityPct = PlaybackStateStore.widgetOpacity;
         int alpha = Math.max(38, Math.min(255, (int) (opacityPct * 2.55f)));
+        RectF rect = new RectF(3f, 3f, w - 3f, h - 5f);
 
-        // 카드 그림자
+        // 은은한 하단 그림자
         Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        shadowPaint.setColor(Color.argb(42, 0, 0, 0));
-        RectF shadowRect = new RectF(barRect.left, barRect.top + 6f, barRect.right, barRect.bottom + 6f);
-        canvas.drawRoundRect(shadowRect, barRadius, barRadius, shadowPaint);
+        shadowPaint.setColor(Color.argb(36, 0, 0, 0));
+        canvas.drawRoundRect(new RectF(rect.left, rect.top + 3f, rect.right, rect.bottom + 3f), radiusPx, radiusPx, shadowPaint);
 
-        // 카드 본체 (화이트 모드 vs 다크 모드 + 사용자 투명도)
-        Paint barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        // 본체 배경
+        Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         if (isDark) {
-            barPaint.setColor(Color.argb(alpha, 26, 28, 36));
+            bgPaint.setColor(Color.argb(alpha, 26, 28, 36));
         } else {
-            barPaint.setColor(Color.argb(alpha, 255, 255, 255));
+            bgPaint.setColor(Color.argb(alpha, 255, 255, 255));
         }
-        canvas.drawRoundRect(barRect, barRadius, barRadius, barPaint);
+        canvas.drawRoundRect(rect, radiusPx, radiusPx, bgPaint);
 
-        // 4. 좌측 텍스트 영역 (곡 제목 / 아티스트 / 6/46 곡 순서)
-        int titleColor = isDark ? Color.WHITE : Color.parseColor("#222328");
-        int subColor = isDark ? Color.parseColor("#B4B9C6") : Color.parseColor("#686B73");
-        int countColor = isDark ? Color.parseColor("#9096A4") : Color.parseColor("#888B94");
+        if (withBorder) {
+            Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            strokePaint.setStyle(Paint.Style.STROKE);
+            strokePaint.setStrokeWidth(2f);
+            strokePaint.setColor(isDark ? Color.argb(75, 255, 117, 140) : Color.argb(65, 232, 131, 155));
+            canvas.drawRoundRect(rect, radiusPx, radiusPx, strokePaint);
+        }
+        return out;
+    }
 
-        float textLeft = barRect.left + barRect.width() * 0.068f;
-        float maxTextWidth = barRect.width() * 0.42f;
+    /**
+     * 3) 1:1 정원형 광채 재생/일시정지 버튼 아이콘 (정사각형 ImageView + fitCenter로 찌부짜부 0%)
+     */
+    public static Bitmap renderPlayButton(int sizePx, boolean isPlaying) {
+        int s = Math.max(96, Math.min(180, sizePx));
+        Bitmap out = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
 
-        TextPaint titlePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        titlePaint.setColor(titleColor);
-        titlePaint.setTextSize(cardHeight * 0.205f);
-        titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        String safeTitle = TextUtils.ellipsize(
-                PlaybackStateStore.currentTitle, titlePaint, maxTextWidth, TextUtils.TruncateAt.END).toString();
+        float cx = s * 0.5f;
+        float cy = s * 0.5f;
+        float playRadius = s * 0.38f;
 
-        TextPaint artistPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        artistPaint.setColor(subColor);
-        artistPaint.setTextSize(cardHeight * 0.155f);
-        String safeArtist = TextUtils.ellipsize(
-                PlaybackStateStore.currentArtist, artistPaint, maxTextWidth, TextUtils.TruncateAt.END).toString();
-
-        TextPaint countPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        countPaint.setColor(countColor);
-        countPaint.setTextSize(cardHeight * 0.132f);
-        int idx = Math.max(1, PlaybackStateStore.trackIndex);
-        int tot = Math.max(idx, PlaybackStateStore.totalTracks);
-        String countStr = idx + "/" + tot;
-
-        float centerY = barRect.centerY() - cardHeight * 0.03f;
-        canvas.drawText(safeTitle, textLeft, centerY - cardHeight * 0.14f, titlePaint);
-        canvas.drawText(safeArtist, textLeft, centerY + cardHeight * 0.08f, artistPaint);
-        canvas.drawText(countStr, textLeft, centerY + cardHeight * 0.27f, countPaint);
-
-        // 5. 우측 컨트롤 버튼 영역 (◀◀ / 광채 원형 ▶·⏸ / ▶▶)
-        float controlsCenterY = barRect.centerY() - cardHeight * 0.02f;
-        float playCx = barRect.left + barRect.width() * 0.72f;
-        float prevCx = barRect.left + barRect.width() * 0.56f;
-        float nextCx = barRect.left + barRect.width() * 0.88f;
-
-        // 가운데 광채 원형 재생/일시정지 버튼 (아이유 스샷 스타일!)
-        float playRadius = cardHeight * 0.265f;
+        // 바깥쪽 핑크 후광 링 (아이유 '라일락' 위젯 스타일)
         Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloPaint.setColor(Color.argb(46, 232, 118, 148));
-        canvas.drawCircle(playCx, controlsCenterY, playRadius * 1.24f, haloPaint);
+        haloPaint.setColor(Color.argb(52, 232, 118, 148));
+        canvas.drawCircle(cx, cy, playRadius * 1.24f, haloPaint);
 
-        Paint playCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        playCirclePaint.setShader(new LinearGradient(
-                playCx - playRadius, controlsCenterY - playRadius,
-                playCx + playRadius, controlsCenterY + playRadius,
-                Color.parseColor("#E8839B"), Color.parseColor("#BA6B80"),
+        // 메인 로즈핑크 원형 버튼
+        Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        circlePaint.setShader(new LinearGradient(
+                cx - playRadius, cy - playRadius,
+                cx + playRadius, cy + playRadius,
+                Color.parseColor("#EE829B"), Color.parseColor("#C26B82"),
                 Shader.TileMode.CLAMP));
-        canvas.drawCircle(playCx, controlsCenterY, playRadius, playCirclePaint);
+        canvas.drawCircle(cx, cy, playRadius, circlePaint);
 
-        // 원 안쪽 둥근 ▶ 또는 ⏸ 아이콘
-        drawRoundedPlayOrPause(canvas, playCx, controlsCenterY, playRadius * 0.44f, PlaybackStateStore.isPlaying, Color.WHITE);
+        // 내부 둥근 ▶ 또는 ⏸ 아이콘
+        drawRoundedPlayOrPause(canvas, cx, cy, playRadius * 0.44f, isPlaying, Color.WHITE);
+        return out;
+    }
 
-        // 양옆 둥근 ◀◀ / ▶▶ 아이콘
-        int skipIconColor = isDark ? Color.parseColor("#D8DCE6") : Color.parseColor("#5C5F66");
-        float skipSize = cardHeight * 0.135f;
-        drawRoundedDoubleSkip(canvas, prevCx, controlsCenterY, skipSize, true, skipIconColor);
-        drawRoundedDoubleSkip(canvas, nextCx, controlsCenterY, skipSize, false, skipIconColor);
+    /**
+     * 4) 1:1 정사각형 이전곡(◀◀) / 다음곡(▶▶) 둥근 버튼 아이콘
+     */
+    public static Bitmap renderSkipButton(int sizePx, boolean isPrev, boolean isDark) {
+        int s = Math.max(72, Math.min(140, sizePx));
+        Bitmap out = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
 
-        // 6. 플로팅 카드 맨 아래 얇은 곡 진행 상태바 (프로그레스바)
-        float progLeft = barRect.left + barRect.width() * 0.068f;
-        float progRight = barRect.right - barRect.width() * 0.068f;
-        float progY = barRect.bottom - cardHeight * 0.105f;
-        float progHeight = Math.max(4f, cardHeight * 0.028f);
+        int color = isDark ? Color.parseColor("#E2E6F0") : Color.parseColor("#555860");
+        drawRoundedDoubleSkip(canvas, s * 0.5f, s * 0.5f, s * 0.25f, isPrev, color);
+        return out;
+    }
 
-        Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        trackPaint.setColor(isDark ? Color.argb(65, 255, 255, 255) : Color.argb(40, 0, 0, 0));
-        RectF trackRect = new RectF(progLeft, progY, progRight, progY + progHeight);
-        canvas.drawRoundRect(trackRect, progHeight, progHeight, trackPaint);
+    /**
+     * 5) 1:1 정사각형 톱니바퀴(⚙) 설정 아이콘 (폰트 깨짐/찌그러짐 없이 기하학 도형으로 깔끔하게 렌더링)
+     */
+    public static Bitmap renderSettingsButton(int sizePx, boolean withDarkBadge, boolean isDark) {
+        int s = Math.max(72, Math.min(128, sizePx));
+        Bitmap out = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
 
-        float ratio = 0f;
-        if (PlaybackStateStore.durationMs > 0) {
-            ratio = Math.max(0f, Math.min(1f, (float) PlaybackStateStore.positionMs / (float) PlaybackStateStore.durationMs));
+        float cx = s * 0.5f;
+        float cy = s * 0.5f;
+
+        if (withDarkBadge) {
+            Paint badgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            badgePaint.setColor(Color.argb(120, 20, 22, 28));
+            canvas.drawCircle(cx, cy, s * 0.44f, badgePaint);
         }
-        if (ratio > 0f) {
-            Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            fillPaint.setColor(Color.parseColor("#E26D89"));
-            RectF fillRect = new RectF(progLeft, progY, progLeft + (progRight - progLeft) * ratio, progY + progHeight);
-            canvas.drawRoundRect(fillRect, progHeight, progHeight, fillPaint);
+
+        int gearColor = withDarkBadge ? Color.WHITE : (isDark ? Color.parseColor("#B8BDCB") : Color.parseColor("#777B84"));
+        Paint toothPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        toothPaint.setColor(gearColor);
+        toothPaint.setStyle(Paint.Style.STROKE);
+        toothPaint.setStrokeWidth(s * 0.085f);
+        toothPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        float outerR = s * 0.25f;
+        float innerR = s * 0.14f;
+        for (int i = 0; i < 8; i++) {
+            double rad = Math.toRadians(i * 45.0);
+            float x1 = cx + (float) Math.cos(rad) * innerR;
+            float y1 = cy + (float) Math.sin(rad) * innerR;
+            float x2 = cx + (float) Math.cos(rad) * outerR;
+            float y2 = cy + (float) Math.sin(rad) * outerR;
+            canvas.drawLine(x1, y1, x2, y2, toothPaint);
         }
+
+        Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        ringPaint.setColor(gearColor);
+        ringPaint.setStyle(Paint.Style.STROKE);
+        ringPaint.setStrokeWidth(s * 0.075f);
+        canvas.drawCircle(cx, cy, s * 0.16f, ringPaint);
 
         return out;
     }
 
     /**
-     * 2) 슬림 가로형 미니 위젯 (4x1) 렌더링 (화이트/다크 모드 + 투명도 동일 적용)
+     * 6) 하단 슬림 진행 상태바 렌더링
      */
-    public static Bitmap renderMiniWidget(Context context, int widthPx, int heightPx) {
-        int w = Math.max(680, widthPx);
-        int h = Math.max(150, heightPx);
+    public static Bitmap renderProgressBar(int widthPx, int heightPx, long positionMs, long durationMs, boolean isDark) {
+        int w = Math.max(200, Math.min(600, widthPx));
+        int h = Math.max(8, Math.min(24, heightPx));
         Bitmap out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(out);
 
-        boolean isDark = PlaybackStateStore.widgetDarkMode;
-        int opacityPct = PlaybackStateStore.widgetOpacity;
-        int alpha = Math.max(38, Math.min(255, (int) (opacityPct * 2.55f)));
+        float r = h * 0.5f;
+        Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trackPaint.setColor(isDark ? Color.argb(65, 255, 255, 255) : Color.argb(38, 0, 0, 0));
+        canvas.drawRoundRect(new RectF(0, 0, w, h), r, r, trackPaint);
 
-        RectF barRect = new RectF(4f, 4f, w - 4f, h - 4f);
-        float radius = h * 0.34f;
-
-        Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bgPaint.setColor(isDark ? Color.argb(alpha, 25, 27, 35) : Color.argb(alpha, 255, 255, 255));
-        canvas.drawRoundRect(bgPaint != null ? barRect : barRect, radius, radius, bgPaint);
-
-        // 테두리
-        Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        strokePaint.setStyle(Paint.Style.STROKE);
-        strokePaint.setStrokeWidth(2.5f);
-        strokePaint.setColor(isDark ? Color.argb(80, 255, 107, 129) : Color.argb(60, 230, 120, 145));
-        canvas.drawRoundRect(barRect, radius, radius, strokePaint);
-
-        // 좌측 둥근 앨범 표지
-        float artSize = h * 0.72f;
-        float artLeft = h * 0.16f;
-        float artTop = (h - artSize) * 0.5f;
-        RectF artRect = new RectF(artLeft, artTop, artLeft + artSize, artTop + artSize);
-
-        Bitmap art = PlaybackStateStore.currentArtwork;
-        if (art == null) {
-            art = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
+        if (durationMs > 0 && positionMs > 0) {
+            float ratio = Math.max(0.02f, Math.min(1f, (float) positionMs / (float) durationMs));
+            Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            fillPaint.setColor(Color.parseColor("#E86D88"));
+            canvas.drawRoundRect(new RectF(0, 0, w * ratio, h), r, r, fillPaint);
         }
-        if (art != null) {
-            Paint artPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-            BitmapShader shader = new BitmapShader(art, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-            Matrix m = new Matrix();
-            float s = Math.max(artSize / art.getWidth(), artSize / art.getHeight());
-            m.setScale(s, s);
-            m.postTranslate(artLeft + (artSize - art.getWidth() * s) * 0.5f, artTop + (artSize - art.getHeight() * s) * 0.5f);
-            shader.setLocalMatrix(m);
-            artPaint.setShader(shader);
-            canvas.drawRoundRect(artRect, artSize * 0.25f, artSize * 0.25f, artPaint);
-        }
-
-        // 곡 제목 & 아티스트
-        float textLeft = artRect.right + h * 0.14f;
-        float maxTextW = w * 0.38f;
-        int titleColor = isDark ? Color.WHITE : Color.parseColor("#222328");
-        int subColor = isDark ? Color.parseColor("#B4B9C6") : Color.parseColor("#686B73");
-
-        TextPaint titlePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        titlePaint.setColor(titleColor);
-        titlePaint.setTextSize(h * 0.22f);
-        titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        String safeTitle = TextUtils.ellipsize(PlaybackStateStore.currentTitle, titlePaint, maxTextW, TextUtils.TruncateAt.END).toString();
-
-        TextPaint subPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        subPaint.setColor(subColor);
-        subPaint.setTextSize(h * 0.16f);
-        int idx = Math.max(1, PlaybackStateStore.trackIndex);
-        int tot = Math.max(idx, PlaybackStateStore.totalTracks);
-        String subStr = PlaybackStateStore.currentArtist + " · " + idx + "/" + tot;
-        String safeSub = TextUtils.ellipsize(subStr, subPaint, maxTextW, TextUtils.TruncateAt.END).toString();
-
-        canvas.drawText(safeTitle, textLeft, h * 0.45f, titlePaint);
-        canvas.drawText(safeSub, textLeft, h * 0.70f, subPaint);
-
-        // 하단 진행바
-        float progY = h * 0.84f;
-        float progRight = textLeft + maxTextW;
-        Paint trkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        trkPaint.setColor(isDark ? Color.argb(60, 255, 255, 255) : Color.argb(35, 0, 0, 0));
-        canvas.drawRoundRect(new RectF(textLeft, progY, progRight, progY + 5f), 3f, 3f, trkPaint);
-
-        if (PlaybackStateStore.durationMs > 0) {
-            float r = Math.max(0f, Math.min(1f, (float) PlaybackStateStore.positionMs / (float) PlaybackStateStore.durationMs));
-            Paint flPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            flPaint.setColor(Color.parseColor("#FF6B81"));
-            canvas.drawRoundRect(new RectF(textLeft, progY, textLeft + (progRight - textLeft) * r, progY + 5f), 3f, 3f, flPaint);
-        }
-
-        // 우측 컨트롤 버튼 (◀◀ / ▶ / ▶▶) + ⚙
-        float cy = h * 0.5f;
-        float prevX = w * 0.62f;
-        float playX = w * 0.75f;
-        float nextX = w * 0.87f;
-        float gearX = w * 0.955f;
-
-        float playR = h * 0.27f;
-        Paint halo = new Paint(Paint.ANTI_ALIAS_FLAG);
-        halo.setColor(Color.argb(45, 232, 118, 148));
-        canvas.drawCircle(playX, cy, playR * 1.22f, halo);
-
-        Paint playBg = new Paint(Paint.ANTI_ALIAS_FLAG);
-        playBg.setShader(new LinearGradient(playX - playR, cy - playR, playX + playR, cy + playR,
-                Color.parseColor("#FF758C"), Color.parseColor("#E8637A"), Shader.TileMode.CLAMP));
-        canvas.drawCircle(playX, cy, playR, playBg);
-        drawRoundedPlayOrPause(canvas, playX, cy, playR * 0.44f, PlaybackStateStore.isPlaying, Color.WHITE);
-
-        int skipColor = isDark ? Color.parseColor("#D8DCE6") : Color.parseColor("#5C5F66");
-        drawRoundedDoubleSkip(canvas, prevX, cy, h * 0.14f, true, skipColor);
-        drawRoundedDoubleSkip(canvas, nextX, cy, h * 0.14f, false, skipColor);
-
-        TextPaint gPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        gPaint.setColor(subColor);
-        gPaint.setTextSize(h * 0.18f);
-        gPaint.setTextAlign(Paint.Align.CENTER);
-        Paint.FontMetrics fm = gPaint.getFontMetrics();
-        canvas.drawText("⚙", gearX, cy - (fm.ascent + fm.descent) * 0.5f, gPaint);
-
         return out;
     }
 
@@ -837,7 +869,6 @@ public class WidgetCanvasRenderer {
         float triW = size * 0.95f;
         float triH = size * 0.85f;
 
-        // 첫 번째 삼각형
         Path t1 = new Path();
         t1.moveTo(cx, cy);
         t1.lineTo(cx - dir * triW, cy - triH);
@@ -845,7 +876,6 @@ public class WidgetCanvasRenderer {
         t1.close();
         canvas.drawPath(t1, p);
 
-        // 두 번째 삼각형 (아이유 라일락 위젯 스타일 ◀◀ / ▶▶)
         Path t2 = new Path();
         t2.moveTo(cx + dir * (triW * 0.88f), cy);
         t2.lineTo(cx - dir * (triW * 0.12f), cy - triH);
@@ -866,7 +896,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.RemoteViews;
 
@@ -904,22 +934,73 @@ public class GungdiWidgetProvider extends AppWidgetProvider {
     public static void updateSingleCardWidget(Context context, AppWidgetManager manager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.gungdi_card_widget);
 
-        Bitmap rendered = WidgetCanvasRenderer.renderCardWidget(context, 640, 640);
-        views.setImageViewBitmap(R.id.card_canvas_img, rendered);
+        // 실제 바탕화면 위젯의 가로/세로 크기(dp)를 읽어와 정확한 비율로 앨범 커버를 Center-Crop 렌더링
+        int wDp = 240;
+        int hDp = 240;
+        try {
+            Bundle opts = manager.getAppWidgetOptions(appWidgetId);
+            if (opts != null) {
+                int minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+                int maxH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
+                int minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0);
+                if (minW > 0) wDp = minW;
+                if (maxH > 0) hDp = maxH;
+                else if (minH > 0) hDp = minH;
+            }
+        } catch (Exception ignored) {}
 
+        float scale = Math.min(2.2f, Math.max(1.5f, context.getResources().getDisplayMetrics().density));
+        int wPx = Math.max(240, Math.min(580, (int) (wDp * scale)));
+        int hPx = Math.max(240, Math.min(580, (int) (hDp * scale)));
+        float cornerRadius = Math.min(wPx, hPx) * 0.085f;
+
+        boolean isDark = PlaybackStateStore.widgetDarkMode;
+        int opacity = PlaybackStateStore.widgetOpacity;
+
+        // 1. 배경 앨범 커버 & 하단 플로팅 바 배경
+        views.setImageViewBitmap(R.id.card_album_img,
+                WidgetCanvasRenderer.renderRoundedAlbumCover(context, wPx, hPx, cornerRadius));
+
+        int barW = Math.max(220, wPx - (int) (20 * scale));
+        int barH = (int) (82 * scale);
+        views.setImageViewBitmap(R.id.card_bar_bg,
+                WidgetCanvasRenderer.renderFloatingBarBackground(barW, barH, barH * 0.25f, isDark, opacity, false));
+
+        // 2. 네이티브 TextView 텍스트 및 테마 색상 적용 (글씨 절대 찌그러지지 않음!)
+        views.setTextViewText(R.id.card_title, PlaybackStateStore.currentTitle);
+        views.setTextViewText(R.id.card_artist, PlaybackStateStore.currentArtist);
+        int idx = Math.max(1, PlaybackStateStore.trackIndex);
+        int tot = Math.max(idx, PlaybackStateStore.totalTracks);
+        views.setTextViewText(R.id.card_count, idx + "/" + tot);
+
+        views.setTextColor(R.id.card_title, isDark ? Color.WHITE : Color.parseColor("#222328"));
+        views.setTextColor(R.id.card_artist, isDark ? Color.parseColor("#B8BDCB") : Color.parseColor("#666972"));
+        views.setTextColor(R.id.card_count, isDark ? Color.parseColor("#9298A8") : Color.parseColor("#888B94"));
+
+        // 3. 1:1 정사각형 버튼 아이콘 적용 (원형 버튼이 타원으로 찌그러지는 현상 완벽 차단!)
+        views.setImageViewBitmap(R.id.card_btn_settings, WidgetCanvasRenderer.renderSettingsButton(96, true, isDark));
+        views.setImageViewBitmap(R.id.card_btn_prev, WidgetCanvasRenderer.renderSkipButton(96, true, isDark));
+        views.setImageViewBitmap(R.id.card_btn_play, WidgetCanvasRenderer.renderPlayButton(138, PlaybackStateStore.isPlaying));
+        views.setImageViewBitmap(R.id.card_btn_next, WidgetCanvasRenderer.renderSkipButton(96, false, isDark));
+
+        // 4. 하단 진행 상태바
+        views.setImageViewBitmap(R.id.card_progress_img,
+                WidgetCanvasRenderer.renderProgressBar(360, 10, PlaybackStateStore.positionMs, PlaybackStateStore.durationMs, isDark));
+
+        // 5. 클릭 이벤트 연결
         Intent openIntent = new Intent(context, MainActivity.class);
         openIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPending = PendingIntent.getActivity(
             context, 100, openIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-        views.setOnClickPendingIntent(R.id.card_hit_open_top, openPending);
-        views.setOnClickPendingIntent(R.id.card_hit_open_info, openPending);
+        views.setOnClickPendingIntent(R.id.card_album_img, openPending);
+        views.setOnClickPendingIntent(R.id.card_info_box, openPending);
 
-        views.setOnClickPendingIntent(R.id.card_hit_settings, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_OPEN_SETTINGS, 104));
-        views.setOnClickPendingIntent(R.id.card_hit_prev, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_PREV, 101));
-        views.setOnClickPendingIntent(R.id.card_hit_play, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_TOGGLE, 102));
-        views.setOnClickPendingIntent(R.id.card_hit_next, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_NEXT, 103));
+        views.setOnClickPendingIntent(R.id.card_btn_settings, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_OPEN_SETTINGS, 104));
+        views.setOnClickPendingIntent(R.id.card_btn_prev, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_PREV, 101));
+        views.setOnClickPendingIntent(R.id.card_btn_play, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_TOGGLE, 102));
+        views.setOnClickPendingIntent(R.id.card_btn_next, buildActionPendingIntent(context, WidgetActionReceiver.ACTION_NEXT, 103));
 
         manager.updateAppWidget(appWidgetId, views);
     }
@@ -945,7 +1026,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.RemoteViews;
 
@@ -982,21 +1063,63 @@ public class GungdiMiniWidgetProvider extends AppWidgetProvider {
     private static void updateSingleMiniWidget(Context context, AppWidgetManager manager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.gungdi_mini_widget);
 
-        Bitmap rendered = WidgetCanvasRenderer.renderMiniWidget(context, 820, 176);
-        views.setImageViewBitmap(R.id.mini_canvas_img, rendered);
+        int wDp = 300;
+        try {
+            Bundle opts = manager.getAppWidgetOptions(appWidgetId);
+            if (opts != null) {
+                int minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+                if (minW > 0) wDp = minW;
+            }
+        } catch (Exception ignored) {}
 
+        float scale = Math.min(2.2f, Math.max(1.5f, context.getResources().getDisplayMetrics().density));
+        int barW = Math.max(320, Math.min(680, (int) (wDp * scale)));
+        int barH = (int) (68 * scale);
+
+        boolean isDark = PlaybackStateStore.widgetDarkMode;
+        int opacity = PlaybackStateStore.widgetOpacity;
+
+        // 1. 슬림 바 라운드 배경
+        views.setImageViewBitmap(R.id.mini_bar_bg,
+                WidgetCanvasRenderer.renderFloatingBarBackground(barW, barH, barH * 0.28f, isDark, opacity, true));
+
+        // 2. 좌측 1:1 정사각형 라운드 앨범 표지 (46dp x 46dp 정사각형이라 절대 안 찌그러짐!)
+        views.setImageViewBitmap(R.id.mini_album_img,
+                WidgetCanvasRenderer.renderRoundedAlbumCover(context, 144, 144, 34f));
+
+        // 3. 중앙 네이티브 TextView 곡 제목 / 아티스트·트랙번호
+        int idx = Math.max(1, PlaybackStateStore.trackIndex);
+        int tot = Math.max(idx, PlaybackStateStore.totalTracks);
+        views.setTextViewText(R.id.mini_title, PlaybackStateStore.currentTitle);
+        views.setTextViewText(R.id.mini_subtitle, PlaybackStateStore.currentArtist + " · " + idx + "/" + tot);
+
+        views.setTextColor(R.id.mini_title, isDark ? Color.WHITE : Color.parseColor("#222328"));
+        views.setTextColor(R.id.mini_subtitle, isDark ? Color.parseColor("#B8BDCB") : Color.parseColor("#666972"));
+
+        // 4. 우측 1:1 정원형/정사각형 컨트롤 버튼
+        views.setImageViewBitmap(R.id.mini_btn_prev, WidgetCanvasRenderer.renderSkipButton(90, true, isDark));
+        views.setImageViewBitmap(R.id.mini_btn_play, WidgetCanvasRenderer.renderPlayButton(126, PlaybackStateStore.isPlaying));
+        views.setImageViewBitmap(R.id.mini_btn_next, WidgetCanvasRenderer.renderSkipButton(90, false, isDark));
+        views.setImageViewBitmap(R.id.mini_btn_settings, WidgetCanvasRenderer.renderSettingsButton(72, false, isDark));
+
+        // 5. 하단 진행 상태바
+        views.setImageViewBitmap(R.id.mini_progress_img,
+                WidgetCanvasRenderer.renderProgressBar(360, 10, PlaybackStateStore.positionMs, PlaybackStateStore.durationMs, isDark));
+
+        // 6. 클릭 이벤트 연결
         Intent openIntent = new Intent(context, MainActivity.class);
         openIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPending = PendingIntent.getActivity(
             context, 110, openIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-        views.setOnClickPendingIntent(R.id.mini_hit_open, openPending);
+        views.setOnClickPendingIntent(R.id.mini_album_img, openPending);
+        views.setOnClickPendingIntent(R.id.mini_info_box, openPending);
 
-        views.setOnClickPendingIntent(R.id.mini_hit_prev, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_PREV, 111));
-        views.setOnClickPendingIntent(R.id.mini_hit_play, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_TOGGLE, 112));
-        views.setOnClickPendingIntent(R.id.mini_hit_next, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_NEXT, 113));
-        views.setOnClickPendingIntent(R.id.mini_hit_settings, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_OPEN_SETTINGS, 114));
+        views.setOnClickPendingIntent(R.id.mini_btn_prev, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_PREV, 111));
+        views.setOnClickPendingIntent(R.id.mini_btn_play, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_TOGGLE, 112));
+        views.setOnClickPendingIntent(R.id.mini_btn_next, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_NEXT, 113));
+        views.setOnClickPendingIntent(R.id.mini_btn_settings, GungdiWidgetProvider.buildActionPendingIntent(context, WidgetActionReceiver.ACTION_OPEN_SETTINGS, 114));
 
         manager.updateAppWidget(appWidgetId, views);
     }
