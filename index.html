@@ -8,10 +8,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="궁디플레이어">
-    <link rel="manifest" href="./manifest.json">
-    <link rel="icon" href="./icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/512/emoji_u1f351.png">
     <title>궁디 플레이어 Ultimate</title>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -4393,9 +4398,7 @@
     /* PWA 서비스 워커 등록 (PWABuilder APK 생성 및 오프라인/백그라운드 미디어 지원) */
     function registerPwaServiceWorker() {
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
-            });
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     }
 
@@ -4415,7 +4418,7 @@
         renderQueue();
         renderFolderList();
         initScrollEvents();
-        loadAllAiSongCovers();
+        setTimeout(() => loadAllAiSongCovers(), 1800);
     }
 
     bootstrapApp();

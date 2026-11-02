@@ -1,10 +1,9 @@
 {
-  "id": "./",
   "name": "궁디 플레이어 Ultimate",
   "short_name": "궁디플레이어",
   "description": "나만의 AI 뮤직 큐레이션 & 로컬 음악 플레이어",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#121212",
@@ -39,7 +38,7 @@
       "purpose": "maskable"
     },
     {
-      "src": "./icon.svg",
+      "src": "icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
