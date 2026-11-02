@@ -305,10 +305,69 @@
         .progress-fill { width: 0%; height: 100%; background: var(--primary); border-radius: 2px; }
         .progress-thumb { width: 15px; height: 15px; background: var(--primary); border-radius: 50%; position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); box-shadow: 0 2px 6px rgba(255, 107, 129, 0.45); z-index: 10; }
 
-        .controls { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
-        .controls button { background: none; border: none; cursor: pointer; color: var(--gray); padding: 10px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .controls { display: flex; justify-content: space-between; align-items: center; padding: 0 6px; }
+        .controls button { background: none; border: none; cursor: pointer; color: var(--gray); padding: 10px; transition: transform 0.18s ease, color 0.2s ease, background 0.2s ease; display: flex; align-items: center; justify-content: center; border-radius: 50%; -webkit-tap-highlight-color: transparent; }
+        .controls button:active { transform: scale(0.91); }
         .controls button.active-state { color: var(--primary); }
-        .play-btn .material-symbols-outlined { font-size: 58px; color: var(--primary); }
+        .controls .nav-skip-btn {
+            width: 52px;
+            height: 52px;
+            color: var(--text);
+            opacity: 0.78;
+        }
+        .controls .nav-skip-btn:hover, .controls .nav-skip-btn:active {
+            opacity: 1;
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .controls .nav-skip-btn svg {
+            width: 34px;
+            height: 34px;
+            display: block;
+        }
+        .controls .play-btn {
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff758c 0%, #ff6b81 55%, #ee5269 100%);
+            color: #ffffff;
+            box-shadow: 0 0 0 7px rgba(255, 107, 129, 0.14), 0 8px 22px rgba(255, 107, 129, 0.36);
+        }
+        .controls .play-btn svg {
+            width: 30px;
+            height: 30px;
+            display: block;
+            fill: #ffffff;
+        }
+        .widget-mode-chips {
+            display: flex;
+            gap: 8px;
+        }
+        .widget-mode-chip {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--sub-text);
+            padding: 6px 12px;
+            border-radius: 14px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .widget-mode-chip.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 3px 8px rgba(255, 107, 129, 0.25);
+        }
+        .widget-opacity-slider {
+            width: 100%;
+            accent-color: var(--primary);
+            cursor: pointer;
+            margin-top: 6px;
+        }
 
         /* =================================================
            [좌측 탭] 유튜브 뮤직 / 애플 뮤직 스타일 큐레이션 홈
@@ -1228,8 +1287,8 @@
         <div id="settingsMenuModal" class="modal-overlay" onclick="closeSettingsMenu()">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="menu-item" style="font-weight:700; color:var(--primary); border-bottom:2px solid var(--border);">메뉴</div>
-                <div class="menu-item" onclick="showToast('준비 중입니다.')">계정</div>
-                <div class="menu-item" onclick="closeSettingsMenu(); showView('settingsView')">설정</div>
+                <div class="menu-item" onclick="closeSettingsMenu(); showView('settingsView')">📱 바탕화면 위젯 꾸미기 / 설정</div>
+                <div class="menu-item" onclick="closeSettingsMenu(); openEqModal()">🎛️ 이퀄라이저 (EQ)</div>
                 <div class="menu-item" onclick="closeSettingsMenu(); showVersionPopup()">버전확인</div>
                 <div class="menu-item" onclick="closeSettingsMenu()" style="color:var(--gray);">닫기</div>
             </div>
@@ -1369,9 +1428,23 @@
                     </div>
                     <div class="controls">
                         <button id="shuffleBtn" title="랜덤 재생"><span class="material-symbols-outlined">shuffle</span></button>
-                        <button id="prevBtn" onclick="prevSong()" title="이전 곡"><span class="material-symbols-outlined">skip_previous</span></button>
-                        <button id="playBtn" class="play-btn" title="재생/일시정지"><span class="material-symbols-outlined">play_arrow</span></button>
-                        <button id="nextBtn" onclick="nextSong(true)" title="다음 곡"><span class="material-symbols-outlined">skip_next</span></button>
+                        <button id="prevBtn" class="nav-skip-btn" onclick="prevSong()" title="이전 곡">
+                            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4.2" y="5.5" width="2.4" height="13" rx="1.2" />
+                                <path d="M18.2 6.3c.7-.45 1.6.05 1.6.88v9.64c0 .83-.9 1.33-1.6.88l-7.6-4.82a1.05 1.05 0 0 1 0-1.76l7.6-4.82z" />
+                            </svg>
+                        </button>
+                        <button id="playBtn" class="play-btn" title="재생/일시정지">
+                            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8.2 5.6c0-.85.92-1.38 1.65-.94l9.1 5.4c.7.42.7 1.46 0 1.88l-9.1 5.4c-.73.44-1.65-.09-1.65-.94V5.6z" />
+                            </svg>
+                        </button>
+                        <button id="nextBtn" class="nav-skip-btn" onclick="nextSong(true)" title="다음 곡">
+                            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5.8 6.3c-.7-.45-1.6.05-1.6.88v9.64c0 .83.9 1.33 1.6.88l7.6-4.82a1.05 1.05 0 0 0 0-1.76L5.8 6.3z" />
+                                <rect x="17.4" y="5.5" width="2.4" height="13" rx="1.2" />
+                            </svg>
+                        </button>
                         <button id="repeatBtn" title="반복 재생"><span class="material-symbols-outlined">repeat</span></button>
                     </div>
                 </div>
@@ -1506,6 +1579,25 @@
                         <span class="material-symbols-outlined" onclick="navigateBack()" style="cursor:pointer; vertical-align:middle; margin-right:4px;">arrow_back</span>
                         설정
                     </h2>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>📱 바탕화면 위젯 꾸미기</h3>
+                <div class="setting-row">
+                    <span class="setting-label">위젯 컬러 테마</span>
+                    <div class="widget-mode-chips">
+                        <button type="button" class="widget-mode-chip active" id="widgetModeWhiteBtn" onclick="setWidgetThemeMode(false)">☀️ 화이트</button>
+                        <button type="button" class="widget-mode-chip" id="widgetModeDarkBtn" onclick="setWidgetThemeMode(true)">🌙 다크</button>
+                    </div>
+                </div>
+                <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="setting-label">위젯 컨트롤바 불투명도</span>
+                        <span id="widgetOpacityVal" style="font-size:13px; font-weight:700; color:var(--primary);">92%</span>
+                    </div>
+                    <input type="range" id="widgetOpacitySlider" class="widget-opacity-slider" min="15" max="100" value="92" step="1" oninput="updateWidgetOpacity(this.value)">
+                    <span style="font-size:11px; color:var(--sub-text);">낮출수록 앨범 표지(또는 바탕화면)가 더 투명하게 비칩니다.</span>
                 </div>
             </div>
 
@@ -2105,10 +2197,20 @@
         showRgb: true,
         showPulse: true,
         showLpSpin: true,
+        widgetDarkMode: false,
+        widgetOpacity: 92,
         eqPreset: 'flat',
         eqGains: [0, 0, 0, 0, 0],
-        version: "v50_LP_Edition"
+        version: "v51_Widget_Edition"
     };
+
+    const PLAY_SVG_ROUNDED = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 5.6c0-.85.92-1.38 1.65-.94l9.1 5.4c.7.42.7 1.46 0 1.88l-9.1 5.4c-.73.44-1.65-.09-1.65-.94V5.6z" /></svg>`;
+    const PAUSE_SVG_ROUNDED = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5.2" width="4.2" height="13.6" rx="2.1" /><rect x="13.3" y="5.2" width="4.2" height="13.6" rx="2.1" /></svg>`;
+
+    function setPlayBtnIcon(playing) {
+        if (!playBtn) return;
+        playBtn.innerHTML = playing ? PAUSE_SVG_ROUNDED : PLAY_SVG_ROUNDED;
+    }
 
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
@@ -2357,6 +2459,7 @@
                 if (lpToggle) lpToggle.checked = config.showLpSpin !== false;
                 albumWrapper.classList.toggle('rgb-on', config.showRgb !== false);
                 updateLpSpinState();
+                applyWidgetConfigUI();
             }
             if (typeof state.isShuffle === 'boolean') {
                 isShuffle = state.isShuffle;
@@ -2436,7 +2539,11 @@
             const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
             const rect = progressContainer.getBoundingClientRect();
             let p = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-            if (audio.duration) audio.currentTime = p * audio.duration;
+            if (audio.duration) {
+                audio.currentTime = p * audio.duration;
+                updateMediaSessionPosition();
+                syncAndroidPlaybackProgress();
+            }
         }
     };
     progressContainer.addEventListener('mousedown', startDrag);
@@ -2459,6 +2566,47 @@
         document.getElementById('mainApp').classList.toggle('dark-mode', isDark);
         saveAppState();
         showToast(isDark ? "다크 모드 적용" : "라이트 모드 적용");
+    }
+
+    function applyWidgetConfigUI() {
+        const isWidgetDark = !!config.widgetDarkMode;
+        const opacityVal = typeof config.widgetOpacity === 'number' ? config.widgetOpacity : 92;
+        const whiteBtn = document.getElementById('widgetModeWhiteBtn');
+        const darkBtn = document.getElementById('widgetModeDarkBtn');
+        const slider = document.getElementById('widgetOpacitySlider');
+        const label = document.getElementById('widgetOpacityVal');
+        if (whiteBtn) whiteBtn.classList.toggle('active', !isWidgetDark);
+        if (darkBtn) darkBtn.classList.toggle('active', isWidgetDark);
+        if (slider) slider.value = opacityVal;
+        if (label) label.innerText = `${opacityVal}%`;
+        syncWidgetStyleToAndroid();
+    }
+
+    function setWidgetThemeMode(isDark) {
+        config.widgetDarkMode = !!isDark;
+        applyWidgetConfigUI();
+        saveAppState();
+        showToast(isDark ? "🌙 바탕화면 위젯: 다크 모드 적용" : "☀️ 바탕화면 위젯: 화이트 모드 적용");
+    }
+
+    function updateWidgetOpacity(val) {
+        const num = Math.max(15, Math.min(100, parseInt(val, 10) || 92));
+        config.widgetOpacity = num;
+        const label = document.getElementById('widgetOpacityVal');
+        if (label) label.innerText = `${num}%`;
+        syncWidgetStyleToAndroid();
+        saveAppState();
+    }
+
+    function syncWidgetStyleToAndroid() {
+        try {
+            if (window.Android && typeof window.Android.updateWidgetStyle === 'function') {
+                window.Android.updateWidgetStyle(
+                    !!config.widgetDarkMode,
+                    typeof config.widgetOpacity === 'number' ? config.widgetOpacity : 92
+                );
+            }
+        } catch (e) {}
     }
 
     /* =========================================================================
@@ -3328,8 +3476,37 @@
                     safeArt
                 );
             }
+            syncAndroidPlaybackProgress();
         } catch (e) {}
     }
+
+    function syncAndroidPlaybackProgress() {
+        if (!window.Android || typeof window.Android.updatePlaybackProgress !== 'function') return;
+        try {
+            const posMs = (audio && !isNaN(audio.currentTime)) ? Math.round(audio.currentTime * 1000) : 0;
+            const durMs = (audio && audio.duration && !isNaN(audio.duration) && isFinite(audio.duration))
+                ? Math.round(audio.duration * 1000)
+                : 0;
+            const trackNum = currentSongIndex >= 0 ? (currentSongIndex + 1) : 0;
+            const totalTracks = playQueue.length || 0;
+            window.Android.updatePlaybackProgress(posMs, durMs, trackNum, totalTracks);
+        } catch (e) {}
+    }
+
+    // 상단바 알림 위젯에서 진행 상태바를 드래그해 구간 이동(Seek)했을 때 수신
+    window.handleAndroidSeekTo = function(posMs) {
+        if (audio && audio.duration && !isNaN(audio.duration)) {
+            const targetSec = Math.max(0, Math.min(audio.duration, Number(posMs) / 1000));
+            audio.currentTime = targetSec;
+            const p = (targetSec / audio.duration) * 100;
+            progress.style.width = p + "%";
+            progressThumb.style.left = p + "%";
+            document.getElementById('currentTime').innerText = formatTime(targetSec);
+            updateMediaSessionPosition();
+            syncAndroidPlaybackProgress();
+            saveAppState();
+        }
+    };
 
     // 안드로이드 바탕화면 위젯 & 상단바 알림 위젯 버튼 클릭 수신기
     window.handleAndroidWidgetCommand = function(cmd) {
@@ -3623,13 +3800,15 @@
         } catch (e) {}
 
         isPlaying = true;
+        setPlayBtnIcon(true);
         updateLpSpinState();
         updateMediaSessionMetadata();
         audio.play().then(() => {
-            playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+            setPlayBtnIcon(true);
             updateLpSpinState();
             updateMediaSessionMetadata();
             updateMediaSessionPosition();
+            syncAndroidPlaybackProgress();
             updatePulse();
             updateRecommendPlayingIndicators();
             saveAppState();
@@ -3639,37 +3818,39 @@
                 audio.src = encodeURI(curr.fallbackUrl);
                 audio.load();
                 audio.play().then(() => {
-                    playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+                    setPlayBtnIcon(true);
                     updateLpSpinState();
                     updateMediaSessionMetadata();
                     updateMediaSessionPosition();
+                    syncAndroidPlaybackProgress();
                     updatePulse();
                     updateRecommendPlayingIndicators();
                     saveAppState();
                 }).catch(() => {
                     isPlaying = false;
+                    setPlayBtnIcon(false);
                     updateLpSpinState();
                     updateMediaSessionMetadata();
-                    playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
                     showToast(`오디오 파일을 찾을 수 없습니다: ${curr.name}`);
                 });
                 return;
             }
             isPlaying = false;
+            setPlayBtnIcon(false);
             updateLpSpinState();
             updateMediaSessionMetadata();
-            playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
             showToast("오디오 파일을 재생할 수 없습니다.");
         });
     }
 
     function pauseAudio() {
         isPlaying = false;
+        setPlayBtnIcon(false);
         updateLpSpinState();
         audio.pause();
-        playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
         cancelAnimationFrame(animationId);
         updateMediaSessionMetadata();
+        syncAndroidPlaybackProgress();
         saveAppState();
         updateRecommendPlayingIndicators();
     }
@@ -3681,6 +3862,7 @@
         }
         saveAppState();
         isPlaying = false;
+        setPlayBtnIcon(false);
         updateLpSpinState();
         cancelAnimationFrame(animationId);
         try {
@@ -3702,7 +3884,6 @@
                 window.Android.stopPlaybackService();
             }
         } catch (e) {}
-        playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
         updateRecommendPlayingIndicators();
     }
 
@@ -3780,6 +3961,7 @@
     };
 
     let lastSaveTimestamp = 0;
+    let lastWidgetProgressSync = 0;
     audio.ontimeupdate = () => {
         if (!isDraggingBar && audio.duration) {
             const p = (audio.currentTime / audio.duration) * 100;
@@ -3789,6 +3971,10 @@
             document.getElementById('totalTime').innerText = formatTime(audio.duration);
 
             const now = Date.now();
+            if (now - lastWidgetProgressSync > 1200) {
+                lastWidgetProgressSync = now;
+                syncAndroidPlaybackProgress();
+            }
             if (now - lastSaveTimestamp > 3000) {
                 lastSaveTimestamp = now;
                 saveAppState();
