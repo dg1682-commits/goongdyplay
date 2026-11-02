@@ -1902,6 +1902,145 @@
         }
     ];
 
+    /* =========================================================================
+       깃허브 songs/ 폴더 자동 스캔 시스템
+       - 앞으로 songs 폴더에 새 MP3 파일만 올리면 코드 수정 없이 자동으로 목록/추천에 등록됩니다!
+       ========================================================================= */
+    const AUTO_SONGS_CACHE_KEY = "gungdi_auto_discovered_songs_v1";
+    const GITHUB_SONGS_API_URL = "https://api.github.com/repos/dg1682-commits/goongdyplay/contents/songs";
+
+    function inferSongStyleFromTitle(title, indexSeed = 0) {
+        const t = title.toLowerCase();
+        if (/크리스마스|성탄|겨울|눈|산타|캐롤|추운|연말|12월|winter|snow|christmas/.test(t)) {
+            return {
+                tag: "겨울/시즌",
+                moodLabel: "WINTER SEASON",
+                emoji: "❄️",
+                gradient: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+                desc: "포근한 겨울 감성을 가득 담은 궁디 AI Studio 시즌 트랙"
+            };
+        }
+        if (/커피|아메리카노|라떼|카페|머그|컵|홍차|티|모닝|아침|오후|햇살|빵|디저트|일상|라이프|cafe|coffee/.test(t)) {
+            return {
+                tag: "카페/일상",
+                moodLabel: "CAFE & DAILY",
+                emoji: "☕",
+                gradient: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
+                desc: "여유로운 일상과 커피 타임에 어울리는 감각적인 AI 트랙"
+            };
+        }
+        if (/바다|여름|푸른|모험|달려|하늘|바람|파도|드라이브|축제|신나|라라|댄스|파티|점프|런|summer|ocean|drive/.test(t)) {
+            return {
+                tag: "청량/에너지",
+                moodLabel: "FRESH ENERGY",
+                emoji: "🌊",
+                gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                desc: "기분 전환이 필요할 때 에너지를 채워주는 청량 사운드"
+            };
+        }
+        if (/밤|달|별|새벽|위로|사랑|그리움|기억|추억|집|혼자|조용|편안|잠|꿈|비|노을|마음|괜찮|좋아|완벽/.test(t)) {
+            return {
+                tag: "감성/힐링",
+                moodLabel: "HEALING MOOD",
+                emoji: "🌙",
+                gradient: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
+                desc: "하루의 끝에 잔잔한 위로와 여운을 전하는 감성 트랙"
+            };
+        }
+        const fallbackPresets = [
+            { tag: "카페/일상", moodLabel: "DAILY ACOUSTIC", emoji: "🍑", gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", desc: "궁디 AI Studio의 따스한 데일리 추천 트랙" },
+            { tag: "청량/에너지", moodLabel: "TRENDY POP", emoji: "✨", gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)", desc: "듣기만 해도 기분이 산뜻해지는 궁디 AI 오리지널" },
+            { tag: "감성/힐링", moodLabel: "SOFT MELODY", emoji: "🎧", gradient: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)", desc: "마음을 편안하게 감싸주는 감성 AI 멜로디" },
+            { tag: "겨울/시즌", moodLabel: "SPECIAL TRACK", emoji: "🌟", gradient: "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)", desc: "특별한 순간을 빛내주는 궁디 AI Studio 사운드" }
+        ];
+        return fallbackPresets[indexSeed % fallbackPresets.length];
+    }
+
+    function normalizeSongFileKey(str) {
+        return decodeURIComponent(String(str || ''))
+            .replace(/^.*\/songs\//i, '')
+            .replace(/\.[^/.]+$/, '')
+            .replace(/\s*\(\d+\)\s*$/, '')
+            .trim()
+            .toLowerCase();
+    }
+
+    function registerDiscoveredSongFilenames(fileNames) {
+        if (!Array.isArray(fileNames) || !fileNames.length) return 0;
+        let addedCount = 0;
+
+        fileNames.forEach((fileName) => {
+            if (!fileName || !/\.(mp3|m4a|wav|flac|ogg|aac)$/i.test(fileName)) return;
+            const fileUrl = `./songs/${fileName}`;
+            const cleanTitle = fileName.replace(/\.[^/.]+$/, '').replace(/\s*\(\d+\)\s*$/, '').trim();
+            const normKey = normalizeSongFileKey(fileName);
+
+            const alreadyExists = AI_SONGS.some(s =>
+                s.url === fileUrl ||
+                s.fallbackUrl === fileUrl ||
+                normalizeSongFileKey(s.url) === normKey ||
+                normalizeSongFileKey(s.name) === normKey
+            );
+            if (alreadyExists) return;
+
+            const newId = AI_SONGS.reduce((maxId, s) => Math.max(maxId, Number(s.id) || 0), 0) + 1;
+            const style = inferSongStyleFromTitle(cleanTitle, newId);
+
+            AI_SONGS.push({
+                id: newId,
+                name: cleanTitle,
+                eng: "GUNGDI AI ORIGINAL",
+                artist: "궁디 AI Studio",
+                tag: style.tag,
+                moodLabel: style.moodLabel,
+                desc: style.desc,
+                url: fileUrl,
+                cover: null,
+                emoji: style.emoji,
+                gradient: style.gradient
+            });
+            addedCount++;
+        });
+
+        return addedCount;
+    }
+
+    function loadCachedAutoDiscoveredSongs() {
+        try {
+            const raw = localStorage.getItem(AUTO_SONGS_CACHE_KEY);
+            if (!raw) return 0;
+            const list = JSON.parse(raw);
+            return registerDiscoveredSongFilenames(list);
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    async function syncNewSongsFromGitHubFolder() {
+        try {
+            const res = await fetch(GITHUB_SONGS_API_URL, { cache: "no-store" });
+            if (!res.ok) return 0;
+            const items = await res.json();
+            if (!Array.isArray(items)) return 0;
+
+            const audioFileNames = items
+                .filter(item => item && item.type === 'file' && /\.(mp3|m4a|wav|flac|ogg|aac)$/i.test(item.name))
+                .map(item => item.name);
+
+            try {
+                localStorage.setItem(AUTO_SONGS_CACHE_KEY, JSON.stringify(audioFileNames));
+            } catch (e) {}
+
+            const added = registerDiscoveredSongFilenames(audioFileNames);
+            if (added > 0) {
+                loadAllAiSongCovers();
+            }
+            return added;
+        } catch (e) {
+            return 0;
+        }
+    }
+
     /* 큐레이션 테마 섹션 정의 (새로고침할 때마다 섹션 순서와 내부 곡 순서가 실제 앱처럼 랜덤으로 섞입니다) */
     const CURATION_THEMES = [
         {
@@ -2057,7 +2196,8 @@
             container.classList.add('refreshing-dim');
         }
 
-        setTimeout(() => {
+        setTimeout(async () => {
+            const newlyAdded = await syncNewSongsFromGitHubFolder();
             randomizeCurationState();
             renderRecommendView();
             if (container) {
@@ -2072,7 +2212,11 @@
                 ptr.style.opacity = '0';
             }
             isRecommendRefreshing = false;
-            showToast("✨ 새로운 AI 추천 구성으로 업데이트되었습니다!");
+            if (newlyAdded > 0) {
+                showToast(`🎉 새로 추가된 ${newlyAdded}곡을 포함해 추천 목록이 업데이트되었습니다!`);
+            } else {
+                showToast("✨ 새로운 AI 추천 구성으로 업데이트되었습니다!");
+            }
         }, 750);
     }
 
@@ -4515,6 +4659,7 @@
         initHistoryBackGuard();
         initMediaSessionHandlers();
         initPullToRefreshRecommend();
+        loadCachedAutoDiscoveredSongs();
         loadAppState();
         randomizeCurationState();
         await restoreLocalAudioBlobs();
@@ -4525,6 +4670,12 @@
         renderQueue();
         renderFolderList();
         initScrollEvents();
+        syncNewSongsFromGitHubFolder().then((added) => {
+            if (added > 0) {
+                randomizeCurationState();
+                renderRecommendView();
+            }
+        });
         setTimeout(() => loadAllAiSongCovers(), 1800);
     }
 
