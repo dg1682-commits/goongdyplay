@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>궁디 플레이어 Ultimate v49</title>
+    <meta name="theme-color" content="#ff6b81">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="궁디플레이어">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/512/emoji_u1f351.png">
+    <title>궁디 플레이어 Ultimate</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -3098,14 +3106,15 @@
 
     /* =========================================================================
        모바일 잠금화면 & 상단 알림바 미디어 위젯 (Media Session API)
-       - 안드로이드 OS가 대용량 Base64 문자열이나 SVG data URL을 거부하지 않도록
-         256x256 PNG Blob URL로 변환하여 전달합니다.
+       - 안드로이드 크롬/PWA(TWA)의 MediaImageManager가 프로세스 경계 없이 즉시 표시할 수 있도록
+         가벼운 256x256 JPEG Data URL(~12KB) + HTTPS 공식 PNG 아이콘을 함께 전달합니다.
        ========================================================================= */
-    let defaultPeachBlobUrl = null;
-    const mediaArtworkBlobCache = new Map();
+    const FALLBACK_HTTPS_ICON = "https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/512/emoji_u1f351.png";
+    let defaultPeachDataUrl = null;
+    const mediaArtworkCache = new Map();
 
-    function getDefaultPeachBlobUrl() {
-        if (defaultPeachBlobUrl) return Promise.resolve(defaultPeachBlobUrl);
+    function getDefaultPeachArtworkUrl() {
+        if (defaultPeachDataUrl) return Promise.resolve(defaultPeachDataUrl);
         return new Promise((resolve) => {
             try {
                 const canvas = document.createElement('canvas');
@@ -3121,25 +3130,19 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('🍑', 128, 136);
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        defaultPeachBlobUrl = URL.createObjectURL(blob);
-                        resolve(defaultPeachBlobUrl);
-                    } else {
-                        resolve('');
-                    }
-                }, 'image/png');
+                defaultPeachDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                resolve(defaultPeachDataUrl);
             } catch (e) {
-                resolve('');
+                resolve(FALLBACK_HTTPS_ICON);
             }
         });
     }
 
-    function getSongMediaArtworkBlobUrl(song) {
-        if (!song || !song.cover) return getDefaultPeachBlobUrl();
+    function getSongMediaArtworkUrl(song) {
+        if (!song || !song.cover) return getDefaultPeachArtworkUrl();
         const cacheKey = song.id ? `id_${song.id}` : song.name;
-        if (mediaArtworkBlobCache.has(cacheKey)) {
-            return Promise.resolve(mediaArtworkBlobCache.get(cacheKey));
+        if (mediaArtworkCache.has(cacheKey)) {
+            return Promise.resolve(mediaArtworkCache.get(cacheKey));
         }
         return new Promise((resolve) => {
             const img = new Image();
@@ -3150,20 +3153,14 @@
                     canvas.height = 256;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, 256, 256);
-                    canvas.toBlob((blob) => {
-                        if (blob) {
-                            const bUrl = URL.createObjectURL(blob);
-                            mediaArtworkBlobCache.set(cacheKey, bUrl);
-                            resolve(bUrl);
-                        } else {
-                            getDefaultPeachBlobUrl().then(resolve);
-                        }
-                    }, 'image/png');
+                    const compactJpeg = canvas.toDataURL('image/jpeg', 0.82);
+                    mediaArtworkCache.set(cacheKey, compactJpeg);
+                    resolve(compactJpeg);
                 } catch (e) {
-                    getDefaultPeachBlobUrl().then(resolve);
+                    getDefaultPeachArtworkUrl().then(resolve);
                 }
             };
-            img.onerror = () => getDefaultPeachBlobUrl().then(resolve);
+            img.onerror = () => getDefaultPeachArtworkUrl().then(resolve);
             img.src = song.cover;
         });
     }
@@ -3176,14 +3173,21 @@
             return;
         }
         try {
-            const artBlobUrl = await getSongMediaArtworkBlobUrl(s);
-            const artworkArr = artBlobUrl
-                ? [
-                    { src: artBlobUrl, sizes: '96x96', type: 'image/png' },
-                    { src: artBlobUrl, sizes: '256x256', type: 'image/png' },
-                    { src: artBlobUrl, sizes: '512x512', type: 'image/png' }
-                ]
-                : [];
+            const artUrl = await getSongMediaArtworkUrl(s);
+            const isJpegData = artUrl && artUrl.startsWith('data:image/jpeg');
+            const artworkArr = [];
+            if (artUrl) {
+                artworkArr.push({
+                    src: artUrl,
+                    sizes: '256x256',
+                    type: isJpegData ? 'image/jpeg' : 'image/png'
+                });
+            }
+            artworkArr.push({
+                src: FALLBACK_HTTPS_ICON,
+                sizes: '512x512',
+                type: 'image/png'
+            });
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: s.name || '궁디 플레이어',
                 artist: s.artist || '궁디 AI Studio',
@@ -3788,25 +3792,45 @@
     }
     function confirmAppExit(fromBackKey = false) {
         isConfirmingAppExit = true;
-        // 1) 노래 즉시 완전 정지 및 현재 위치 저장
+        // 1) 노래 즉시 완전 정지 + 상단바 위젯 제거 + 현재 재생 위치 저장
         stopAudioForExit();
         document.getElementById('exitConfirmModal').style.display = 'none';
 
-        // 2) 스윙2앱 / 안드로이드 웹뷰 종료 시도 및 히스토리 가드 완전 해제
+        // 2) 한 번 클릭으로 즉시 휴대폰 홈 화면(바탕화면) 이동 및 앱 종료 실행
         try {
             if (window.Android && typeof window.Android.closeApp === 'function') {
                 window.Android.closeApp();
+                return;
             } else if (window.Android && typeof window.Android.exitApp === 'function') {
                 window.Android.exitApp();
+                return;
             }
         } catch (e) {}
-        try { window.close(); } catch (e) {}
+
+        // 안드로이드(PWA/TWA/크롬/웹뷰): 버튼 한 번 누르면 즉시 안드로이드 홈 화면(런처)으로 바로 나가기!
+        if (/android/i.test(navigator.userAgent || '')) {
+            try {
+                const fallbackUrl = encodeURIComponent(window.location.href);
+                const homeIntentUrl = `intent://home#Intent;action=android.intent.action.MAIN;category=android.intent.category.HOME;launchFlags=0x10000000;S.browser_fallback_url=${fallbackUrl};end`;
+                const a = document.createElement('a');
+                a.href = homeIntentUrl;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => a.remove(), 300);
+            } catch (e) {}
+        }
+
+        try {
+            window.open('', '_self', '');
+            window.close();
+        } catch (e) {}
+
         if (!fromBackKey && history.length > 1) {
             try { history.go(-(history.length - 1)); } catch (e) {
                 try { history.back(); } catch (err) {}
             }
         }
-        showToast("🍑 음악이 정지되었습니다. 뒤로가기를 한 번 더 누르면 앱이 닫힙니다.");
     }
 
     function showView(v, n, isFromBack = false) {
@@ -4366,8 +4390,18 @@
         }
     }
 
+    /* PWA 서비스 워커 등록 (PWABuilder APK 생성 및 오프라인/백그라운드 미디어 지원) */
+    function registerPwaServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+    }
+
     /* 앱 초기 구동 */
     async function bootstrapApp() {
+        registerPwaServiceWorker();
         initHistoryBackGuard();
         initMediaSessionHandlers();
         initPullToRefreshRecommend();
