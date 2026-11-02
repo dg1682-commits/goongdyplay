@@ -1103,6 +1103,72 @@
             font-size: 42px;
             color: var(--border);
         }
+
+        /* 커스텀 종료 확인 모달 디자인 */
+        .exit-modal-card {
+            background: var(--bg);
+            padding: 26px 22px 20px 22px;
+            border-radius: 24px;
+            width: 80%;
+            max-width: 290px;
+            text-align: center;
+            color: var(--text);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+            animation: fadeUpIn 0.22s ease-out;
+        }
+        .exit-icon-badge {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 14px auto;
+            box-shadow: 0 4px 12px rgba(255, 107, 129, 0.2);
+        }
+        .exit-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+            color: var(--text);
+        }
+        .exit-sub {
+            font-size: 12.5px;
+            color: var(--sub-text);
+            line-height: 1.45;
+            margin: 0 0 20px 0;
+        }
+        .exit-btn-row {
+            display: flex;
+            gap: 10px;
+        }
+        .exit-btn-keep {
+            flex: 1.2;
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 11px 0;
+            border-radius: 14px;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 4px 12px rgba(255, 107, 129, 0.3);
+        }
+        .exit-btn-quit {
+            flex: 0.9;
+            background: var(--sub-bg);
+            color: var(--sub-text);
+            border: 1px solid var(--border);
+            padding: 11px 0;
+            border-radius: 14px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
     </style>
 </head>
 <body>
@@ -1159,6 +1225,19 @@
                 <div style="display:flex; gap:10px;">
                     <button class="action-btn" style="flex:1; background:var(--sub-bg); border:none; color:var(--sub-text);" onclick="closeInputModal()">취소</button>
                     <button class="action-btn" style="flex:1; background:var(--primary); border:none; color:white;" id="inputModalConfirmBtn">확인</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 앱 종료 확인 커스텀 모달 -->
+        <div id="exitConfirmModal" class="modal-overlay" onclick="closeExitModal()">
+            <div class="exit-modal-card" onclick="event.stopPropagation()">
+                <div class="exit-icon-badge">🍑</div>
+                <h3 class="exit-title">플레이어를 종료할까요?</h3>
+                <p class="exit-sub">지금 듣고 있던 음악과 재생목록은<br>다음에 켜도 그대로 유지됩니다.</p>
+                <div class="exit-btn-row">
+                    <button class="exit-btn-quit" onclick="confirmAppExit()">종료하기</button>
+                    <button class="exit-btn-keep" onclick="closeExitModal()">계속 듣기</button>
                 </div>
             </div>
         </div>
@@ -1369,7 +1448,7 @@
             <div class="sticky-header">
                 <div class="header-row">
                     <h2>
-                        <span class="material-symbols-outlined" onclick="showView('playerView', 'nav-player')" style="cursor:pointer; vertical-align:middle; margin-right:4px;">arrow_back</span>
+                        <span class="material-symbols-outlined" onclick="navigateBack()" style="cursor:pointer; vertical-align:middle; margin-right:4px;">arrow_back</span>
                         설정
                     </h2>
                 </div>
@@ -1902,18 +1981,48 @@
     }
 
     /* =========================================================================
-       로컬 스토리지 저장 및 복원
+       로컬 스토리지 저장 및 복원 (현재 재생목록 + 듣던 곡 + 재생 구간 완벽 보존)
        ========================================================================= */
+    let lastSavedTimeSec = 0;
+
+    function serializeSongForStorage(s) {
+        if (!s) return null;
+        return {
+            id: s.id || null,
+            localKey: s.localKey || null,
+            name: s.name,
+            eng: s.eng || '',
+            artist: s.artist || '',
+            tag: s.tag || '',
+            moodLabel: s.moodLabel || '',
+            desc: s.desc || '',
+            url: (s.url && s.url.startsWith('blob:')) ? '' : (s.url || ''),
+            fallbackUrl: s.fallbackUrl || '',
+            emoji: s.emoji || '🎵',
+            gradient: s.gradient || '',
+            isAi: !!s.isAi
+        };
+    }
+
     function saveAppState() {
         try {
             const serializableFolders = {};
             for (const folderName in folders) {
-                serializableFolders[folderName] = folders[folderName].filter(s => !s.url || !s.url.startsWith('blob:'));
+                serializableFolders[folderName] = (folders[folderName] || [])
+                    .map(serializeSongForStorage)
+                    .filter(Boolean);
             }
+            const serializableQueue = (playQueue || [])
+                .map(serializeSongForStorage)
+                .filter(Boolean);
+
             const state = {
                 config,
                 isShuffle,
                 repeatMode,
+                currentSongIndex,
+                lastCurrentTime: (audio && !isNaN(audio.currentTime)) ? audio.currentTime : 0,
+                playQueue: serializableQueue,
                 folders: serializableFolders
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1947,6 +2056,15 @@
             if (state.folders && Object.keys(state.folders).length > 0) {
                 folders = state.folders;
             }
+            if (Array.isArray(state.playQueue) && state.playQueue.length > 0) {
+                playQueue = state.playQueue;
+                if (typeof state.currentSongIndex === 'number' && state.currentSongIndex >= 0 && state.currentSongIndex < playQueue.length) {
+                    currentSongIndex = state.currentSongIndex;
+                } else {
+                    currentSongIndex = 0;
+                }
+                lastSavedTimeSec = typeof state.lastCurrentTime === 'number' ? state.lastCurrentTime : 0;
+            }
             if (Array.isArray(config.eqGains)) {
                 const sliders = document.querySelectorAll('.eq-slider');
                 config.eqGains.forEach((v, i) => {
@@ -1967,7 +2085,11 @@
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
             try { indexedDB.deleteDatabase("GungdiCoverCacheDB"); } catch (e) {}
             try { indexedDB.deleteDatabase("GungdiCoverCacheDB_v2"); } catch (e) {}
+            try { indexedDB.deleteDatabase("GungdiCoverCacheDB_v3"); } catch (e) {}
             folders = { '기본 재생목록': [] };
+            playQueue = [];
+            resetUI();
+            renderQueue();
             renderFolderList();
             showToast("초기화되었습니다.");
         });
@@ -2472,6 +2594,7 @@
         document.getElementById('folderHeaderEdit').style.display = 'none';
         document.getElementById('libFoldersSubView').style.display = 'none';
         document.getElementById('libFolderDetailSubView').style.display = 'block';
+        pushHistoryGuard();
         renderFolderDetail();
     }
 
@@ -2528,7 +2651,7 @@
     }
 
     /* =========================================================================
-       대기열 삭제 및 순서 변경 시 currentSongIndex 보정
+       대기열 삭제 및 순서 변경 시 currentSongIndex 보정 + 상태 자동 저장
        ========================================================================= */
     function handlePliMultiDelete() {
         if (pliSelected.size === 0) return;
@@ -2549,6 +2672,7 @@
             } else if (playingSongRef) {
                 currentSongIndex = playQueue.indexOf(playingSongRef);
             }
+            saveAppState();
             renderQueue();
             renderRecommendView();
         });
@@ -2568,6 +2692,7 @@
             } else if (i < currentSongIndex) {
                 currentSongIndex--;
             }
+            saveAppState();
             renderQueue();
             renderRecommendView();
         });
@@ -2592,12 +2717,14 @@
             showConfirmModal("이미 현재 재생목록에 있는 곡입니다.<br>그래도 추가하시겠습니까?", "추가", () => {
                 playQueue.push({ ...songObj });
                 if (currentSongIndex === -1) loadSong(0);
+                saveAppState();
                 showToast("재생목록에 추가되었습니다.");
                 renderQueue();
             });
         } else {
             playQueue.push({ ...songObj });
             if (currentSongIndex === -1) loadSong(0);
+            saveAppState();
             showToast("재생목록에 추가되었습니다.");
             renderQueue();
         }
@@ -2621,6 +2748,7 @@
             };
             listContainer.appendChild(item);
         });
+        pushHistoryGuard();
         document.getElementById('addToFolderModal').style.display = 'flex';
     }
 
@@ -2639,39 +2767,44 @@
     }
 
     function showVersionPopup() {
-        showConfirmModal(`현재 버전: ${config.version}<br>내 AI 노래 21곡 & 랜덤 큐레이션 탑재`, "닫기", null);
+        showConfirmModal(`현재 버전: ${config.version}<br>뒤로가기 보호 · 백그라운드 미디어 위젯 탑재`, "닫기", null);
     }
 
     /* =========================================================================
        이퀄라이저 (EQ) 및 Web Audio API 리듬 펄스
        ========================================================================= */
-    function openEqModal() { document.getElementById('eqModal').classList.add('active'); }
+    function openEqModal() {
+        pushHistoryGuard();
+        document.getElementById('eqModal').classList.add('active');
+    }
     function closeEqModal() { document.getElementById('eqModal').classList.remove('active'); }
 
     function initAnalyser() {
         if (audioContext) return;
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        source = audioContext.createMediaElementSource(audio);
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            source = audioContext.createMediaElementSource(audio);
 
-        const freqs = [60, 310, 1000, 3300, 12000];
-        eqFilters = freqs.map((f, idx) => {
-            const flt = audioContext.createBiquadFilter();
-            flt.type = 'peaking';
-            flt.frequency.value = f;
-            flt.Q.value = 1.4;
-            flt.gain.value = config.eqGains[idx] || 0;
-            return flt;
-        });
+            const freqs = [60, 310, 1000, 3300, 12000];
+            eqFilters = freqs.map((f, idx) => {
+                const flt = audioContext.createBiquadFilter();
+                flt.type = 'peaking';
+                flt.frequency.value = f;
+                flt.Q.value = 1.4;
+                flt.gain.value = config.eqGains[idx] || 0;
+                return flt;
+            });
 
-        let node = source;
-        eqFilters.forEach(f => { node.connect(f); node = f; });
-        node.connect(analyser);
-        analyser.connect(audioContext.destination);
+            let node = source;
+            eqFilters.forEach(f => { node.connect(f); node = f; });
+            node.connect(analyser);
+            analyser.connect(audioContext.destination);
 
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        updatePulse();
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            updatePulse();
+        } catch (e) {}
     }
 
     function updateEQ(i, v) {
@@ -2710,7 +2843,7 @@
     }
 
     function updatePulse() {
-        if (!isPlaying || !analyser) {
+        if (!isPlaying || !analyser || document.hidden) {
             albumArt.style.transform = "scale(1)";
             rgbGlow.style.transform = "scale(1)";
             return;
@@ -2735,6 +2868,105 @@
     }
 
     /* =========================================================================
+       모바일 잠금화면 & 상단 알림바 미디어 위젯 (Media Session API) 및 백그라운드 보호
+       ========================================================================= */
+    const DEFAULT_PEACH_ARTWORK = "data:image/svg+xml;utf8," + encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+            <defs>
+                <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ff6b81"/>
+                    <stop offset="100%" stop-color="#fecfef"/>
+                </linearGradient>
+            </defs>
+            <rect width="512" height="512" rx="96" fill="url(#g)"/>
+            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="240">🍑</text>
+        </svg>`
+    );
+
+    function updateMediaSessionMetadata() {
+        if (!('mediaSession' in navigator)) return;
+        const s = playQueue[currentSongIndex];
+        if (!s) {
+            navigator.mediaSession.playbackState = 'none';
+            return;
+        }
+        const artSrc = s.cover || DEFAULT_PEACH_ARTWORK;
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: s.name || '궁디 플레이어',
+                artist: s.artist || '궁디 AI Studio',
+                album: s.moodLabel ? `궁디 플레이어 · ${s.moodLabel}` : '궁디 플레이어 Ultimate',
+                artwork: [
+                    { src: artSrc, sizes: '96x96', type: 'image/png' },
+                    { src: artSrc, sizes: '192x192', type: 'image/png' },
+                    { src: artSrc, sizes: '512x512', type: 'image/png' }
+                ]
+            });
+            navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+        } catch (e) {}
+    }
+
+    function updateMediaSessionPosition() {
+        if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+        if (audio && audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: audio.duration,
+                    playbackRate: audio.playbackRate || 1,
+                    position: Math.min(audio.currentTime || 0, audio.duration)
+                });
+            } catch (e) {}
+        }
+    }
+
+    function initMediaSessionHandlers() {
+        if (!('mediaSession' in navigator)) return;
+        const actions = [
+            ['play', () => playAudio()],
+            ['pause', () => pauseAudio()],
+            ['previoustrack', () => prevSong()],
+            ['nexttrack', () => nextSong(true)],
+            ['seekbackward', (details) => {
+                const offset = details.seekOffset || 10;
+                audio.currentTime = Math.max(0, (audio.currentTime || 0) - offset);
+                updateMediaSessionPosition();
+            }],
+            ['seekforward', (details) => {
+                const offset = details.seekOffset || 10;
+                if (audio.duration) audio.currentTime = Math.min(audio.duration, (audio.currentTime || 0) + offset);
+                updateMediaSessionPosition();
+            }],
+            ['seekto', (details) => {
+                if (typeof details.seekTime === 'number' && audio.duration) {
+                    audio.currentTime = details.seekTime;
+                    updateMediaSessionPosition();
+                }
+            }]
+        ];
+        actions.forEach(([action, handler]) => {
+            try { navigator.mediaSession.setActionHandler(action, handler); } catch (e) {}
+        });
+    }
+
+    // 백그라운드 전환 시 상태 자동 저장 및 AudioContext 잠듦 방지
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            saveAppState();
+            cancelAnimationFrame(animationId);
+        } else {
+            if (isPlaying) {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().catch(() => {});
+                }
+                updateLpSpinState();
+                updatePulse();
+            }
+        }
+    });
+    window.addEventListener('pagehide', () => saveAppState());
+    window.addEventListener('beforeunload', () => saveAppState());
+
+    /* =========================================================================
        오디오 메타데이터 추출 및 재생 컨트롤
        ========================================================================= */
     async function getSongMetadata(file) {
@@ -2750,7 +2982,11 @@
                     if (t.picture) {
                         const { data, format } = t.picture;
                         let base64 = "";
-                        for (let i = 0; i < data.length; i++) base64 += String.fromCharCode(data[i]);
+                        const u8 = new Uint8Array(data);
+                        const chunkSize = 8192;
+                        for (let i = 0; i < u8.length; i += chunkSize) {
+                            base64 += String.fromCharCode.apply(null, u8.subarray(i, i + chunkSize));
+                        }
                         coverUrl = `data:${format};base64,${window.btoa(base64)}`;
                     }
                     resolve({
@@ -2783,9 +3019,10 @@
             albumArtSub.innerText = s.eng || 'GUNGDI STUDIO';
             albumArtSub.style.display = 'block';
         }
+        updateMediaSessionMetadata();
     }
 
-    function loadSong(i) {
+    function loadSong(i, restoreTimeSec = 0) {
         if (i < 0 || i >= playQueue.length) return;
         currentSongIndex = i;
         const s = playQueue[i];
@@ -2801,18 +3038,36 @@
 
         setMainPlayerCoverDisplay(s);
 
-        // 만약 아직 커버가 추출되지 않은 AI 곡이라면 즉시 최우선으로 커버 추출 시도
         if (s.isAi && !s.cover && s.id) {
             ensureSingleSongCover(s.id);
         }
 
         progress.style.width = "0%";
         progressThumb.style.left = "0%";
-        document.getElementById('currentTime').innerText = "0:00";
+        document.getElementById('currentTime').innerText = formatTime(restoreTimeSec || 0);
         document.getElementById('totalTime').innerText = "0:00";
 
-        audio.src = s.url ? encodeURI(s.url) : '';
-        audio.load();
+        if (s.url) {
+            audio.src = s.url.startsWith('blob:') ? s.url : encodeURI(s.url);
+            audio.load();
+            if (restoreTimeSec > 0) {
+                const onLoadedMeta = () => {
+                    if (audio.duration && restoreTimeSec < audio.duration) {
+                        audio.currentTime = restoreTimeSec;
+                        const p = (restoreTimeSec / audio.duration) * 100;
+                        progress.style.width = p + "%";
+                        progressThumb.style.left = p + "%";
+                        document.getElementById('currentTime').innerText = formatTime(restoreTimeSec);
+                        document.getElementById('totalTime').innerText = formatTime(audio.duration);
+                    }
+                    audio.removeEventListener('loadedmetadata', onLoadedMeta);
+                };
+                audio.addEventListener('loadedmetadata', onLoadedMeta);
+            }
+        } else {
+            audio.src = '';
+        }
+        saveAppState();
     }
 
     async function playAudio() {
@@ -2821,33 +3076,43 @@
         }
         if (!audio.src) return;
         try {
-            initAnalyser();
-            if (audioContext && audioContext.state === 'suspended') {
-                await audioContext.resume();
+            // 포그라운드 상태이거나 이미 AudioContext가 생성된 경우 활성화
+            if (!document.hidden || audioContext) {
+                initAnalyser();
+                if (audioContext && audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
             }
         } catch (e) {}
 
         isPlaying = true;
         updateLpSpinState();
+        updateMediaSessionMetadata();
         audio.play().then(() => {
             playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
             updateLpSpinState();
+            updateMediaSessionMetadata();
+            updateMediaSessionPosition();
             updatePulse();
             renderRecommendView();
+            saveAppState();
         }).catch(() => {
             const curr = playQueue[currentSongIndex];
-            // fallbackUrl 시도 (예: (1) 제거된 파일명 호환)
             if (curr && curr.fallbackUrl && audio.src !== encodeURI(curr.fallbackUrl)) {
                 audio.src = encodeURI(curr.fallbackUrl);
                 audio.load();
                 audio.play().then(() => {
                     playBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
                     updateLpSpinState();
+                    updateMediaSessionMetadata();
+                    updateMediaSessionPosition();
                     updatePulse();
                     renderRecommendView();
+                    saveAppState();
                 }).catch(() => {
                     isPlaying = false;
                     updateLpSpinState();
+                    updateMediaSessionMetadata();
                     playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
                     showToast(`오디오 파일을 찾을 수 없습니다: ${curr.name}`);
                 });
@@ -2855,6 +3120,7 @@
             }
             isPlaying = false;
             updateLpSpinState();
+            updateMediaSessionMetadata();
             playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
             showToast("오디오 파일을 재생할 수 없습니다.");
         });
@@ -2866,6 +3132,8 @@
         audio.pause();
         playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
         cancelAnimationFrame(animationId);
+        updateMediaSessionMetadata();
+        saveAppState();
         renderRecommendView();
     }
 
@@ -2887,6 +3155,7 @@
                 audio.currentTime = 0;
                 progress.style.width = "0%";
                 progressThumb.style.left = "0%";
+                saveAppState();
                 return;
             }
             currentSongIndex = (currentSongIndex + 1) % playQueue.length;
@@ -2930,6 +3199,9 @@
     };
 
     audio.onended = () => {
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().catch(() => {});
+        }
         if (repeatMode === 2) {
             audio.currentTime = 0;
             playAudio();
@@ -2938,6 +3210,7 @@
         }
     };
 
+    let lastSaveTimestamp = 0;
     audio.ontimeupdate = () => {
         if (!isDraggingBar && audio.duration) {
             const p = (audio.currentTime / audio.duration) * 100;
@@ -2945,6 +3218,13 @@
             progressThumb.style.left = p + "%";
             document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
             document.getElementById('totalTime').innerText = formatTime(audio.duration);
+
+            const now = Date.now();
+            if (now - lastSaveTimestamp > 3000) {
+                lastSaveTimestamp = now;
+                saveAppState();
+                updateMediaSessionPosition();
+            }
         }
     };
 
@@ -2966,6 +3246,7 @@
         if (e) e.preventDefault();
         contextTargetFolder = name;
         document.getElementById('contextTitle').innerText = name;
+        pushHistoryGuard();
         document.getElementById('contextMenuModal').style.display = 'flex';
     }
     function closeContextMenu() { document.getElementById('contextMenuModal').style.display = 'none'; }
@@ -3039,6 +3320,7 @@
         }
         folderSelected.forEach(i => playQueue.push({ ...folders[currentOpenFolder][i] }));
         if (currentSongIndex === -1 && playQueue.length > 0) loadSong(0);
+        saveAppState();
         showToast(`${folderSelected.size}곡이 현재 재생목록에 추가되었습니다.`);
         toggleFolderEditMode();
         renderQueue();
@@ -3091,6 +3373,7 @@
                     currentSongIndex = playQueue.indexOf(playingSongRef);
                 }
                 pliSelected.clear();
+                saveAppState();
                 renderQueue();
             }
         });
@@ -3109,20 +3392,144 @@
     }
 
     /* =========================================================================
-       화면 전환 및 공통 모달 제어
+       화면 전환 + 스마트폰 뒤로가기(History API) 완벽 제어 & 커스텀 종료 모달
        ========================================================================= */
-    function openSettingsMenu() { document.getElementById('settingsMenuModal').style.display = 'flex'; }
+    let currentViewId = 'playerView';
+    let currentNavId = 'nav-player';
+    let viewStack = [{ view: 'playerView', nav: 'nav-player' }];
+    let isConfirmingAppExit = false;
+
+    function pushHistoryGuard() {
+        try {
+            history.pushState({ gungdiGuard: Date.now() }, '');
+        } catch (e) {}
+    }
+
+    function initHistoryBackGuard() {
+        try {
+            history.replaceState({ gungdiRoot: true }, '');
+            history.pushState({ gungdiGuard: 1 }, '');
+        } catch (e) {}
+
+        window.addEventListener('popstate', () => {
+            if (isConfirmingAppExit) return;
+            // 웹뷰가 종료되지 않도록 즉시 가드 상태를 다시 채워 넣음
+            pushHistoryGuard();
+            navigateBack(true);
+        });
+    }
+
+    function openSettingsMenu() {
+        pushHistoryGuard();
+        document.getElementById('settingsMenuModal').style.display = 'flex';
+    }
     function closeSettingsMenu() { document.getElementById('settingsMenuModal').style.display = 'none'; }
 
-    function showView(v, n) {
+    function openExitModal() {
+        pushHistoryGuard();
+        document.getElementById('exitConfirmModal').style.display = 'flex';
+    }
+    function closeExitModal() {
+        document.getElementById('exitConfirmModal').style.display = 'none';
+    }
+    function confirmAppExit() {
+        isConfirmingAppExit = true;
+        saveAppState();
+        closeExitModal();
+        try { window.close(); } catch (e) {}
+        try { history.go(-history.length); } catch (e) {}
+    }
+
+    function showView(v, n, isFromBack = false) {
+        const resolvedNav = n || (
+            v === 'recommendView' ? 'nav-recommend' :
+            v === 'libraryView' ? 'nav-library' :
+            v === 'playerView' ? 'nav-player' : currentNavId
+        );
+
+        if (!isFromBack && v !== currentViewId) {
+            viewStack.push({ view: v, nav: resolvedNav });
+            if (viewStack.length > 20) viewStack.shift();
+            pushHistoryGuard();
+        }
+
+        currentViewId = v;
+        currentNavId = resolvedNav;
+
         document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
         document.getElementById(v).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if (n && document.getElementById(n)) {
-            document.getElementById(n).classList.add('active');
+        if (resolvedNav && document.getElementById(resolvedNav)) {
+            document.getElementById(resolvedNav).classList.add('active');
         }
         if (v === 'recommendView') renderRecommendView();
         if (v === 'libraryView') switchLibraryTab(currentLibraryTab);
+    }
+
+    function navigateBack() {
+        // 1순위: 열려 있는 모달이 있으면 모달부터 닫기
+        if (document.getElementById('exitConfirmModal').style.display === 'flex') {
+            closeExitModal();
+            return;
+        }
+        if (document.getElementById('eqModal').classList.contains('active')) {
+            closeEqModal();
+            return;
+        }
+        if (document.getElementById('inputModal').style.display === 'flex') {
+            closeInputModal();
+            return;
+        }
+        if (document.getElementById('customModal').style.display === 'flex') {
+            closeModal();
+            return;
+        }
+        if (document.getElementById('addToFolderModal').style.display === 'flex') {
+            closeAddToFolderModal();
+            return;
+        }
+        if (document.getElementById('contextMenuModal').style.display === 'flex') {
+            closeContextMenu();
+            return;
+        }
+        if (document.getElementById('settingsMenuModal').style.display === 'flex') {
+            closeSettingsMenu();
+            return;
+        }
+
+        // 2순위: 편집 모드 중이면 편집 모드 종료
+        if (currentViewId === 'libraryView' && isPliEditMode) {
+            togglePliEditMode();
+            return;
+        }
+        if (currentViewId === 'libraryView' && isFolderEditMode) {
+            toggleFolderEditMode();
+            return;
+        }
+
+        // 3순위: 내 플레이리스트 폴더 상세 화면이면 폴더 목록으로 복귀
+        if (currentViewId === 'libraryView' && currentLibraryTab === 'folders' && currentOpenFolder) {
+            backToFoldersList();
+            return;
+        }
+
+        // 4순위: 이전 화면 스택(설정 -> 이전 화면 등)이 있으면 직전 화면으로 이동
+        if (viewStack.length > 1) {
+            viewStack.pop();
+            const prev = viewStack[viewStack.length - 1];
+            showView(prev.view, prev.nav, true);
+            return;
+        }
+
+        // 만약 메인 플레이어 화면이 아니라면 메인 플레이어로 먼저 이동
+        if (currentViewId !== 'playerView') {
+            viewStack = [{ view: 'playerView', nav: 'nav-player' }];
+            showView('playerView', 'nav-player', true);
+            return;
+        }
+
+        // 5순위: 최종 메인 화면에서 뒤로가기를 누르면 커스텀 종료 안내 모달 표시
+        openExitModal();
     }
 
     let toastTimer;
@@ -3138,6 +3545,7 @@
         document.getElementById('modalMsg').innerHTML = m;
         document.getElementById('modalConfirmBtn').innerText = c;
         pendingConfirmAction = a;
+        pushHistoryGuard();
         document.getElementById('customModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('customModal').style.display = 'none'; }
@@ -3150,6 +3558,7 @@
         document.getElementById('inputModalTitle').innerText = t;
         const inputEl = document.getElementById('modalInputArea');
         inputEl.value = defaultValue;
+        pushHistoryGuard();
         document.getElementById('inputModal').style.display = 'flex';
         pendingInputCallback = c;
         setTimeout(() => inputEl.focus(), 50);
@@ -3183,6 +3592,7 @@
         audio.src = '';
         isPlaying = false;
         pauseAudio();
+        saveAppState();
     }
 
     function openCreateFolderModal() {
@@ -3210,7 +3620,7 @@
     }
 
     /* =========================================================================
-       스마트폰/PC 파일 선택기로 오디오 추가 (동일 이름 AI 곡 표지 자동 매칭 포함)
+       스마트폰/PC 파일 선택기로 오디오 추가 + 로컬 오디오 파일도 IndexedDB 영구 보관
        ========================================================================= */
     async function syncLocalFileCoverWithAiSong(file, meta) {
         if (!meta || !meta.cover) return;
@@ -3234,8 +3644,11 @@
         for (const f of files) {
             const m = await getSongMetadata(f);
             await syncLocalFileCoverWithAiSong(f, m);
-            playQueue.push({ ...m, url: URL.createObjectURL(f), isAi: false });
+            const localKey = `local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+            await saveLocalAudioRecord(localKey, f, m.cover);
+            playQueue.push({ ...m, localKey, url: URL.createObjectURL(f), isAi: false });
         }
+        saveAppState();
         switchLibraryTab('queue');
         renderQueue();
         if (currentSongIndex === -1 && playQueue.length > 0) {
@@ -3252,8 +3665,11 @@
         for (const f of files) {
             const m = await getSongMetadata(f);
             await syncLocalFileCoverWithAiSong(f, m);
-            folders[currentOpenFolder].push({ ...m, url: URL.createObjectURL(f), isAi: false });
+            const localKey = `local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+            await saveLocalAudioRecord(localKey, f, m.cover);
+            folders[currentOpenFolder].push({ ...m, localKey, url: URL.createObjectURL(f), isAi: false });
         }
+        saveAppState();
         renderFolderDetail();
         renderFolderList();
         showToast(`'${currentOpenFolder}'에 ${files.length}곡이 추가되었습니다.`);
@@ -3263,14 +3679,11 @@
     playBtn.onclick = () => isPlaying ? pauseAudio() : playAudio();
 
     /* =========================================================================
-       [실제 MP3 파일 내장 ID3 앨범 표지(APIC) 자동 추출 & IndexedDB 영구 캐시]
-       - 1순위: jsmediatags 정식 파서 (전체 파일 기준, 이미지 잘림 방지)
-       - 2순위: 바이너리 APIC 직접 파서 (JPEG / PNG / WebP 지원)
-       - 추출된 이미지가 실제 유효한 이미지인지 검증(Image onload) 후 적용하며,
-         표지가 없는 파일은 기존 그라데이션+이모지 디자인을 그대로 유지합니다.
+       [IndexedDB 캐시: AI 앨범 표지 + 로컬 오디오 파일 영구 보존]
        ========================================================================= */
-    const COVER_DB_NAME = "GungdiCoverCacheDB_v2";
+    const COVER_DB_NAME = "GungdiCoverCacheDB_v3";
     const COVER_STORE_NAME = "covers";
+    const LOCAL_AUDIO_STORE = "local_audio";
     const extractingSongIds = new Set();
 
     function openCoverDB() {
@@ -3282,10 +3695,71 @@
                 if (!db.objectStoreNames.contains(COVER_STORE_NAME)) {
                     db.createObjectStore(COVER_STORE_NAME);
                 }
+                if (!db.objectStoreNames.contains(LOCAL_AUDIO_STORE)) {
+                    db.createObjectStore(LOCAL_AUDIO_STORE);
+                }
             };
             req.onsuccess = () => resolve(req.result);
             req.onerror = () => reject(req.error);
         });
+    }
+
+    async function saveLocalAudioRecord(localKey, fileBlob, coverDataUrl) {
+        try {
+            const db = await openCoverDB();
+            return await new Promise((resolve) => {
+                const tx = db.transaction(LOCAL_AUDIO_STORE, "readwrite");
+                tx.objectStore(LOCAL_AUDIO_STORE).put({ blob: fileBlob, cover: coverDataUrl || null }, localKey);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function getLocalAudioRecord(localKey) {
+        try {
+            const db = await openCoverDB();
+            return await new Promise((resolve) => {
+                const tx = db.transaction(LOCAL_AUDIO_STORE, "readonly");
+                const req = tx.objectStore(LOCAL_AUDIO_STORE).get(localKey);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function restoreLocalAudioBlobs() {
+        let changed = false;
+        for (const s of playQueue) {
+            if (s.localKey && (!s.url || !s.url.startsWith('blob:'))) {
+                const rec = await getLocalAudioRecord(s.localKey);
+                if (rec && rec.blob) {
+                    s.url = URL.createObjectURL(rec.blob);
+                    if (rec.cover) s.cover = rec.cover;
+                    changed = true;
+                }
+            }
+        }
+        for (const fName in folders) {
+            for (const s of folders[fName]) {
+                if (s.localKey && (!s.url || !s.url.startsWith('blob:'))) {
+                    const rec = await getLocalAudioRecord(s.localKey);
+                    if (rec && rec.blob) {
+                        s.url = URL.createObjectURL(rec.blob);
+                        if (rec.cover) s.cover = rec.cover;
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if (changed) {
+            renderQueue();
+            renderFolderList();
+        }
     }
 
     async function getCachedCover(key) {
@@ -3316,7 +3790,6 @@
         }
     }
 
-    // 추출된 DataURL이 실제로 렌더링 가능한 정상 이미지인지 검증
     function validateImageDataUrl(dataUrl) {
         if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
             return Promise.resolve(false);
@@ -3329,7 +3802,6 @@
         });
     }
 
-    // 바이너리에서 직접 ID3v2 APIC 프레임의 JPEG / PNG / WebP 이미지를 추출하는 백업 파서
     function extractApicFromArrayBuffer(buffer) {
         try {
             const bytes = new Uint8Array(buffer);
@@ -3359,19 +3831,16 @@
             let imgStart = -1;
             let mime = "image/jpeg";
             for (let i = frameStart; i < Math.min(frameStart + 256, frameEnd - 12); i++) {
-                // JPEG (FF D8 FF)
                 if (bytes[i] === 0xFF && bytes[i+1] === 0xD8 && bytes[i+2] === 0xFF) {
                     imgStart = i;
                     mime = "image/jpeg";
                     break;
                 }
-                // PNG (89 50 4E 47)
                 if (bytes[i] === 0x89 && bytes[i+1] === 0x50 && bytes[i+2] === 0x4E && bytes[i+3] === 0x47) {
                     imgStart = i;
                     mime = "image/png";
                     break;
                 }
-                // WebP ("RIFF" .... "WEBP")
                 if (bytes[i] === 0x52 && bytes[i+1] === 0x49 && bytes[i+2] === 0x46 && bytes[i+3] === 0x46 &&
                     bytes[i+8] === 0x57 && bytes[i+9] === 0x45 && bytes[i+10] === 0x42 && bytes[i+11] === 0x50) {
                     imgStart = i;
@@ -3401,13 +3870,11 @@
             if (!rawUrl) continue;
             const encodedUrl = encodeURI(rawUrl);
             try {
-                // 전체 파일을 가져와서 대용량 Suno 커버 이미지가 절대 잘리지 않도록 처리
                 const res = await fetch(encodedUrl);
                 if (!res.ok) continue;
 
                 const buffer = await res.arrayBuffer();
 
-                // 1순위: jsmediatags 정식 파서
                 if (window.jsmediatags) {
                     const blob = new Blob([buffer], { type: "audio/mpeg" });
                     const tagCover = await new Promise((resolve) => {
@@ -3433,7 +3900,6 @@
                     }
                 }
 
-                // 2순위: 바이너리 APIC 파서 (JPEG / PNG / WebP)
                 const directCover = extractApicFromArrayBuffer(buffer);
                 if (directCover && await validateImageDataUrl(directCover)) {
                     return directCover;
@@ -3497,7 +3963,6 @@
     }
 
     async function loadAllAiSongCovers() {
-        // 1단계: IndexedDB에 캐시된 유효한 앨범 표지가 있으면 즉시 먼저 입힘
         let updatedFromCache = false;
         for (const song of AI_SONGS) {
             if (song.cover) continue;
@@ -3513,28 +3978,38 @@
             renderFolderList();
         }
 
-        // 2단계: 화면 상단에 먼저 보이는 히어로 배너 곡과 핫픽 곡들부터 우선 추출 후 나머지 순차 추출
         const priorityList = [
+            ...(playQueue[currentSongIndex] && playQueue[currentSongIndex].id ? [playQueue[currentSongIndex]] : []),
             ...(spotlightSong ? [spotlightSong] : []),
             ...hotPickSongs,
             ...AI_SONGS
         ];
         const seenIds = new Set();
         for (const item of priorityList) {
-            if (!item || seenIds.has(item.id)) continue;
+            if (!item || !item.id || seenIds.has(item.id)) continue;
             seenIds.add(item.id);
             await ensureSingleSongCover(item.id);
         }
     }
 
-    /* 앱 초기 구동: 추천 큐레이션 랜덤 생성 및 렌더링 */
-    loadAppState();
-    randomizeCurationState();
-    renderRecommendView();
-    renderQueue();
-    renderFolderList();
-    initScrollEvents();
-    loadAllAiSongCovers();
+    /* 앱 초기 구동 */
+    async function bootstrapApp() {
+        initHistoryBackGuard();
+        initMediaSessionHandlers();
+        loadAppState();
+        randomizeCurationState();
+        await restoreLocalAudioBlobs();
+        if (playQueue.length > 0 && currentSongIndex >= 0 && currentSongIndex < playQueue.length) {
+            loadSong(currentSongIndex, lastSavedTimeSec);
+        }
+        renderRecommendView();
+        renderQueue();
+        renderFolderList();
+        initScrollEvents();
+        loadAllAiSongCovers();
+    }
+
+    bootstrapApp();
 </script>
 </body>
 </html>
