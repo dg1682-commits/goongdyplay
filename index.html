@@ -3314,15 +3314,63 @@
         });
     }
 
+    function syncNativeAndroidWidget(songObj, artUrl) {
+        if (!window.Android || typeof window.Android.updatePlaybackState !== 'function') return;
+        try {
+            if (!songObj) {
+                window.Android.updatePlaybackState("선택된 곡 없음", "궁디 플레이어", false, "");
+            } else {
+                const safeArt = (artUrl && artUrl.startsWith('data:image/')) ? artUrl : "";
+                window.Android.updatePlaybackState(
+                    songObj.name || "궁디 플레이어",
+                    songObj.artist || "궁디 AI Studio",
+                    !!isPlaying,
+                    safeArt
+                );
+            }
+        } catch (e) {}
+    }
+
+    // 안드로이드 바탕화면 위젯 & 상단바 알림 위젯 버튼 클릭 수신기
+    window.handleAndroidWidgetCommand = function(cmd) {
+        if (cmd === 'toggle') {
+            if (isPlaying) pauseAudio();
+            else playAudio();
+        } else if (cmd === 'play') {
+            playAudio();
+        } else if (cmd === 'pause') {
+            pauseAudio();
+        } else if (cmd === 'next') {
+            nextSong(true);
+        } else if (cmd === 'prev') {
+            prevSong();
+        } else if (cmd === 'stop') {
+            stopAudioForExit();
+        }
+    };
+
+    // 안드로이드 네이티브 뒤로가기 버튼 직접 수신기 (100% 유튜브 뮤직/멜론 방식 작동 보장)
+    window.handleAndroidBackKey = function() {
+        if (document.getElementById('exitConfirmModal').style.display === 'flex') {
+            confirmAppExit(true);
+            return;
+        }
+        navigateBack(true);
+    };
+
     async function updateMediaSessionMetadata() {
-        if (!('mediaSession' in navigator)) return;
         const s = playQueue[currentSongIndex];
         if (!s) {
-            try { navigator.mediaSession.playbackState = 'none'; } catch (e) {}
+            syncNativeAndroidWidget(null, "");
+            if ('mediaSession' in navigator) {
+                try { navigator.mediaSession.playbackState = 'none'; } catch (e) {}
+            }
             return;
         }
         try {
             const artUrl = await getSongMediaArtworkUrl(s);
+            syncNativeAndroidWidget(s, artUrl);
+            if (!('mediaSession' in navigator)) return;
             const isJpegData = artUrl && artUrl.startsWith('data:image/jpeg');
             const artworkArr = [];
             if (artUrl) {
@@ -3649,6 +3697,11 @@
                 navigator.mediaSession.metadata = null;
             } catch (e) {}
         }
+        try {
+            if (window.Android && typeof window.Android.stopPlaybackService === 'function') {
+                window.Android.stopPlaybackService();
+            }
+        } catch (e) {}
         playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
         updateRecommendPlayingIndicators();
     }
