@@ -3126,16 +3126,13 @@
                 canvas.width = 256;
                 canvas.height = 256;
                 const ctx = canvas.getContext('2d');
-                const grad = ctx.createLinearGradient(0, 0, 256, 256);
-                grad.addColorStop(0, '#ff6b81');
-                grad.addColorStop(1, '#fecfef');
-                ctx.fillStyle = grad;
+                ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, 256, 256);
-                ctx.font = '120px sans-serif';
+                ctx.font = '136px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('🍑', 128, 136);
-                defaultPeachDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                ctx.fillText('🍑', 128, 138);
+                defaultPeachDataUrl = canvas.toDataURL('image/jpeg', 0.9);
                 resolve(defaultPeachDataUrl);
             } catch (e) {
                 resolve(FALLBACK_HTTPS_ICON);
