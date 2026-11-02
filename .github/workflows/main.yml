@@ -1,0 +1,67 @@
+name: Build Gungdi Android APK (With Home Widget)
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'gungdi-player.apk'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Generate Android Native Project & Widget
+        run: python3 build_android_apk.py
+
+      - name: Generate Signing Keystore
+        working-directory: ./android-app/app
+        run: |
+          keytool -genkeypair -v \
+            -keystore release-key.jks \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias gungdi \
+            -storepass gungdi1234 \
+            -keypass gungdi1234 \
+            -dname "CN=GungdiPlayer, OU=Studio, O=Gungdi, L=Seoul, S=Seoul, C=KR"
+
+      - name: Setup Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build Signed Release APK
+        working-directory: ./android-app
+        run: gradle assembleRelease --no-daemon
+
+      - name: Copy APK to root
+        run: |
+          cp ./android-app/app/build/outputs/apk/release/app-release.apk ./gungdi-player.apk
+
+      - name: Upload APK to GitHub Actions Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 궁디플레이어-바탕화면위젯-APK
+          path: ./gungdi-player.apk
+          if-no-files-found: error
+
+      - name: Save gungdi-player.apk to Repository Root
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gungdi-player.apk
+          git diff --staged --quiet || (git commit -m "build: update gungdi-player.apk with home widget [skip ci]" && git push)
