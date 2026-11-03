@@ -1,0 +1,218 @@
+name: Extract YouTube Audio via yt-dlp
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'YouTube Video URL or ID'
+        required: true
+      title:
+        description: 'Custom Title'
+        required: false
+        default: ''
+      artist:
+        description: 'Artist Name'
+        required: false
+        default: ''
+      tag:
+        description: 'Category Tag'
+        required: false
+        default: '카페/일상'
+      desc:
+        description: 'Description'
+        required: false
+        default: ''
+      uploader:
+        description: 'Uploader Nickname'
+        required: false
+        default: '익명'
+      pin_hash:
+        description: 'PIN Hash'
+        required: false
+        default: ''
+  repository_dispatch:
+    types: [extract-youtube]
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install yt-dlp and ffmpeg
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install --upgrade yt-dlp
+
+      - name: Extract YouTube Audio and Update community_songs.json
+        env:
+          INPUT_URL: ${{ github.event.inputs.video_url || github.event.client_payload.video_url }}
+          INPUT_TITLE: ${{ github.event.inputs.title || github.event.client_payload.title }}
+          INPUT_ARTIST: ${{ github.event.inputs.artist || github.event.client_payload.artist }}
+          INPUT_TAG: ${{ github.event.inputs.tag || github.event.client_payload.tag }}
+          INPUT_DESC: ${{ github.event.inputs.desc || github.event.client_payload.desc }}
+          INPUT_UPLOADER: ${{ github.event.inputs.uploader || github.event.client_payload.uploader }}
+          INPUT_PIN_HASH: ${{ github.event.inputs.pin_hash || github.event.client_payload.pin_hash }}
+        run: |
+          python - << 'EOF'
+          import os
+          import sys
+          import json
+          import subprocess
+          import re
+          from datetime import datetime
+
+          raw_url = os.environ.get("INPUT_URL", "").strip()
+          custom_title = os.environ.get("INPUT_TITLE", "").strip()
+          artist = os.environ.get("INPUT_ARTIST", "").strip()
+          tag = os.environ.get("INPUT_TAG", "카페/일상").strip()
+          desc = os.environ.get("INPUT_DESC", "").strip()
+          uploader = os.environ.get("INPUT_UPLOADER", "익명").strip()
+          pin_hash = os.environ.get("INPUT_PIN_HASH", "").strip()
+
+          if not raw_url:
+              print("Error: No video URL provided.")
+              sys.exit(1)
+
+          if re.match(r'^[a-zA-Z0-9_-]{11}$', raw_url):
+              full_url = f"https://www.youtube.com/watch?v={raw_url}"
+              video_id = raw_url
+          else:
+              full_url = raw_url
+              m = re.search(r'(?:v=|\/|youtu\.be\/)([a-zA-Z0-9_-]{11})', raw_url)
+              video_id = m.group(1) if m else "unknown"
+
+          os.makedirs("songs", exist_ok=True)
+
+          # 1. Fetch metadata
+          print(f"Fetching metadata for {full_url}...")
+          cmd_meta = ["yt-dlp", "--dump-json", "--no-warnings", full_url]
+          res_meta = subprocess.run(cmd_meta, capture_output=True, text=True)
+          meta = {}
+          if res_meta.returncode == 0:
+              try:
+                  meta = json.loads(res_meta.stdout)
+              except Exception as e:
+                  print("Metadata JSON parse error:", e)
+
+          yt_title = meta.get("title") or f"YouTube_{video_id}"
+          final_title = custom_title if custom_title else yt_title
+          if not artist:
+              artist = meta.get("uploader") or meta.get("channel") or f"{uploader} AI Studio"
+          if not desc:
+              desc = f"유튜브에서 추출 등록된 트랙 ({uploader})"
+
+          # Sanitize file name for file systems
+          safe_title = re.sub(r'[\\/*?:"<>|]', '_', final_title)[:45].strip()
+          if not safe_title:
+              safe_title = f"track_{video_id}"
+          output_template = f"songs/{safe_title}.%(ext)s"
+
+          # 2. Download audio via yt-dlp
+          print(f"Downloading audio: {final_title}...")
+          cmd_dl = [
+              "yt-dlp",
+              "-x",
+              "--audio-format", "mp3",
+              "--audio-quality", "0",
+              "--no-warnings",
+              "-o", output_template,
+              full_url
+          ]
+          res_dl = subprocess.run(cmd_dl, capture_output=True, text=True)
+          if res_dl.returncode != 0:
+              print("yt-dlp mp3 download error:", res_dl.stderr)
+              # Fallback to m4a
+              cmd_m4a = [
+                  "yt-dlp",
+                  "-f", "ba/b",
+                  "-x",
+                  "--audio-format", "m4a",
+                  "--no-warnings",
+                  "-o", output_template,
+                  full_url
+              ]
+              res_m4a = subprocess.run(cmd_m4a, capture_output=True, text=True)
+              if res_m4a.returncode != 0:
+                  print("Failed to download audio:", res_m4a.stderr)
+                  sys.exit(1)
+
+          # Find resulting file in songs/
+          final_filename = None
+          for fname in os.listdir("songs"):
+              if fname.startswith(safe_title) and (fname.endswith(".mp3") or fname.endswith(".m4a")):
+                  final_filename = fname
+                  break
+
+          if not final_filename:
+              for fname in os.listdir("songs"):
+                  if fname.endswith(".mp3") or fname.endswith(".m4a"):
+                      final_filename = fname
+                      break
+
+          if not final_filename:
+              print("Downloaded file was not found in songs/ directory.")
+              sys.exit(1)
+
+          print(f"Downloaded file: {final_filename}")
+          thumb_url = f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg" if video_id != "unknown" else ""
+
+          # 3. Update community_songs.json
+          meta_path = "community_songs.json"
+          meta_obj = {"uploadedSongs": [], "deletedKeys": []}
+          if os.path.exists(meta_path):
+              try:
+                  with open(meta_path, "r", encoding="utf-8") as mf:
+                      meta_obj = json.load(mf)
+              except Exception as e:
+                  print("Error reading community_songs.json:", e)
+
+          if not isinstance(meta_obj.get("uploadedSongs"), list):
+              meta_obj["uploadedSongs"] = []
+          if not isinstance(meta_obj.get("deletedKeys"), list):
+              meta_obj["deletedKeys"] = []
+
+          def norm_key(k):
+              return re.sub(r'[\s_\-.]', '', str(k)).lower()
+
+          new_key = norm_key(final_filename)
+          meta_obj["deletedKeys"] = [k for k in meta_obj["deletedKeys"] if norm_key(k) != new_key]
+          meta_obj["uploadedSongs"] = [x for x in meta_obj["uploadedSongs"] if norm_key(x.get("fileName", "")) != new_key]
+
+          meta_obj["uploadedSongs"].append({
+              "fileName": final_filename,
+              "name": final_title,
+              "artist": artist,
+              "tag": tag,
+              "desc": desc,
+              "uploader": uploader,
+              "pinHash": pin_hash,
+              "ytVideoId": video_id,
+              "coverUrl": thumb_url,
+              "createdAt": datetime.utcnow().isoformat() + "Z"
+          })
+
+          with open(meta_path, "w", encoding="utf-8") as mf:
+              json.dump(meta_obj, mf, ensure_ascii=False, indent=2)
+
+          print("community_songs.json updated successfully.")
+          EOF
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add songs/ community_songs.json
+          git diff --staged --quiet || (git commit -m "feat: auto-extract YouTube song (${{ github.event.inputs.title || github.event.client_payload.title || 'audio' }}) [skip ci]" && git push)
