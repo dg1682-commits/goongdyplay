@@ -759,108 +759,6 @@
             border-radius: 6px;
             margin-right: 4px;
         }
-        /* 모달 상단 탭 (폰 파일 등록 vs 유튜브 URL 추출) */
-        .upload-mode-tabs {
-            display: flex;
-            background: var(--sub-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 3px;
-            margin-bottom: 10px;
-            gap: 4px;
-        }
-        .upload-mode-tab {
-            flex: 1;
-            border: none;
-            background: transparent;
-            color: var(--sub-text);
-            font-size: 12px;
-            font-weight: 700;
-            padding: 7px 6px;
-            border-radius: 9px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.18s;
-        }
-        .upload-mode-tab.active {
-            background: var(--primary);
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(255, 107, 129, 0.28);
-        }
-        /* 비차단(Non-Blocking) 상단 백그라운드 작업 진행바 배너 (노래 감상·앱 조작 100% 가능!) */
-        .bg-task-floating-banner {
-            display: none;
-            position: absolute;
-            top: 10px;
-            left: 12px;
-            right: 12px;
-            z-index: 4500;
-            background: rgba(22, 24, 32, 0.94);
-            backdrop-filter: blur(10px);
-            color: #ffffff;
-            border: 1px solid rgba(255, 133, 152, 0.45);
-            border-radius: 16px;
-            padding: 10px 12px;
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
-            flex-direction: column;
-            gap: 6px;
-            pointer-events: auto;
-        }
-        .bg-task-floating-banner.active {
-            display: flex;
-            animation: fadeUpIn 0.22s ease-out;
-        }
-        .bg-task-floating-banner.error-state {
-            border-color: #ff4757;
-            background: rgba(40, 16, 22, 0.95);
-        }
-        .bg-task-top-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-        }
-        .bg-task-server-badge {
-            font-size: 10.5px;
-            font-weight: 800;
-            color: #ffb6c1;
-            background: rgba(255, 133, 152, 0.2);
-            padding: 2px 7px;
-            border-radius: 8px;
-            white-space: nowrap;
-        }
-        .bg-task-close-btn {
-            border: none;
-            background: rgba(255,255,255,0.14);
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .bg-task-detail-text {
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #f1f3f9;
-            line-height: 1.35;
-            word-break: keep-all;
-        }
-        .bg-task-bar-track {
-            width: 100%;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.16);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .bg-task-bar-fill {
-            width: 10%;
-            height: 100%;
-            background: linear-gradient(90deg, #ffb6c1 0%, #ff6b81 100%);
-            border-radius: 4px;
-            transition: width 0.25s ease;
-        }
 
         /* =================================================
            [좌측 탭] 유튜브 뮤직 / 애플 뮤직 스타일 큐레이션 홈
@@ -1878,54 +1776,22 @@
             </div>
         </div>
 
-        <!-- 🔄 비차단(Non-Blocking) 상단 백그라운드 작업 진행바 배너 (작업 중에도 노래 감상·앱 조작 100% 가능!) -->
-        <div id="ytBgTaskBanner" class="bg-task-floating-banner">
-            <div class="bg-task-top-row">
-                <span id="ytBgServerBadge" class="bg-task-server-badge">📡 백그라운드 작업</span>
-                <button class="bg-task-close-btn" onclick="cancelOrDismissBgTask()">✕ 닫기</button>
-            </div>
-            <div id="ytBgDetailText" class="bg-task-detail-text">음원 추출 및 서버 연동 준비 중...</div>
-            <div class="bg-task-bar-track">
-                <div id="ytBgBarFill" class="bg-task-bar-fill" style="width:12%;"></div>
-            </div>
-        </div>
-
-        <!-- ➕ AI 곡 공유 업로드 & 📺 유튜브 URL 자동 추출 통합 모달 -->
+        <!-- ➕ AI 곡 공유 업로드 모달 (폰에서 바로 깃허브 songs/ 및 추천탭 등록) -->
         <div id="aiSongUploadModal" class="modal-overlay" onclick="closeAiUploadModal()">
-            <div class="modal-content" style="max-width:355px;" onclick="event.stopPropagation()">
-                <h3 style="margin:0 0 4px 0; font-size:16px;" id="uploadModalMainTitle">➕ 음악 공유 & 유튜브 추출 등록</h3>
-                <p id="uploadModalUserSub" style="margin:0 0 8px 0; font-size:11.5px; color:var(--primary); font-weight:600;"></p>
+            <div class="modal-content" style="max-width:350px;" onclick="event.stopPropagation()">
+                <h3 style="margin:0 0 4px 0; font-size:16px;">➕ 내 AI곡 추천탭에 공유 등록</h3>
+                <p id="uploadModalUserSub" style="margin:0 0 10px 0; font-size:11.5px; color:var(--primary); font-weight:600;"></p>
 
-                <!-- 상단 모드 전환 탭 -->
-                <div class="upload-mode-tabs">
-                    <button type="button" class="upload-mode-tab active" id="tabBtnLocalMp3" onclick="switchUploadModalMode('file')">🎵 내 폰 MP3 파일</button>
-                    <button type="button" class="upload-mode-tab" id="tabBtnYoutubeUrl" onclick="switchUploadModalMode('youtube')">📺 유튜브 URL 추출</button>
-                </div>
-
-                <!-- [모드 1] 내 폰 MP3 파일 선택 영역 -->
-                <div id="uploadModeFileArea">
-                    <input type="file" id="uploadAiMp3Input" accept="audio/*,.mp3,.m4a,.wav" style="display:none;" onchange="handleUploadMp3Selected(event)">
-                    <div class="upload-file-drop" onclick="document.getElementById('uploadAiMp3Input').click()">
-                        <div style="font-size:22px; margin-bottom:2px;">🎵</div>
-                        <div id="uploadSelectedFileName" style="font-size:12.5px; font-weight:700; color:var(--primary);">여기를 눌러 공유할 MP3 파일 선택</div>
-                        <div style="font-size:10.5px; color:var(--sub-text); margin-top:2px;">파일 안에 있는 앨범 표지와 가사도 자동으로 함께 등록됩니다</div>
-                    </div>
-                </div>
-
-                <!-- [모드 2] 유튜브 URL 입력 영역 -->
-                <div id="uploadModeYoutubeArea" style="display:none;">
-                    <div class="form-field-group">
-                        <label class="form-field-label" style="color:#ff4757;">📺 유튜브 영상 또는 Shorts / Music URL</label>
-                        <input type="url" id="uploadYoutubeUrlInput" class="form-input-box" placeholder="https://youtu.be/... 또는 유튜브 링크 붙여넣기" oninput="handleYoutubeUrlPreview(this.value)">
-                        <p id="ytPreviewHint" style="margin:4px 0 0 0; font-size:11px; color:var(--sub-text); line-height:1.35;">
-                            링크를 붙여넣으면 제목과 썸네일을 자동으로 불러오며, 백그라운드에서 추출 후 깃허브·재생목록에 자동 등록됩니다.
-                        </p>
-                    </div>
+                <input type="file" id="uploadAiMp3Input" accept="audio/*,.mp3,.m4a,.wav" style="display:none;" onchange="handleUploadMp3Selected(event)">
+                <div class="upload-file-drop" onclick="document.getElementById('uploadAiMp3Input').click()">
+                    <div style="font-size:22px; margin-bottom:2px;">🎵</div>
+                    <div id="uploadSelectedFileName" style="font-size:12.5px; font-weight:700; color:var(--primary);">여기를 눌러 공유할 MP3 파일 선택</div>
+                    <div style="font-size:10.5px; color:var(--sub-text); margin-top:2px;">파일 안에 있는 앨범 표지와 가사도 자동으로 함께 등록됩니다</div>
                 </div>
 
                 <div class="form-field-group">
                     <label class="form-field-label">곡 제목</label>
-                    <input type="text" id="uploadAiTitleInput" class="form-input-box" maxlength="50" placeholder="노래 제목을 입력하세요 (유튜브는 자동 입력됨)">
+                    <input type="text" id="uploadAiTitleInput" class="form-input-box" maxlength="50" placeholder="노래 제목을 입력하세요">
                 </div>
                 <div class="form-field-group">
                     <label class="form-field-label">만든 사람 / 아티스트 표시</label>
@@ -1949,7 +1815,7 @@
 
                 <div style="display:flex; gap:8px; margin-top:12px;">
                     <button class="action-btn" style="flex:1; background:var(--sub-bg); border:none; color:var(--sub-text);" onclick="closeAiUploadModal()">취소</button>
-                    <button class="action-btn" id="uploadAiSubmitBtn" style="flex:1.3; background:var(--primary); border:none; color:white; font-weight:700;" onclick="handleUnifiedUploadSubmit()">🚀 공유 업로드</button>
+                    <button class="action-btn" id="uploadAiSubmitBtn" style="flex:1.3; background:var(--primary); border:none; color:white; font-weight:700;" onclick="submitAiSongToGitHub()">🚀 공유 업로드</button>
                 </div>
             </div>
         </div>
@@ -1986,19 +1852,14 @@
                         </button>
                     </div>
                 </div>
-                <!-- 지인 공유 프로필(자동로그인) & AI곡/유튜브 바로 등록 바 -->
+                <!-- 지인 공유 프로필(자동로그인) & AI곡 바로 등록 바 -->
                 <div class="community-bar">
                     <button class="profile-badge-btn" id="userProfileBadgeBtn" onclick="openCommunityProfileModal()">
-                        👤 내 닉네임
+                        👤 내 닉네임 설정
                     </button>
-                    <div style="display:flex; gap:5px; align-items:center;">
-                        <button class="upload-ai-cta-btn" style="background:linear-gradient(135deg, #ff6b81 0%, #ee5253 100%);" onclick="openAiUploadModal('youtube')">
-                            📺 유튜브 추출
-                        </button>
-                        <button class="upload-ai-cta-btn" onclick="openAiUploadModal('file')">
-                            ➕ AI곡 등록
-                        </button>
-                    </div>
+                    <button class="upload-ai-cta-btn" onclick="openAiUploadModal()">
+                        <span class="material-symbols-outlined" style="font-size:15px;">cloud_upload</span>➕ AI곡 공유 등록
+                    </button>
                 </div>
                 <!-- 무드/장르 필터 칩 -->
                 <div class="ytm-chips-row" id="aiTagChips">
@@ -6619,7 +6480,6 @@
 
             const style = inferSongStyleFromTitle(item.name || item.fileName, AI_SONGS.length + 1);
             const resolvedTag = item.tag || style.tag;
-            const ytCoverUrl = item.ytVideoId ? `https://i.ytimg.com/vi/${item.ytVideoId}/hqdefault.jpg` : (item.coverUrl || null);
 
             if (target) {
                 target.name = item.name || target.name;
@@ -6630,7 +6490,6 @@
                 target.pinHash = item.pinHash || "";
                 target.isCommunity = true;
                 target.fileName = item.fileName;
-                if (ytCoverUrl && !target.cover) target.cover = ytCoverUrl;
                 if (!target.fallbackUrl) target.fallbackUrl = rawGhUrl;
                 changed = true;
             } else {
@@ -6649,7 +6508,7 @@
                     uploader: item.uploader || "",
                     pinHash: item.pinHash || "",
                     isCommunity: true,
-                    cover: ytCoverUrl,
+                    cover: null,
                     emoji: style.emoji,
                     gradient: style.gradient
                 });
@@ -6664,55 +6523,7 @@
         }
     }
 
-    /* =========================================================================
-       [비차단 상단 백그라운드 작업 진행바 배너 제어 & 유튜브 URL 자동 추출/업로드]
-       ========================================================================= */
-    let currentUploadModalMode = 'file'; // 'file' | 'youtube'
-    let activeBgTaskAbort = false;
-    let activeBgTaskHideTimer = null;
-    let nativeYoutubeResolveMap = {};
-
-    function showBgTaskBanner(serverBadge, detailMsg, percent = 10, isError = false) {
-        clearTimeout(activeBgTaskHideTimer);
-        const banner = document.getElementById('ytBgTaskBanner');
-        const badgeEl = document.getElementById('ytBgServerBadge');
-        const detailEl = document.getElementById('ytBgDetailText');
-        const fillEl = document.getElementById('ytBgBarFill');
-        if (!banner) return;
-        banner.classList.add('active');
-        banner.classList.toggle('error-state', !!isError);
-        if (badgeEl) badgeEl.innerText = serverBadge;
-        if (detailEl) detailEl.innerText = detailMsg;
-        if (fillEl) {
-            fillEl.style.width = `${Math.max(5, Math.min(100, percent))}%`;
-            fillEl.style.background = isError
-                ? '#ff4757'
-                : 'linear-gradient(90deg, #ffb6c1 0%, #ff6b81 100%)';
-        }
-    }
-
-    function cancelOrDismissBgTask() {
-        activeBgTaskAbort = true;
-        clearTimeout(activeBgTaskHideTimer);
-        const banner = document.getElementById('ytBgTaskBanner');
-        if (banner) banner.classList.remove('active', 'error-state');
-    }
-
-    function switchUploadModalMode(mode) {
-        currentUploadModalMode = mode === 'youtube' ? 'youtube' : 'file';
-        document.getElementById('tabBtnLocalMp3').classList.toggle('active', currentUploadModalMode === 'file');
-        document.getElementById('tabBtnYoutubeUrl').classList.toggle('active', currentUploadModalMode === 'youtube');
-        document.getElementById('uploadModeFileArea').style.display = currentUploadModalMode === 'file' ? 'block' : 'none';
-        document.getElementById('uploadModeYoutubeArea').style.display = currentUploadModalMode === 'youtube' ? 'block' : 'none';
-        const submitBtn = document.getElementById('uploadAiSubmitBtn');
-        if (submitBtn) {
-            submitBtn.innerText = currentUploadModalMode === 'youtube'
-                ? '🚀 백그라운드 추출·등록'
-                : '🚀 공유 업로드';
-        }
-    }
-
-    function openAiUploadModal(initialMode = 'file') {
+    function openAiUploadModal() {
         if (!communityProfile.nickname) {
             showToast("최초 1회 내 닉네임과 PIN 번호를 먼저 설정해 주세요!");
             openCommunityProfileModal(true);
@@ -6721,10 +6532,6 @@
         pendingUploadMp3File = null;
         document.getElementById('uploadAiMp3Input').value = "";
         document.getElementById('uploadSelectedFileName').innerText = "여기를 눌러 공유할 MP3 파일 선택";
-        const ytInput = document.getElementById('uploadYoutubeUrlInput');
-        if (ytInput) ytInput.value = "";
-        const ytHint = document.getElementById('ytPreviewHint');
-        if (ytHint) ytHint.innerText = "링크를 붙여넣으면 제목과 썸네일을 자동으로 불러오며, 백그라운드에서 추출 후 깃허브·재생목록에 자동 등록됩니다.";
         document.getElementById('uploadAiTitleInput').value = "";
         document.getElementById('uploadAiArtistInput').value = `${communityProfile.nickname} AI Studio`;
         document.getElementById('uploadAiDescInput').value = "";
@@ -6736,7 +6543,6 @@
                 ? `👑 등록자: ${communityProfile.nickname} (마스터 관리자)`
                 : `🍑 등록자: ${communityProfile.nickname} (내가 올린 곡은 내가 직접 삭제 가능)`;
         }
-        switchUploadModalMode(initialMode === 'youtube' ? 'youtube' : 'file');
         ensureHistoryGuard();
         document.getElementById('aiSongUploadModal').style.display = 'flex';
     }
@@ -6744,316 +6550,6 @@
     function closeAiUploadModal() {
         const m = document.getElementById('aiSongUploadModal');
         if (m) m.style.display = 'none';
-    }
-
-    function parseYoutubeVideoId(urlStr) {
-        if (!urlStr) return null;
-        const s = String(urlStr).trim();
-        const m1 = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/);
-        if (m1 && m1[1]) return m1[1];
-        if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
-        return null;
-    }
-
-    async function fetchWithTimeout(url, options = {}, timeoutMs = 9500) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-            return await fetch(url, { ...options, signal: controller.signal });
-        } finally {
-            clearTimeout(timer);
-        }
-    }
-
-    let lastPreviewedYtId = "";
-    async function handleYoutubeUrlPreview(rawUrl) {
-        const vid = parseYoutubeVideoId(rawUrl);
-        const hintEl = document.getElementById('ytPreviewHint');
-        if (!vid) {
-            lastPreviewedYtId = "";
-            return;
-        }
-        if (vid === lastPreviewedYtId) return;
-        lastPreviewedYtId = vid;
-        if (hintEl) hintEl.innerHTML = `<span style="color:var(--primary); font-weight:700;">🔍 유튜브 영상 정보(ID: ${vid}) 조회 중...</span>`;
-        try {
-            const res = await fetchWithTimeout(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${vid}`, {}, 5000);
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.title) {
-                    const titleInput = document.getElementById('uploadAiTitleInput');
-                    const artistInput = document.getElementById('uploadAiArtistInput');
-                    if (titleInput && !titleInput.value.trim()) {
-                        titleInput.value = data.title.replace(/\[.*?\]|\(.*?\)/g, '').trim() || data.title;
-                    }
-                    if (artistInput && data.author_name) {
-                        artistInput.value = `${data.author_name} (${communityProfile.nickname} 추천)`;
-                    }
-                    if (hintEl) {
-                        hintEl.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ 영상 확인 완료: ${escapeHtmlSafe(data.title)}</span>`;
-                    }
-                }
-            }
-        } catch (e) {
-            if (hintEl) hintEl.innerText = `✅ 유튜브 ID(${vid}) 확인됨! 제목을 입력하고 추출을 시작하세요.`;
-        }
-    }
-
-    function handleUnifiedUploadSubmit() {
-        if (currentUploadModalMode === 'youtube') {
-            startYoutubeExtractAndUpload();
-        } else {
-            submitAiSongToGitHub();
-        }
-    }
-
-    // 안드로이드 네이티브(MainActivity.java)에서 호출하는 실시간 진행 상태 & 완료 콜백
-    window.onNativeYoutubeProgress = function(reqId, serverName, detailMsg, pct) {
-        if (activeBgTaskAbort) return;
-        showBgTaskBanner(serverName, detailMsg, pct, false);
-    };
-
-    window.onNativeYoutubeResult = function(reqId, success, base64Audio, mimeOrErr, serverUsed) {
-        const cb = nativeYoutubeResolveMap[reqId];
-        if (cb) {
-            delete nativeYoutubeResolveMap[reqId];
-            cb({ success, base64Audio, mimeOrErr, serverUsed });
-        }
-    };
-
-    async function tryWebFallbackYoutubeExtract(videoId) {
-        const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-        // 1) Piped 공개 클러스터 노드 순회
-        const pipedNodes = [
-            { name: "Piped-Kavin 서버", url: `https://pipedapi.kavin.rocks/streams/${videoId}` },
-            { name: "Piped-Tokhmi 서버", url: `https://pipedapi.tokhmi.xyz/streams/${videoId}` },
-            { name: "Piped-Coffee 서버", url: `https://api.piped.private.coffee/streams/${videoId}` }
-        ];
-        for (const node of pipedNodes) {
-            if (activeBgTaskAbort) throw new Error("사용자에 의해 취소됨");
-            try {
-                showBgTaskBanner(`🌐 [웹 추출 · ${node.name}]`, `${node.name}에서 오디오 스트림 주소 요청 중...`, 32);
-                const res = await fetchWithTimeout(node.url, {}, 8000);
-                if (!res.ok) continue;
-                const data = await res.json();
-                const streams = (data && Array.isArray(data.audioStreams)) ? data.audioStreams : [];
-                streams.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-                if (streams.length > 0 && streams[0].url) {
-                    showBgTaskBanner(`📥 [다운로드 · ${node.name}]`, `${node.name}에서 음원 데이터 다운로드 중...`, 55);
-                    const audioRes = await fetchWithTimeout(streams[0].url, {}, 18000);
-                    if (audioRes.ok) {
-                        const buf = await audioRes.arrayBuffer();
-                        if (buf.byteLength > 30000) {
-                            const b64 = await arrayBufferToBase64Async(buf);
-                            return { base64Audio: b64, ext: ".m4a", serverUsed: node.name };
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-
-        // 2) Invidious 공개 클러스터 노드 순회
-        const invNodes = [
-            { name: "Invidious-Nadeko 서버", host: "https://inv.nadeko.net" },
-            { name: "Invidious-NerdVPN 서버", host: "https://invidious.nerdvpn.de" },
-            { name: "Invidious-Jing 서버", host: "https://invidious.jing.rocks" }
-        ];
-        for (const node of invNodes) {
-            if (activeBgTaskAbort) throw new Error("사용자에 의해 취소됨");
-            try {
-                showBgTaskBanner(`🌐 [웹 추출 · ${node.name}]`, `${node.name}에서 적응형 오디오 트랙 탐색 중...`, 44);
-                const res = await fetchWithTimeout(`${node.host}/api/v1/videos/${videoId}`, {}, 8000);
-                if (!res.ok) continue;
-                const data = await res.json();
-                const formats = (data && Array.isArray(data.adaptiveFormats)) ? data.adaptiveFormats : [];
-                const audioFmt = formats.find(f => f.type && f.type.startsWith('audio/mp4') && f.url) ||
-                                 formats.find(f => f.type && f.type.startsWith('audio/') && f.url);
-                if (audioFmt && audioFmt.url) {
-                    showBgTaskBanner(`📥 [다운로드 · ${node.name}]`, `${node.name} 오디오 데이터 수신 중...`, 60);
-                    const streamUrl = audioFmt.url.startsWith('http') ? audioFmt.url : `${node.host}${audioFmt.url}`;
-                    const audioRes = await fetchWithTimeout(streamUrl, {}, 18000);
-                    if (audioRes.ok) {
-                        const buf = await audioRes.arrayBuffer();
-                        if (buf.byteLength > 30000) {
-                            const b64 = await arrayBufferToBase64Async(buf);
-                            return { base64Audio: b64, ext: ".m4a", serverUsed: node.name };
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-
-        throw new Error("모든 추출 서버(안드로이드 다이렉트 및 우회 노드)에서 해당 유튜브 영상의 접근이 차단되었습니다.");
-    }
-
-    async function startYoutubeExtractAndUpload() {
-        const rawUrl = (document.getElementById('uploadYoutubeUrlInput').value || "").trim();
-        const videoId = parseYoutubeVideoId(rawUrl);
-        if (!videoId) {
-            showToast("올바른 유튜브 URL 주소를 입력해 주세요!");
-            return;
-        }
-        let title = (document.getElementById('uploadAiTitleInput').value || "").trim();
-        const artist = (document.getElementById('uploadAiArtistInput').value || "").trim() || `${communityProfile.nickname} AI Studio`;
-        const tag = document.getElementById('uploadAiTagSelect').value || "카페/일상";
-        const desc = (document.getElementById('uploadAiDescInput').value || "").trim() || `유튜브에서 추출·공유된 트랙 (${communityProfile.nickname})`;
-
-        // 모달을 즉시 닫고 상단 비차단(Non-Blocking) 배너로 진행 상황 표시 (앱 조작·노래 감상 100% 가능!)
-        closeAiUploadModal();
-        activeBgTaskAbort = false;
-        showBgTaskBanner("🔍 [1/4단계 · 메타데이터 서버]", "유튜브 영상 제목 및 썸네일 정보 확인 중...", 10);
-
-        try {
-            if (!title) {
-                try {
-                    const metaRes = await fetchWithTimeout(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`, {}, 4500);
-                    if (metaRes.ok) {
-                        const metaData = await metaRes.json();
-                        if (metaData && metaData.title) title = metaData.title;
-                    }
-                } catch (e) {}
-                if (!title) title = `유튜브 추천곡 (${videoId})`;
-            }
-
-            let extractedResult = null;
-
-            // 1순위: 안드로이드 네이티브 추출 엔진 (CORS 무제한 + 모바일 직접 IP + 멀티 노드)
-            if (window.Android && typeof window.Android.startYoutubeAudioExtract === 'function') {
-                const reqId = `yt_${Date.now()}`;
-                showBgTaskBanner("📱 [2/4단계 · 안드로이드 네이티브 엔진]", "모바일 다이렉트(InnerTube VR/iOS) 스트림 추출 시도 중...", 22);
-                const nativeRes = await new Promise((resolve) => {
-                    const safetyTimer = setTimeout(() => {
-                        delete nativeYoutubeResolveMap[reqId];
-                        resolve({ success: false, mimeOrErr: "네이티브 추출 시간 초과(40초)" });
-                    }, 40000);
-                    nativeYoutubeResolveMap[reqId] = (resObj) => {
-                        clearTimeout(safetyTimer);
-                        resolve(resObj);
-                    };
-                    try {
-                        window.Android.startYoutubeAudioExtract(videoId, reqId);
-                    } catch (err) {
-                        clearTimeout(safetyTimer);
-                        resolve({ success: false, mimeOrErr: String(err) });
-                    }
-                });
-
-                if (nativeRes && nativeRes.success && nativeRes.base64Audio) {
-                    extractedResult = {
-                        base64Audio: nativeRes.base64Audio,
-                        ext: ".m4a",
-                        serverUsed: nativeRes.serverUsed || "안드로이드 네이티브 엔진"
-                    };
-                }
-            }
-
-            // 2순위: 네이티브 실패 또는 웹 브라우저 환경일 때 웹 멀티 서버 우회 시도
-            if (!extractedResult) {
-                if (activeBgTaskAbort) return;
-                extractedResult = await tryWebFallbackYoutubeExtract(videoId);
-            }
-
-            if (activeBgTaskAbort) return;
-
-            // 3단계: 내 현재 재생목록에 즉시 추가 + 깃허브 songs/ 폴더 업로드
-            const ytThumbUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-            const safeTitle = title.replace(/[\\/:*?"<>|]/g, "_").slice(0, 45).trim();
-            const targetFileName = `${safeTitle}${extractedResult.ext || '.m4a'}`;
-            const targetRepoPath = `songs/${targetFileName}`;
-
-            showBgTaskBanner(
-                `☁️ [3/4단계 · 깃허브(GitHub) 서버]`,
-                `[${extractedResult.serverUsed}] 추출 성공! 깃허브 songs/ 폴더에 파일 업로드 중...`,
-                78
-            );
-
-            // 로컬 즉시 재생용 Blob 생성 및 재생목록 추가
-            const binaryStr = window.atob(extractedResult.base64Audio);
-            const u8 = new Uint8Array(binaryStr.length);
-            for (let i = 0; i < binaryStr.length; i++) u8[i] = binaryStr.charCodeAt(i);
-            const audioBlob = new Blob([u8], { type: "audio/mp4" });
-            const localBlobUrl = URL.createObjectURL(audioBlob);
-
-            const token = getActiveGitHubToken();
-            const existingFile = await githubApiGetFile(targetRepoPath, token);
-            await githubApiPutFile(
-                targetRepoPath,
-                extractedResult.base64Audio,
-                `Upload YouTube audio: ${title} (${videoId}) by ${communityProfile.nickname}`,
-                token,
-                existingFile ? existingFile.sha : null
-            );
-
-            showBgTaskBanner(
-                `☁️ [4/4단계 · 깃허브(GitHub) 메타데이터]`,
-                `추천탭 공유 목록(community_songs.json)에 '${title}' 등록 중...`,
-                92
-            );
-
-            let metaObj = { uploadedSongs: [], deletedKeys: [] };
-            let existingMetaSha = null;
-            const metaFile = await githubApiGetFile(GH_META_PATH, token);
-            if (metaFile && metaFile.content) {
-                existingMetaSha = metaFile.sha;
-                try { metaObj = JSON.parse(base64ToUtf8(metaFile.content)); } catch (e) {}
-            }
-            if (!Array.isArray(metaObj.uploadedSongs)) metaObj.uploadedSongs = [];
-            if (!Array.isArray(metaObj.deletedKeys)) metaObj.deletedKeys = [];
-
-            const normKey = normalizeSongFileKey(targetFileName);
-            metaObj.deletedKeys = metaObj.deletedKeys.filter(k => normalizeSongFileKey(k) !== normKey);
-            metaObj.uploadedSongs = metaObj.uploadedSongs.filter(x => normalizeSongFileKey(x.fileName) !== normKey);
-            metaObj.uploadedSongs.push({
-                fileName: targetFileName,
-                name: title,
-                artist: artist,
-                tag: tag,
-                desc: desc,
-                uploader: communityProfile.nickname,
-                pinHash: communityProfile.pinHash,
-                ytVideoId: videoId,
-                coverUrl: ytThumbUrl,
-                createdAt: new Date().toISOString()
-            });
-
-            const metaB64 = utf8ToBase64(JSON.stringify(metaObj, null, 2));
-            await githubApiPutFile(
-                GH_META_PATH,
-                metaB64,
-                `Register YouTube song ${title} (${communityProfile.nickname})`,
-                token,
-                existingMetaSha
-            );
-
-            try { localStorage.setItem(COMMUNITY_META_CACHE_KEY, JSON.stringify(metaObj)); } catch (e) {}
-            applyCommunityMetadataToAiSongs(metaObj);
-
-            const newlyAdded = AI_SONGS.find(s => normalizeSongFileKey(s.fileName || s.name) === normKey);
-            if (newlyAdded) {
-                newlyAdded.url = localBlobUrl;
-                newlyAdded.cover = ytThumbUrl;
-                checkAndAddToQueue({ ...newlyAdded, isAi: true });
-            }
-
-            randomizeCurationState();
-            renderRecommendView();
-            showBgTaskBanner(
-                `✅ [완료 · ${extractedResult.serverUsed} → 깃허브]`,
-                `🎉 '${title}' 추출 및 추천탭/재생목록 자동 등록 완료!`,
-                100,
-                false
-            );
-            activeBgTaskHideTimer = setTimeout(() => cancelOrDismissBgTask(), 4500);
-        } catch (err) {
-            if (activeBgTaskAbort) return;
-            showBgTaskBanner(
-                `❌ [추출 실패 안내]`,
-                `실패 원인: ${err && err.message ? err.message : '유튜브 보안 정책으로 해당 영상 추출이 거부되었습니다.'} (우측 ✕ 닫기를 눌러주세요)`,
-                100,
-                true
-            );
-        }
     }
 
     async function handleUploadMp3Selected(e) {
@@ -7102,23 +6598,29 @@
             return;
         }
 
-        const fileToProcess = pendingUploadMp3File;
-        closeAiUploadModal();
-        activeBgTaskAbort = false;
-        showBgTaskBanner("🎵 [1/3단계 · 로컬 파일 분석]", `'${title}' MP3 내장 앨범표지 및 가사(ID3) 추출 중...`, 18);
+        const btn = document.getElementById('uploadAiSubmitBtn');
+        const statusEl = document.getElementById('uploadAiStatusText');
+        btn.disabled = true;
+        btn.innerText = "업로드 중...";
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.innerText = "⏳ 1/2단계: MP3 음원 및 내장 표지/가사 분석 중...";
+        }
 
         try {
-            const localMeta = await getSongMetadata(fileToProcess);
-            const buffer = await fileToProcess.arrayBuffer();
+            const localMeta = await getSongMetadata(pendingUploadMp3File);
+            const buffer = await pendingUploadMp3File.arrayBuffer();
             const mp3Base64 = await arrayBufferToBase64Async(buffer);
 
-            const extMatch = fileToProcess.name.match(/\.[^/.]+$/);
+            const extMatch = pendingUploadMp3File.name.match(/\.[^/.]+$/);
             const ext = extMatch ? extMatch[0].toLowerCase() : ".mp3";
             const safeTitle = title.replace(/[\\/:*?"<>|]/g, "_").trim();
             const targetFileName = `${safeTitle}${ext}`;
             const targetRepoPath = `songs/${targetFileName}`;
 
-            showBgTaskBanner("☁️ [2/3단계 · 깃허브(GitHub) 서버]", `깃허브 songs/${targetFileName} 업로드 중...`, 58);
+            if (statusEl) {
+                statusEl.innerText = "🚀 2/2단계: 깃허브 서버(songs 폴더)로 공유 업로드 중...";
+            }
 
             const existingMp3 = await githubApiGetFile(targetRepoPath, token);
             await githubApiPutFile(
@@ -7128,8 +6630,6 @@
                 token,
                 existingMp3 ? existingMp3.sha : null
             );
-
-            showBgTaskBanner("☁️ [3/3단계 · 깃허브(GitHub) 메타데이터]", `추천탭 공유 목록에 '${title}' 등록 중...`, 88);
 
             // community_songs.json 메타데이터 업데이트
             let metaObj = { uploadedSongs: [], deletedKeys: [] };
@@ -7171,7 +6671,7 @@
             // 방금 올린 곡의 표지와 가사를 즉시 캐싱 및 반영하여 1초 만에 바로 보이게 처리!
             const newlyAdded = AI_SONGS.find(s => normalizeSongFileKey(s.fileName || s.name) === normKey);
             if (newlyAdded) {
-                newlyAdded.url = URL.createObjectURL(fileToProcess);
+                newlyAdded.url = URL.createObjectURL(pendingUploadMp3File);
                 if (localMeta && localMeta.cover) {
                     newlyAdded.cover = localMeta.cover;
                     await setCachedCover(`ai_song_${newlyAdded.id}`, localMeta.cover);
@@ -7186,15 +6686,16 @@
 
             randomizeCurationState();
             renderRecommendView();
-            showBgTaskBanner("✅ [업로드 완료 · 깃허브 서버]", `🎉 '${title}' 곡이 추천탭에 공유 등록되었습니다!`, 100, false);
-            activeBgTaskHideTimer = setTimeout(() => cancelOrDismissBgTask(), 4000);
+            closeAiUploadModal();
+            showToast(`🎉 '${title}' 곡이 추천탭에 공유 등록되었습니다!`);
         } catch (err) {
-            showBgTaskBanner(
-                "❌ [깃허브 업로드 실패]",
-                `실패 원인: ${err && err.message ? err.message : '네트워크 또는 권한 오류'} (우측 ✕ 닫기를 눌러주세요)`,
-                100,
-                true
-            );
+            if (statusEl) {
+                statusEl.innerText = `❌ 업로드 오류: ${err.message || '토큰 권한을 확인해 주세요'}`;
+            }
+            showToast("업로드 실패: 깃허브 업로드 열쇠(Token)를 확인해 주세요.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "🚀 공유 업로드";
         }
     }
 

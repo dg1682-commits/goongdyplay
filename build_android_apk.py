@@ -107,8 +107,8 @@ android {
         applicationId "com.gungdi.player"
         minSdk 26
         targetSdk 34
-        versionCode 10
-        versionName "9.1-youtube-extractor"
+        versionCode 8
+        versionName "8.0-peach-controls-fullscreen"
     }
 
     signingConfigs {
@@ -1431,7 +1431,6 @@ package com.gungdi.player;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -1449,17 +1448,6 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.util.Base64;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
     public static MainActivity instance;
@@ -1705,281 +1693,6 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {}
     }
 
-    public void postNativeYoutubeProgress(final String reqId, final String serverName, final String detailMsg, final int pct) {
-        runOnUiThread(() -> {
-            if (webView != null) {
-                String safeServer = (serverName != null) ? serverName.replace("'", "").replace("\"", "") : "";
-                String safeDetail = (detailMsg != null) ? detailMsg.replace("'", "").replace("\"", "") : "";
-                webView.evaluateJavascript(
-                    "if (window.onNativeYoutubeProgress) { window.onNativeYoutubeProgress('" + reqId + "', '" + safeServer + "', '" + safeDetail + "', " + pct + "); }",
-                    null
-                );
-            }
-        });
-    }
-
-    public void postNativeYoutubeResult(final String reqId, final boolean success, final String base64Audio, final String mimeOrErr, final String serverUsed) {
-        runOnUiThread(() -> {
-            if (webView != null) {
-                String safeMimeOrErr = (mimeOrErr != null) ? mimeOrErr.replace("'", "").replace("\"", "") : "";
-                String safeServer = (serverUsed != null) ? serverUsed.replace("'", "").replace("\"", "") : "";
-                String js;
-                if (success && base64Audio != null) {
-                    js = "if (window.onNativeYoutubeResult) { window.onNativeYoutubeResult('" + reqId + "', true, '" + base64Audio + "', '" + safeMimeOrErr + "', '" + safeServer + "'); }";
-                } else {
-                    js = "if (window.onNativeYoutubeResult) { window.onNativeYoutubeResult('" + reqId + "', false, null, '" + safeMimeOrErr + "', null); }";
-                }
-                webView.evaluateJavascript(js, null);
-            }
-        });
-    }
-
-    private void performYoutubeExtractInBackground(final String videoId, final String reqId) {
-        postNativeYoutubeProgress(reqId, "📱 [안드로이드 네이티브 엔진]", "네이티브 고속 오디오 추출 준비 중...", 20);
-
-        // 1순위: 유튜브 InnerTube 공식 모바일 API (iOS/Android 클라이언트 다이렉트 스트림)
-        try {
-            postNativeYoutubeProgress(reqId, "📱 [유튜브 모바일 다이렉트]", "유튜브 모바일 InnerTube 스트림 확인 중...", 28);
-            URL ytUrl = new URL("https://www.youtube.com/youtubei/v1/player");
-            HttpURLConnection conn = (HttpURLConnection) ytUrl.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(8000);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("User-Agent", "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)");
-            conn.setDoOutput(true);
-
-            JSONObject body = new JSONObject();
-            JSONObject ctx = new JSONObject();
-            JSONObject client = new JSONObject();
-            client.put("clientName", "IOS");
-            client.put("clientVersion", "19.29.1");
-            client.put("deviceModel", "iPhone16,2");
-            ctx.put("client", client);
-            body.put("context", ctx);
-            body.put("videoId", videoId);
-
-            byte[] postData = body.toString().getBytes(StandardCharsets.UTF_8);
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(postData);
-            }
-
-            if (conn.getResponseCode() == 200) {
-                String resp = readStreamToString(conn.getInputStream());
-                JSONObject json = new JSONObject(resp);
-                if (json.has("streamingData")) {
-                    JSONObject streaming = json.getJSONObject("streamingData");
-                    JSONArray adaptive = streaming.optJSONArray("adaptiveFormats");
-                    if (adaptive != null) {
-                        String bestUrl = null;
-                        int bestBitrate = 0;
-                        for (int i = 0; i < adaptive.length(); i++) {
-                            JSONObject f = adaptive.getJSONObject(i);
-                            String mime = f.optString("mimeType", "");
-                            if (mime.startsWith("audio/mp4") && f.has("url")) {
-                                int br = f.optInt("bitrate", 0);
-                                if (br > bestBitrate) {
-                                    bestBitrate = br;
-                                    bestUrl = f.getString("url");
-                                }
-                            }
-                        }
-                        if (bestUrl != null && !bestUrl.isEmpty()) {
-                            byte[] audioBytes = downloadAudioStream(reqId, bestUrl, "유튜브 모바일 다이렉트");
-                            if (audioBytes != null && audioBytes.length > 30000) {
-                                String b64 = Base64.encodeToString(audioBytes, Base64.NO_WRAP);
-                                postNativeYoutubeResult(reqId, true, b64, "audio/mp4", "유튜브 모바일 다이렉트");
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
-
-        // 2순위: Piped 클러스터 다이렉트 쿼리 (CORS 제한 없이 네이티브 소켓으로 고속 호출)
-        String[][] pipedNodes = new String[][]{
-            {"Piped-Kavin 노드", "https://pipedapi.kavin.rocks/streams/" + videoId},
-            {"Piped-Tokhmi 노드", "https://pipedapi.tokhmi.xyz/streams/" + videoId},
-            {"Piped-Coffee 노드", "https://api.piped.private.coffee/streams/" + videoId}
-        };
-
-        for (String[] node : pipedNodes) {
-            String nodeName = node[0];
-            String nodeUrl = node[1];
-            try {
-                postNativeYoutubeProgress(reqId, "🌐 [네이티브 · " + nodeName + "]", nodeName + "에서 오디오 스트림 요청 중...", 38);
-                HttpURLConnection conn = (HttpURLConnection) new URL(nodeUrl).openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14)");
-
-                if (conn.getResponseCode() == 200) {
-                    String resp = readStreamToString(conn.getInputStream());
-                    JSONObject json = new JSONObject(resp);
-                    JSONArray streams = json.optJSONArray("audioStreams");
-                    if (streams != null && streams.length() > 0) {
-                        String streamUrl = null;
-                        int maxBr = -1;
-                        for (int i = 0; i < streams.length(); i++) {
-                            JSONObject s = streams.getJSONObject(i);
-                            int br = s.optInt("bitrate", 0);
-                            if (br > maxBr && s.has("url")) {
-                                maxBr = br;
-                                streamUrl = s.getString("url");
-                            }
-                        }
-                        if (streamUrl != null) {
-                            byte[] audioBytes = downloadAudioStream(reqId, streamUrl, nodeName);
-                            if (audioBytes != null && audioBytes.length > 30000) {
-                                String b64 = Base64.encodeToString(audioBytes, Base64.NO_WRAP);
-                                postNativeYoutubeResult(reqId, true, b64, "audio/mp4", nodeName);
-                                return;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-
-        // 3순위: Invidious 클러스터 다이렉트 쿼리
-        String[][] invNodes = new String[][]{
-            {"Invidious-Nadeko 노드", "https://inv.nadeko.net/api/v1/videos/" + videoId, "https://inv.nadeko.net"},
-            {"Invidious-NerdVPN 노드", "https://invidious.nerdvpn.de/api/v1/videos/" + videoId, "https://invidious.nerdvpn.de"},
-            {"Invidious-Jing 노드", "https://invidious.jing.rocks/api/v1/videos/" + videoId, "https://invidious.jing.rocks"}
-        };
-
-        for (String[] node : invNodes) {
-            String nodeName = node[0];
-            String apiUrl = node[1];
-            String host = node[2];
-            try {
-                postNativeYoutubeProgress(reqId, "🌐 [네이티브 · " + nodeName + "]", nodeName + "에서 적응형 트랙 조회 중...", 45);
-                HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14)");
-
-                if (conn.getResponseCode() == 200) {
-                    String resp = readStreamToString(conn.getInputStream());
-                    JSONObject json = new JSONObject(resp);
-                    JSONArray formats = json.optJSONArray("adaptiveFormats");
-                    if (formats != null) {
-                        String streamUrl = null;
-                        for (int i = 0; i < formats.length(); i++) {
-                            JSONObject f = formats.getJSONObject(i);
-                            String type = f.optString("type", "");
-                            if (type.startsWith("audio/mp4") && f.has("url")) {
-                                streamUrl = f.getString("url");
-                                break;
-                            }
-                        }
-                        if (streamUrl == null) {
-                            for (int i = 0; i < formats.length(); i++) {
-                                JSONObject f = formats.getJSONObject(i);
-                                String type = f.optString("type", "");
-                                if (type.startsWith("audio/") && f.has("url")) {
-                                    streamUrl = f.getString("url");
-                                    break;
-                                }
-                            }
-                        }
-                        if (streamUrl != null) {
-                            if (!streamUrl.startsWith("http")) {
-                                streamUrl = host + streamUrl;
-                            }
-                            byte[] audioBytes = downloadAudioStream(reqId, streamUrl, nodeName);
-                            if (audioBytes != null && audioBytes.length > 30000) {
-                                String b64 = Base64.encodeToString(audioBytes, Base64.NO_WRAP);
-                                postNativeYoutubeResult(reqId, true, b64, "audio/mp4", nodeName);
-                                return;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-
-        // 네이티브 엔진 실패 -> 즉시 JS에 알려서 웹 브라우저 멀티 서버 우회로 폴백 실행!
-        postNativeYoutubeResult(reqId, false, null, "모든 네이티브 스트림 노드 응답 없음", null);
-    }
-
-    private byte[] downloadAudioStream(final String reqId, final String streamUrl, final String serverName) {
-        try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(streamUrl).openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(20000);
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14)");
-            conn.setInstanceFollowRedirects(true);
-
-            int status = conn.getResponseCode();
-            if (status == 301 || status == 302 || status == 303 || status == 307) {
-                String redirectUrl = conn.getHeaderField("Location");
-                if (redirectUrl != null) {
-                    conn = (HttpURLConnection) new URL(redirectUrl).openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(10000);
-                    conn.setReadTimeout(20000);
-                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14)");
-                }
-            }
-
-            int contentLength = conn.getContentLength();
-            postNativeYoutubeProgress(reqId, "📥 [다운로드 · " + serverName + "]", "오디오 스트림 데이터 수신 시작...", 52);
-
-            try (InputStream is = conn.getInputStream();
-                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[8192];
-                int n;
-                int totalRead = 0;
-                long lastProgressTime = System.currentTimeMillis();
-
-                while ((n = is.read(buffer)) != -1) {
-                    baos.write(buffer, 0, n);
-                    totalRead += n;
-
-                    if (totalRead > 15 * 1024 * 1024) { // 15MB 초과 방지
-                        break;
-                    }
-
-                    long now = System.currentTimeMillis();
-                    if (now - lastProgressTime > 350) {
-                        lastProgressTime = now;
-                        int pct = 52;
-                        if (contentLength > 0) {
-                            pct = 52 + (int) (22f * Math.min(1f, (float) totalRead / contentLength));
-                        } else {
-                            pct = Math.min(74, 52 + (totalRead / (120 * 1024)));
-                        }
-                        postNativeYoutubeProgress(
-                            reqId,
-                            "📥 [다운로드 · " + serverName + "]",
-                            "음원 데이터 수신 중 (" + (totalRead / 1024) + " KB)...",
-                            pct
-                        );
-                    }
-                }
-                return baos.toByteArray();
-            }
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    private String readStreamToString(InputStream is) throws Exception {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append((char) 10);
-            }
-            return sb.toString();
-        }
-    }
-
     public class AndroidBridge {
         @JavascriptInterface
         public void updatePlaybackState(String title, String artist, boolean isPlaying, String base64Art) {
@@ -2009,9 +1722,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setAppTextZoom(final int zoomPercent) {
             final int safeZoom = Math.max(80, Math.min(160, zoomPercent));
-            MainActivity.this.runOnUiThread(() -> {
+            runOnUiThread(() -> {
                 try {
-                    SharedPreferences sp = MainActivity.this.getSharedPreferences("gungdi_app_ui_prefs", Context.MODE_PRIVATE);
+                    SharedPreferences sp = getSharedPreferences("gungdi_app_ui_prefs", MODE_PRIVATE);
                     sp.edit().putInt("app_text_zoom", safeZoom).apply();
                     if (webView != null && webView.getSettings() != null) {
                         webView.getSettings().setTextZoom(safeZoom);
@@ -2033,7 +1746,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void closeApp() {
-            MainActivity.this.runOnUiThread(() -> {
+            runOnUiThread(() -> {
                 try {
                     PlaybackStateStore.save(MainActivity.this, PlaybackStateStore.currentTitle, PlaybackStateStore.currentArtist, false, "");
                     GungdiWidgetProvider.updateAllWidgets(MainActivity.this);
@@ -2053,13 +1766,6 @@ public class MainActivity extends Activity {
                 finishAndRemoveTask();
                 System.exit(0);
             });
-        }
-
-        @JavascriptInterface
-        public void startYoutubeAudioExtract(final String videoId, final String reqId) {
-            new Thread(() -> {
-                MainActivity.this.performYoutubeExtractInBackground(videoId, reqId);
-            }).start();
         }
 
         @JavascriptInterface
