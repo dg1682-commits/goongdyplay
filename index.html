@@ -78,7 +78,26 @@
             position: relative;
             overflow: hidden;
             transition: background 0.3s, color 0.3s;
+            --font-mul: 1.08;
         }
+        /* 어플 전체 글자 크기 스케일링 (웹 브라우저 & 안드로이드 WebView 겸용) */
+        .app-container[data-font-scale="95"] { --font-mul: 0.95; }
+        .app-container[data-font-scale="108"] { --font-mul: 1.08; }
+        .app-container[data-font-scale="120"] { --font-mul: 1.20; }
+        .app-container[data-font-scale="135"] { --font-mul: 1.35; }
+        .app-container .song-info h2 { font-size: calc(20px * var(--font-mul, 1.08)); }
+        .app-container .song-info p { font-size: calc(13.5px * var(--font-mul, 1.08)); }
+        .app-container .track-title { font-size: calc(14px * var(--font-mul, 1.08)); }
+        .app-container .track-artist { font-size: calc(12px * var(--font-mul, 1.08)); }
+        .app-container .ytm-card-title { font-size: calc(13.5px * var(--font-mul, 1.08)); }
+        .app-container .ytm-card-sub { font-size: calc(11.5px * var(--font-mul, 1.08)); }
+        .app-container .ytm-section-title { font-size: calc(16.5px * var(--font-mul, 1.08)); }
+        .app-container .ytm-chip { font-size: calc(12.5px * var(--font-mul, 1.08)); }
+        .app-container .setting-label { font-size: calc(14px * var(--font-mul, 1.08)); }
+        .app-container .settings-group h3 { font-size: calc(13px * var(--font-mul, 1.08)); }
+        .app-container .nav-label { font-size: calc(11.5px * var(--font-mul, 1.08)); }
+        .app-container .pill-btn { font-size: calc(12px * var(--font-mul, 1.08)); }
+        .app-container .profile-badge-btn, .app-container .upload-ai-cta-btn { font-size: calc(12px * var(--font-mul, 1.08)); }
         .view {
             display: none;
             flex-direction: column;
@@ -2082,32 +2101,25 @@
             </div>
 
             <div class="settings-group">
-                <h3>📱 바탕화면 위젯 꾸미기</h3>
+                <h3>🎨 어플 화면 및 글자 크기</h3>
                 <div class="setting-row">
-                    <span class="setting-label">위젯 컬러 테마</span>
-                    <div class="widget-mode-chips">
-                        <button type="button" class="widget-mode-chip active" id="widgetModeWhiteBtn" onclick="setWidgetThemeMode(false)">☀️ 화이트</button>
-                        <button type="button" class="widget-mode-chip" id="widgetModeDarkBtn" onclick="setWidgetThemeMode(true)">🌙 다크</button>
-                    </div>
-                </div>
-                <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:6px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="setting-label">위젯 컨트롤바 불투명도</span>
-                        <span id="widgetOpacityVal" style="font-size:13px; font-weight:700; color:var(--primary);">92%</span>
-                    </div>
-                    <input type="range" id="widgetOpacitySlider" class="widget-opacity-slider" min="15" max="100" value="92" step="1" oninput="updateWidgetOpacity(this.value)">
-                    <span style="font-size:11px; color:var(--sub-text);">낮출수록 앨범 표지(또는 바탕화면)가 더 투명하게 비칩니다.</span>
-                </div>
-            </div>
-
-            <div class="settings-group">
-                <h3>🎨 인터페이스 및 테마</h3>
-                <div class="setting-row">
-                    <span class="setting-label">다크 모드</span>
+                    <span class="setting-label">어플 다크 모드</span>
                     <label class="switch">
                         <input type="checkbox" id="setDarkModeToggle" onchange="toggleDarkMode()">
                         <span class="slider"></span>
                     </label>
+                </div>
+                <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="setting-label">어플 전체 글자 크기</span>
+                        <span id="appFontScaleLabel" style="font-size:12.5px; font-weight:700; color:var(--primary);">보통 (권장)</span>
+                    </div>
+                    <div class="widget-mode-chips" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
+                        <button type="button" class="widget-mode-chip app-font-chip" data-scale="95" onclick="setAppFontScale(95)" style="padding:7px 4px; text-align:center;">작게</button>
+                        <button type="button" class="widget-mode-chip app-font-chip active" data-scale="108" onclick="setAppFontScale(108)" style="padding:7px 4px; text-align:center;">보통</button>
+                        <button type="button" class="widget-mode-chip app-font-chip" data-scale="120" onclick="setAppFontScale(120)" style="padding:7px 4px; text-align:center;">크게</button>
+                        <button type="button" class="widget-mode-chip app-font-chip" data-scale="135" onclick="setAppFontScale(135)" style="padding:7px 4px; text-align:center;">왕크게</button>
+                    </div>
                 </div>
                 <div class="setting-row">
                     <span class="setting-label">RGB 회전 글로우</span>
@@ -2137,6 +2149,25 @@
                 <div class="setting-row" onclick="openEqModal()" style="cursor:pointer;">
                     <span class="setting-label">5밴드 이퀄라이저 (EQ)</span>
                     <span class="material-symbols-outlined" style="color:var(--gray); font-size:20px;">chevron_right</span>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>📱 바탕화면 위젯 꾸미기</h3>
+                <div class="setting-row">
+                    <span class="setting-label">위젯 컬러 테마</span>
+                    <div class="widget-mode-chips">
+                        <button type="button" class="widget-mode-chip active" id="widgetModeWhiteBtn" onclick="setWidgetThemeMode(false)">☀️ 화이트</button>
+                        <button type="button" class="widget-mode-chip" id="widgetModeDarkBtn" onclick="setWidgetThemeMode(true)">🌙 다크</button>
+                    </div>
+                </div>
+                <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="setting-label">위젯 컨트롤바 불투명도</span>
+                        <span id="widgetOpacityVal" style="font-size:13px; font-weight:700; color:var(--primary);">92%</span>
+                    </div>
+                    <input type="range" id="widgetOpacitySlider" class="widget-opacity-slider" min="15" max="100" value="92" step="1" oninput="updateWidgetOpacity(this.value)">
+                    <span style="font-size:11px; color:var(--sub-text);">낮출수록 앨범 표지(또는 바탕화면)가 더 투명하게 비칩니다.</span>
                 </div>
             </div>
 
@@ -2946,7 +2977,10 @@
     function loadAppState() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return;
+            if (!raw) {
+                applyAppFontScaleUI();
+                return;
+            }
             const state = JSON.parse(raw);
             if (state.config) {
                 Object.assign(config, state.config);
@@ -2959,6 +2993,7 @@
                 albumWrapper.classList.toggle('rgb-on', config.showRgb !== false);
                 updateLpSpinState();
                 applyWidgetConfigUI();
+                applyAppFontScaleUI();
                 syncAppSystemBarsToAndroid(!!config.darkMode);
             }
             if (typeof state.isShuffle === 'boolean') {
@@ -3089,7 +3124,36 @@
         document.getElementById('mainApp').classList.toggle('dark-mode', isDark);
         syncAppSystemBarsToAndroid(isDark);
         saveAppState();
-        showToast(isDark ? "다크 모드 적용" : "라이트 모드 적용");
+        showToast(isDark ? "어플 다크 모드 적용" : "어플 라이트 모드 적용");
+    }
+
+    function applyAppFontScaleUI() {
+        const scale = [95, 108, 120, 135].includes(Number(config.appFontScale)) ? Number(config.appFontScale) : 108;
+        config.appFontScale = scale;
+        const appEl = document.getElementById('mainApp');
+        if (appEl) appEl.setAttribute('data-font-scale', String(scale));
+
+        document.querySelectorAll('.app-font-chip').forEach(btn => {
+            btn.classList.toggle('active', Number(btn.getAttribute('data-scale')) === scale);
+        });
+        const label = document.getElementById('appFontScaleLabel');
+        if (label) {
+            const names = { 95: "작게 (95%)", 108: "보통 (권장)", 120: "크게 (120%)", 135: "왕크게 (135%)" };
+            label.innerText = names[scale] || "보통 (권장)";
+        }
+        try {
+            if (window.Android && typeof window.Android.setAppTextZoom === 'function') {
+                window.Android.setAppTextZoom(scale);
+            }
+        } catch (e) {}
+    }
+
+    function setAppFontScale(scale) {
+        config.appFontScale = Number(scale) || 108;
+        applyAppFontScaleUI();
+        saveAppState();
+        const names = { 95: "작게", 108: "보통", 120: "크게", 135: "왕크게" };
+        showToast(`🔤 어플 글자 크기: ${names[config.appFontScale] || '보통'} 적용`);
     }
 
     function applyWidgetConfigUI() {

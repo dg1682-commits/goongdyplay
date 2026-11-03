@@ -1498,6 +1498,8 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        int savedZoom = sp.getInt("app_text_zoom", 108);
+        settings.setTextZoom(savedZoom);
 
         webView.addJavascriptInterface(new AndroidBridge(), "Android");
 
@@ -1715,6 +1717,20 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setAppSystemBars(boolean isDark) {
             applySystemBarTheme(isDark);
+        }
+
+        @JavascriptInterface
+        public void setAppTextZoom(final int zoomPercent) {
+            final int safeZoom = Math.max(80, Math.min(160, zoomPercent));
+            runOnUiThread(() -> {
+                try {
+                    SharedPreferences sp = getSharedPreferences("gungdi_app_ui_prefs", MODE_PRIVATE);
+                    sp.edit().putInt("app_text_zoom", safeZoom).apply();
+                    if (webView != null && webView.getSettings() != null) {
+                        webView.getSettings().setTextZoom(safeZoom);
+                    }
+                } catch (Exception ignored) {}
+            });
         }
 
         @JavascriptInterface
