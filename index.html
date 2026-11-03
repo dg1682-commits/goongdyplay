@@ -609,6 +609,129 @@
             border-color: var(--primary);
         }
 
+        /* =========================================================
+           AI 곡 공유 업로드 & 권한(내 곡 삭제 / 관리자 전체 삭제) UI 스타일
+           ========================================================= */
+        .community-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: var(--sub-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 7px 11px;
+            margin-top: 8px;
+        }
+        .profile-badge-btn {
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .profile-badge-btn.admin-badge {
+            border-color: rgba(255, 107, 129, 0.45);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .upload-ai-cta-btn {
+            border: none;
+            background: linear-gradient(135deg, #ff8fa3 0%, #ff6b81 100%);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 3px 10px rgba(255, 107, 129, 0.28);
+        }
+        .upload-ai-cta-btn:active {
+            transform: scale(0.96);
+        }
+        .form-field-group {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .form-field-label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--sub-text);
+            margin-bottom: 4px;
+        }
+        .form-input-box, .form-select-box {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-sizing: border-box;
+            background: var(--sub-bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+        .form-input-box:focus, .form-select-box:focus {
+            border-color: var(--primary);
+        }
+        .upload-file-drop {
+            border: 1.5px dashed rgba(255, 107, 129, 0.48);
+            background: var(--primary-light);
+            border-radius: 12px;
+            padding: 12px 10px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.15s;
+        }
+        .upload-file-drop:active {
+            transform: scale(0.98);
+        }
+        .card-delete-badge {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(20, 22, 28, 0.72);
+            color: #ff6b81;
+            border: 1px solid rgba(255,255,255,0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            font-size: 14px;
+            padding: 0;
+        }
+        .card-delete-badge:active {
+            transform: scale(0.9);
+            background: #ff4757;
+            color: #fff;
+        }
+        .uploader-chip {
+            font-size: 10px;
+            font-weight: 700;
+            color: #ff6b81;
+            background: rgba(255, 107, 129, 0.12);
+            padding: 1px 6px;
+            border-radius: 6px;
+            margin-right: 4px;
+        }
+
         /* =================================================
            [좌측 탭] 유튜브 뮤직 / 애플 뮤직 스타일 큐레이션 홈
            ================================================= */
@@ -1592,6 +1715,83 @@
             </div>
         </div>
 
+        <!-- 👤 내 프로필 & 권한(자동로그인 / 관리자 마스터 인증) 모달 -->
+        <div id="communityProfileModal" class="modal-overlay" onclick="closeCommunityProfileModal()">
+            <div class="modal-content" style="max-width:340px;" onclick="event.stopPropagation()">
+                <h3 style="margin:0 0 4px 0; font-size:16px;">👤 내 프로필 & 권한 설정</h3>
+                <p style="margin:0 0 12px 0; font-size:11.5px; color:var(--sub-text); line-height:1.45;">
+                    최초 1회만 설정하면 <b>평생 자동 로그인</b>됩니다.<br>내가 등록한 곡은 나만(또는 관리자만) 삭제할 수 있어요!
+                </p>
+                <div class="form-field-group">
+                    <label class="form-field-label">내 닉네임 (곡 등록 시 표시됨)</label>
+                    <input type="text" id="profileNicknameInput" class="form-input-box" maxlength="16" placeholder="예: 궁디, 민수, 지영">
+                </div>
+                <div class="form-field-group">
+                    <label class="form-field-label">내 본인확인 PIN 번호 (숫자 4자리)</label>
+                    <input type="password" id="profilePinInput" class="form-input-box" maxlength="8" inputmode="numeric" placeholder="본인 곡 삭제 확인용 4자리 (예: 1234)">
+                </div>
+                <div class="form-field-group">
+                    <label class="form-field-label">👑 마스터 관리자 코드 (관리자만 입력)</label>
+                    <input type="password" id="profileAdminCodeInput" class="form-input-box" placeholder="일반 지인은 비워두세요 (관리자 전용)">
+                </div>
+                <div class="form-field-group" id="adminGithubTokenBox" style="border-top:1px dashed var(--border); padding-top:10px; margin-top:8px;">
+                    <label class="form-field-label" style="color:var(--primary);">🔑 깃허브 자동 업로드 열쇠 (최초 1회 개통)</label>
+                    <input type="password" id="githubUploadTokenInput" class="form-input-box" placeholder="ghp_... 또는 github_pat_... 붙여넣기">
+                    <p id="githubTokenStatusHint" style="margin:4px 0 0 0; font-size:10.5px; color:var(--gray); line-height:1.35;">
+                        관리자가 한 번만 열쇠를 입력해 저장하면 모든 지인 폰에서도 자동으로 업로드가 개통됩니다.
+                    </p>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:14px;">
+                    <button class="action-btn" style="flex:1; background:var(--sub-bg); border:none; color:var(--sub-text);" onclick="closeCommunityProfileModal()">닫기</button>
+                    <button class="action-btn" style="flex:1; background:var(--primary); border:none; color:white; font-weight:700;" onclick="saveCommunityProfile()">저장 (자동로그인)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ➕ AI 곡 공유 업로드 모달 (폰에서 바로 깃허브 songs/ 및 추천탭 등록) -->
+        <div id="aiSongUploadModal" class="modal-overlay" onclick="closeAiUploadModal()">
+            <div class="modal-content" style="max-width:350px;" onclick="event.stopPropagation()">
+                <h3 style="margin:0 0 4px 0; font-size:16px;">➕ 내 AI곡 추천탭에 공유 등록</h3>
+                <p id="uploadModalUserSub" style="margin:0 0 10px 0; font-size:11.5px; color:var(--primary); font-weight:600;"></p>
+
+                <input type="file" id="uploadAiMp3Input" accept="audio/*,.mp3,.m4a,.wav" style="display:none;" onchange="handleUploadMp3Selected(event)">
+                <div class="upload-file-drop" onclick="document.getElementById('uploadAiMp3Input').click()">
+                    <div style="font-size:22px; margin-bottom:2px;">🎵</div>
+                    <div id="uploadSelectedFileName" style="font-size:12.5px; font-weight:700; color:var(--primary);">여기를 눌러 공유할 MP3 파일 선택</div>
+                    <div style="font-size:10.5px; color:var(--sub-text); margin-top:2px;">파일 안에 있는 앨범 표지와 가사도 자동으로 함께 등록됩니다</div>
+                </div>
+
+                <div class="form-field-group">
+                    <label class="form-field-label">곡 제목</label>
+                    <input type="text" id="uploadAiTitleInput" class="form-input-box" maxlength="50" placeholder="노래 제목을 입력하세요">
+                </div>
+                <div class="form-field-group">
+                    <label class="form-field-label">만든 사람 / 아티스트 표시</label>
+                    <input type="text" id="uploadAiArtistInput" class="form-input-box" maxlength="30" placeholder="예: 민수 AI Studio">
+                </div>
+                <div class="form-field-group">
+                    <label class="form-field-label">추천 테마 카테고리</label>
+                    <select id="uploadAiTagSelect" class="form-select-box">
+                        <option value="카페/일상">☕ 카페 & 일상</option>
+                        <option value="청량/에너지">🌊 청량 & 모험 (신나는 곡)</option>
+                        <option value="감성/힐링">🌙 밤감성 & 위로 (발라드/힐링)</option>
+                        <option value="겨울/시즌">❄️ 겨울 & 크리스마스 / 시즌송</option>
+                    </select>
+                </div>
+                <div class="form-field-group">
+                    <label class="form-field-label">곡 한줄 소개 (선택)</label>
+                    <input type="text" id="uploadAiDescInput" class="form-input-box" maxlength="60" placeholder="비워두면 자동으로 예쁜 소개글이 들어갑니다">
+                </div>
+
+                <p id="uploadAiStatusText" style="display:none; margin:8px 0; font-size:12px; font-weight:700; color:var(--primary); text-align:center;"></p>
+
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button class="action-btn" style="flex:1; background:var(--sub-bg); border:none; color:var(--sub-text);" onclick="closeAiUploadModal()">취소</button>
+                    <button class="action-btn" id="uploadAiSubmitBtn" style="flex:1.3; background:var(--primary); border:none; color:white; font-weight:700;" onclick="submitAiSongToGitHub()">🚀 공유 업로드</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 앱 종료 확인 커스텀 모달 -->
         <div id="exitConfirmModal" class="modal-overlay" onclick="closeExitModal()">
             <div class="exit-modal-card" onclick="event.stopPropagation()">
@@ -1624,9 +1824,19 @@
                         </button>
                     </div>
                 </div>
+                <!-- 지인 공유 프로필(자동로그인) & AI곡 바로 등록 바 -->
+                <div class="community-bar">
+                    <button class="profile-badge-btn" id="userProfileBadgeBtn" onclick="openCommunityProfileModal()">
+                        👤 내 닉네임 설정
+                    </button>
+                    <button class="upload-ai-cta-btn" onclick="openAiUploadModal()">
+                        <span class="material-symbols-outlined" style="font-size:15px;">cloud_upload</span>➕ AI곡 공유 등록
+                    </button>
+                </div>
                 <!-- 무드/장르 필터 칩 -->
                 <div class="ytm-chips-row" id="aiTagChips">
                     <button class="ytm-chip active" onclick="filterAiSongs('전체', this)">✨ 홈 큐레이션</button>
+                    <button class="ytm-chip" onclick="filterAiSongs('지인공유', this)">🆕 공유 등록곡</button>
                     <button class="ytm-chip" onclick="filterAiSongs('카페/일상', this)">☕ 카페 & 일상</button>
                     <button class="ytm-chip" onclick="filterAiSongs('겨울/시즌', this)">❄️ 겨울 & 크리스마스</button>
                     <button class="ytm-chip" onclick="filterAiSongs('청량/에너지', this)">🌊 청량 & 모험</button>
@@ -2925,6 +3135,7 @@
 
     function createAlbumCardElement(song) {
         const playing = isSongCurrentlyPlaying(song);
+        const canDelete = typeof canManageSong === 'function' && canManageSong(song);
         const card = document.createElement('div');
         card.className = `ytm-album-card ${playing ? 'playing-card' : ''}`;
         if (song.id) card.setAttribute('data-song-id', String(song.id));
@@ -2933,7 +3144,8 @@
             : `background: ${song.gradient || 'linear-gradient(135deg, #ff9a9e, #fecfef)'};`;
         card.innerHTML = `
             <div class="ytm-album-thumb" style="${bgStyle}">
-                <span class="thumb-mood-badge">${song.moodLabel || song.tag}</span>
+                <span class="thumb-mood-badge">${song.uploader ? `👤 ${escapeHtmlSafe(song.uploader)}` : (song.moodLabel || song.tag)}</span>
+                ${canDelete ? `<button class="card-delete-badge" title="이 곡 삭제 (권한 보유)">🗑️</button>` : ''}
                 ${song.cover ? '' : `
                     <span class="thumb-emoji">${song.emoji || '🎵'}</span>
                     <span class="thumb-eng">${song.eng || 'AI STUDIO'}</span>
@@ -2942,15 +3154,25 @@
                     <span class="material-symbols-outlined play-state-icon" style="font-size:19px;">${playing && isPlaying ? 'equalizer' : 'play_arrow'}</span>
                 </div>
             </div>
-            <div class="ytm-card-title">${song.name}</div>
-            <div class="ytm-card-sub">${song.desc || song.artist}</div>
+            <div class="ytm-card-title">${escapeHtmlSafe(song.name)}</div>
+            <div class="ytm-card-sub">${escapeHtmlSafe(song.desc || song.artist)}</div>
         `;
         card.onclick = () => playAiSongImmediately(song);
+        if (canDelete) {
+            const delBtn = card.querySelector('.card-delete-badge');
+            if (delBtn) {
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    confirmDeleteSharedAiSong(song);
+                };
+            }
+        }
         return card;
     }
 
     function createTrackListItemElement(song, idx) {
         const playing = isSongCurrentlyPlaying(song);
+        const canDelete = typeof canManageSong === 'function' && canManageSong(song);
         const li = document.createElement('li');
         li.className = `track-item ${playing ? 'playing-now' : ''}`;
         if (song.id) li.setAttribute('data-song-id', String(song.id));
@@ -2967,10 +3189,11 @@
                 </div>
             </div>
             <div class="track-info">
-                <div class="track-title">${song.name}</div>
+                <div class="track-title">${escapeHtmlSafe(song.name)}</div>
                 <div class="track-artist">
-                    <span class="mini-tag">#${song.tag}</span>
-                    <span>${song.desc || song.artist}</span>
+                    ${song.uploader ? `<span class="uploader-chip">👤 ${escapeHtmlSafe(song.uploader)}</span>` : ''}
+                    <span class="mini-tag">#${escapeHtmlSafe(song.tag)}</span>
+                    <span>${escapeHtmlSafe(song.desc || song.artist)}</span>
                 </div>
             </div>
             <div class="track-actions">
@@ -2980,6 +3203,10 @@
                 <button class="icon-btn add-folder-btn" title="내 플레이리스트에 담기">
                     <span class="material-symbols-outlined">create_new_folder</span>
                 </button>
+                ${canDelete ? `
+                <button class="icon-btn delete-shared-btn" title="공유곡 삭제" style="color:#ff4757;">
+                    <span class="material-symbols-outlined" style="font-size:19px;">delete</span>
+                </button>` : ''}
             </div>
         `;
         li.querySelector('.track-thumb').onclick = () => playAiSongImmediately(song);
@@ -2992,6 +3219,15 @@
             e.stopPropagation();
             openAddToFolderModal([{ ...song, isAi: true }]);
         };
+        if (canDelete) {
+            const delBtn = li.querySelector('.delete-shared-btn');
+            if (delBtn) {
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    confirmDeleteSharedAiSong(song);
+                };
+            }
+        }
         return li;
     }
 
@@ -3049,8 +3285,24 @@
 
         // 특정 카테고리 필터가 선택된 경우: 해당 카테고리 맞춤 하이라이트 + 곡 리스트 표시
         if (currentAiFilter !== '전체') {
-            const filtered = AI_SONGS.filter(s => s.tag === currentAiFilter);
-            const themeObj = CURATION_THEMES.find(t => t.tag === currentAiFilter);
+            const filtered = currentAiFilter === '지인공유'
+                ? AI_SONGS.filter(s => s.isCommunity)
+                : AI_SONGS.filter(s => s.tag === currentAiFilter);
+            const themeObj = currentAiFilter === '지인공유'
+                ? { sub: 'COMMUNITY AI TRACKS', title: '🆕 지인들과 함께 공유한 AI 곡' }
+                : CURATION_THEMES.find(t => t.tag === currentAiFilter);
+
+            if (!filtered.length) {
+                container.innerHTML = `
+                    <div class="ytm-section" style="text-align:center; padding:42px 16px;">
+                        <div style="font-size:38px; margin-bottom:10px;">🍑</div>
+                        <h3 style="margin:0 0 6px 0; font-size:15px;">아직 등록된 공유 AI 곡이 없습니다</h3>
+                        <p style="margin:0 0 14px 0; font-size:12px; color:var(--sub-text);">상단의 <b>[➕ AI곡 공유 등록]</b> 버튼을 눌러<br>내가 만든 AI 노래를 가장 먼저 공유해 보세요!</p>
+                        <button class="upload-ai-cta-btn" onclick="openAiUploadModal()">➕ 첫 AI곡 공유 등록하기</button>
+                    </div>
+                `;
+                return;
+            }
 
             // 상단 카테고리 앨범 카드 캐러셀
             const secCarousel = document.createElement('div');
@@ -3123,6 +3375,29 @@
             checkAndAddToQueue({ ...spotlightSong, isAi: true });
         };
         container.appendChild(hero);
+
+        // 1.5) 🆕 지인 공유 등록곡 섹션 (새로 업로드된 곡이 있으면 최상단에 강조 표시!)
+        const communityTracks = AI_SONGS.filter(s => s.isCommunity);
+        if (communityTracks.length > 0) {
+            const commSection = document.createElement('div');
+            commSection.className = 'ytm-section';
+            commSection.innerHTML = `
+                <div class="ytm-section-header">
+                    <div>
+                        <p class="ytm-section-sub">SHARED BY FRIENDS (${communityTracks.length})</p>
+                        <h3 class="ytm-section-title">🆕 우리가 직접 올린 AI 공유곡</h3>
+                    </div>
+                    <button class="section-play-all" id="commPlayAllBtn">
+                        <span class="material-symbols-outlined" style="font-size:15px;">play_arrow</span>전체듣기
+                    </button>
+                </div>
+                <div class="ytm-carousel" id="commCarousel"></div>
+            `;
+            container.appendChild(commSection);
+            commSection.querySelector('#commPlayAllBtn').onclick = () => playSongGroup(communityTracks, "지인 공유 AI곡 전체 재생");
+            const commCarouselEl = commSection.querySelector('#commCarousel');
+            communityTracks.slice().reverse().forEach(s => commCarouselEl.appendChild(createAlbumCardElement(s)));
+        }
 
         // 2) 🔥 오늘의 랜덤 추천 픽 (Hot Picks 가로 캐러셀)
         const hotSection = document.createElement('div');
@@ -4708,6 +4983,14 @@
             closeLyricsEditModal();
             return;
         }
+        if (document.getElementById('communityProfileModal') && document.getElementById('communityProfileModal').style.display === 'flex') {
+            closeCommunityProfileModal();
+            return;
+        }
+        if (document.getElementById('aiSongUploadModal') && document.getElementById('aiSongUploadModal').style.display === 'flex') {
+            closeAiUploadModal();
+            return;
+        }
 
         // 가사 카드가 열려 있는 상태에서 메인 화면 뒤로가기 시 LP판으로 복귀
         if (currentViewId === 'playerView' && isLyricsModeActive) {
@@ -5803,6 +6086,607 @@
         }
     }
 
+    /* =========================================================================
+       [지인 공유 AI곡 업로드 & 권한별 삭제(내 곡만 삭제 / 관리자 전체 삭제) 시스템]
+       ========================================================================= */
+    const COMMUNITY_PROFILE_KEY = "gungdi_community_profile_v1";
+    const COMMUNITY_TOKEN_LOCAL_KEY = "gungdi_gh_upload_token_v1";
+    const COMMUNITY_META_CACHE_KEY = "gungdi_community_meta_cache_v1";
+    const GH_REPO_OWNER = "dg1682-commits";
+    const GH_REPO_NAME = "goongdyplay";
+    const GH_CONFIG_PATH = "songs/community_config.json";
+    const GH_META_PATH = "songs/community_songs.json";
+    const TOKEN_XOR_SALT = [71, 85, 78, 71, 68, 73, 95, 80, 69, 65, 67, 72, 95, 50, 48, 50, 54];
+
+    let communityProfile = { nickname: "", pin: "", pinHash: "", isAdmin: false };
+    let pendingUploadMp3File = null;
+    let pendingOpenUploadAfterProfile = false;
+
+    function hashSimplePin(nickname, pin) {
+        const str = `${(nickname || '').trim().toLowerCase()}:${(pin || '').trim()}:gungdi_salt`;
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0).toString(16);
+    }
+
+    function scrambleTokenToBytes(tokenStr) {
+        const clean = (tokenStr || "").trim();
+        const out = [];
+        for (let i = 0; i < clean.length; i++) {
+            out.push(clean.charCodeAt(i) ^ TOKEN_XOR_SALT[i % TOKEN_XOR_SALT.length] ^ ((i * 13) & 0xFF));
+        }
+        return out;
+    }
+
+    function unscrambleBytesToToken(byteArr) {
+        if (!Array.isArray(byteArr) || !byteArr.length) return "";
+        let s = "";
+        for (let i = 0; i < byteArr.length; i++) {
+            const c = byteArr[i] ^ TOKEN_XOR_SALT[i % TOKEN_XOR_SALT.length] ^ ((i * 13) & 0xFF);
+            s += String.fromCharCode(c);
+        }
+        return s.trim();
+    }
+
+    function getActiveGitHubToken() {
+        try {
+            return (localStorage.getItem(COMMUNITY_TOKEN_LOCAL_KEY) || "").trim();
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function setActiveGitHubToken(token) {
+        try {
+            if (token && token.trim()) {
+                localStorage.setItem(COMMUNITY_TOKEN_LOCAL_KEY, token.trim());
+            }
+        } catch (e) {}
+    }
+
+    function loadCommunityProfile() {
+        try {
+            const raw = localStorage.getItem(COMMUNITY_PROFILE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.nickname) {
+                    communityProfile = {
+                        nickname: String(parsed.nickname).trim(),
+                        pin: String(parsed.pin || ""),
+                        pinHash: String(parsed.pinHash || hashSimplePin(parsed.nickname, parsed.pin || "")),
+                        isAdmin: !!parsed.isAdmin
+                    };
+                }
+            }
+        } catch (e) {}
+        updateCommunityProfileBadgeUI();
+    }
+
+    function updateCommunityProfileBadgeUI() {
+        const btn = document.getElementById('userProfileBadgeBtn');
+        if (!btn) return;
+        if (!communityProfile.nickname) {
+            btn.classList.remove('admin-badge');
+            btn.innerHTML = `👤 내 닉네임 설정 (자동로그인)`;
+        } else if (communityProfile.isAdmin) {
+            btn.classList.add('admin-badge');
+            btn.innerHTML = `👑 ${escapeHtmlSafe(communityProfile.nickname)} (관리자)`;
+        } else {
+            btn.classList.remove('admin-badge');
+            btn.innerHTML = `🍑 ${escapeHtmlSafe(communityProfile.nickname)}님`;
+        }
+    }
+
+    function canManageSong(song) {
+        if (!song || !communityProfile.nickname) return false;
+        // 1) 마스터 관리자는 기존 곡을 포함한 모든 곡 삭제 가능!
+        if (communityProfile.isAdmin) return true;
+        // 2) 일반 지인은 본인이 직접 업로드한 곡(닉네임 + PIN 일치)만 삭제 가능!
+        if (song.isCommunity && song.uploader && song.uploader === communityProfile.nickname) {
+            if (!song.pinHash || song.pinHash === communityProfile.pinHash) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function openCommunityProfileModal(openUploadAfter = false) {
+        pendingOpenUploadAfterProfile = !!openUploadAfter;
+        document.getElementById('profileNicknameInput').value = communityProfile.nickname || "";
+        document.getElementById('profilePinInput').value = communityProfile.pin || "";
+        document.getElementById('profileAdminCodeInput').value = communityProfile.isAdmin ? "1682" : "";
+        const tokInput = document.getElementById('githubUploadTokenInput');
+        const tokHint = document.getElementById('githubTokenStatusHint');
+        const activeTok = getActiveGitHubToken();
+        if (tokInput) tokInput.value = activeTok;
+        if (tokHint) {
+            tokHint.innerHTML = activeTok
+                ? `<span style="color:#10b981; font-weight:700;">✅ 현재 자동 업로드 열쇠가 정상 개통되어 있습니다!</span>`
+                : `관리자가 최초 1회 열쇠(ghp_... 또는 github_pat_...)를 입력해 저장하면 모든 지인 폰에서도 자동으로 개통됩니다.`;
+        }
+        ensureHistoryGuard();
+        document.getElementById('communityProfileModal').style.display = 'flex';
+    }
+
+    function closeCommunityProfileModal() {
+        const m = document.getElementById('communityProfileModal');
+        if (m) m.style.display = 'none';
+    }
+
+    async function saveCommunityProfile() {
+        const nick = (document.getElementById('profileNicknameInput').value || "").trim();
+        const pin = (document.getElementById('profilePinInput').value || "").trim();
+        const adminCode = (document.getElementById('profileAdminCodeInput').value || "").trim();
+        const rawToken = (document.getElementById('githubUploadTokenInput').value || "").trim();
+
+        if (!nick) {
+            showToast("닉네임을 입력해 주세요! (예: 궁디, 민수)");
+            return;
+        }
+        if (pin.length < 4) {
+            showToast("본인 확인용 PIN 번호 4자리를 입력해 주세요!");
+            return;
+        }
+
+        const isAdmin = (adminCode === "1682" || adminCode.toLowerCase() === "gungdi" || adminCode === "gungdi1234");
+        if (adminCode && !isAdmin) {
+            showToast("마스터 관리자 코드가 일치하지 않습니다. (일반 사용자는 비워두세요)");
+            return;
+        }
+
+        communityProfile = {
+            nickname: nick,
+            pin: pin,
+            pinHash: hashSimplePin(nick, pin),
+            isAdmin: isAdmin
+        };
+
+        try {
+            localStorage.setItem(COMMUNITY_PROFILE_KEY, JSON.stringify(communityProfile));
+        } catch (e) {}
+
+        if (rawToken) {
+            setActiveGitHubToken(rawToken);
+            // 관리자가 토큰을 입력한 경우, 깃허브 songs/community_config.json에 암호화 배열로 자동 동기화하여 모든 지인 폰도 즉시 개통!
+            syncEncryptedTokenToGitHub(rawToken).catch(() => {});
+        }
+
+        updateCommunityProfileBadgeUI();
+        closeCommunityProfileModal();
+        renderRecommendView();
+        showToast(isAdmin ? `👑 '${nick}' 마스터 관리자 모드로 자동로그인 설정 완료!` : `🍑 '${nick}'님 자동로그인 설정 완료!`);
+
+        if (pendingOpenUploadAfterProfile) {
+            pendingOpenUploadAfterProfile = false;
+            setTimeout(() => openAiUploadModal(), 180);
+        }
+    }
+
+    async function githubApiGetFile(path, token) {
+        const headers = { "Accept": "application/vnd.github.v3+json" };
+        if (token) headers["Authorization"] = `token ${token}`;
+        const res = await fetch(`https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents/${encodeURI(path)}?t=${Date.now()}`, {
+            headers,
+            cache: "no-store"
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    }
+
+    async function githubApiPutFile(path, base64Content, message, token, existingSha = null) {
+        const body = { message, content: base64Content };
+        if (existingSha) body.sha = existingSha;
+        const res = await fetch(`https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents/${encodeURI(path)}`, {
+            method: "PUT",
+            headers: {
+                "Accept": "application/vnd.github.v3+json",
+                "Authorization": `token ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            const errText = await res.text().catch(() => "");
+            throw new Error(`GitHub 업로드 실패 (${res.status}): ${errText}`);
+        }
+        return await res.json();
+    }
+
+    async function githubApiDeleteFile(path, sha, message, token) {
+        const res = await fetch(`https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents/${encodeURI(path)}`, {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/vnd.github.v3+json",
+                "Authorization": `token ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message, sha })
+        });
+        return res.ok;
+    }
+
+    function utf8ToBase64(str) {
+        const bytes = new TextEncoder().encode(str);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return window.btoa(binary);
+    }
+
+    function base64ToUtf8(b64) {
+        const clean = (b64 || "").replace(/\s/g, "");
+        const binary = window.atob(clean);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return new TextDecoder('utf-8').decode(bytes);
+    }
+
+    async function syncEncryptedTokenToGitHub(rawToken) {
+        if (!rawToken) return;
+        const payload = {
+            version: 1,
+            updatedAt: new Date().toISOString(),
+            cipherBytes: scrambleTokenToBytes(rawToken)
+        };
+        const existing = await githubApiGetFile(GH_CONFIG_PATH, rawToken);
+        const b64 = utf8ToBase64(JSON.stringify(payload, null, 2));
+        await githubApiPutFile(GH_CONFIG_PATH, b64, "Update community upload config", rawToken, existing ? existing.sha : null);
+    }
+
+    async function loadCommunityConfigAndMetaFromGitHub() {
+        try {
+            // 1) 암호화된 공용 업로드 키 자동 로드 (지인 폰에서 토큰 입력 없이 바로 업로드 가능하도록!)
+            const cfgFile = await githubApiGetFile(GH_CONFIG_PATH, getActiveGitHubToken());
+            if (cfgFile && cfgFile.content) {
+                const cfgJson = JSON.parse(base64ToUtf8(cfgFile.content));
+                if (cfgJson && Array.isArray(cfgJson.cipherBytes)) {
+                    const decodedToken = unscrambleBytesToToken(cfgJson.cipherBytes);
+                    if (decodedToken && !getActiveGitHubToken()) {
+                        setActiveGitHubToken(decodedToken);
+                    }
+                }
+            }
+        } catch (e) {}
+
+        try {
+            // 2) 공유 등록곡 메타데이터 및 삭제 목록 동기화
+            const metaFile = await githubApiGetFile(GH_META_PATH, getActiveGitHubToken());
+            if (metaFile && metaFile.content) {
+                const metaJson = JSON.parse(base64ToUtf8(metaFile.content));
+                if (metaJson) {
+                    try { localStorage.setItem(COMMUNITY_META_CACHE_KEY, JSON.stringify(metaJson)); } catch (e) {}
+                    applyCommunityMetadataToAiSongs(metaJson);
+                }
+            } else {
+                const cachedRaw = localStorage.getItem(COMMUNITY_META_CACHE_KEY);
+                if (cachedRaw) applyCommunityMetadataToAiSongs(JSON.parse(cachedRaw));
+            }
+        } catch (e) {
+            try {
+                const cachedRaw = localStorage.getItem(COMMUNITY_META_CACHE_KEY);
+                if (cachedRaw) applyCommunityMetadataToAiSongs(JSON.parse(cachedRaw));
+            } catch (err) {}
+        }
+    }
+
+    function applyCommunityMetadataToAiSongs(metaJson) {
+        if (!metaJson) return;
+        const deletedKeys = new Set((metaJson.deletedKeys || []).map(k => normalizeSongFileKey(k)));
+        const uploadedList = Array.isArray(metaJson.uploadedSongs) ? metaJson.uploadedSongs : [];
+
+        // 1) 삭제된 곡 제거 (관리자 또는 작성자가 삭제한 곡)
+        if (deletedKeys.size > 0) {
+            for (let i = AI_SONGS.length - 1; i >= 0; i--) {
+                const s = AI_SONGS[i];
+                const k1 = normalizeSongFileKey(s.url);
+                const k2 = normalizeSongFileKey(s.name);
+                if (deletedKeys.has(k1) || deletedKeys.has(k2)) {
+                    AI_SONGS.splice(i, 1);
+                }
+            }
+        }
+
+        // 2) 커뮤니티 업로드 곡 메타데이터 반영 또는 신규 추가
+        let changed = false;
+        uploadedList.forEach((item) => {
+            if (!item || !item.fileName) return;
+            const normKey = normalizeSongFileKey(item.fileName);
+            if (deletedKeys.has(normKey)) return;
+
+            const fileUrl = `./songs/${item.fileName}`;
+            const rawGhUrl = `https://raw.githubusercontent.com/${GH_REPO_OWNER}/${GH_REPO_NAME}/main/songs/${encodeURIComponent(item.fileName)}`;
+            let target = AI_SONGS.find(s =>
+                normalizeSongFileKey(s.url) === normKey ||
+                normalizeSongFileKey(s.name) === normalizeSongFileKey(item.name || item.fileName)
+            );
+
+            const style = inferSongStyleFromTitle(item.name || item.fileName, AI_SONGS.length + 1);
+            const resolvedTag = item.tag || style.tag;
+
+            if (target) {
+                target.name = item.name || target.name;
+                target.artist = item.artist || `${item.uploader || '지인'} AI Studio`;
+                target.tag = resolvedTag;
+                target.desc = item.desc || `${item.uploader || '지인'}님이 공유한 AI 트랙`;
+                target.uploader = item.uploader || "";
+                target.pinHash = item.pinHash || "";
+                target.isCommunity = true;
+                target.fileName = item.fileName;
+                if (!target.fallbackUrl) target.fallbackUrl = rawGhUrl;
+                changed = true;
+            } else {
+                const newId = AI_SONGS.reduce((maxId, s) => Math.max(maxId, Number(s.id) || 0), 0) + 1;
+                AI_SONGS.push({
+                    id: newId,
+                    name: item.name || item.fileName.replace(/\.[^/.]+$/, ''),
+                    eng: `SHARED BY ${(item.uploader || 'FRIEND').toUpperCase()}`,
+                    artist: item.artist || `${item.uploader || '지인'} AI Studio`,
+                    tag: resolvedTag,
+                    moodLabel: `SHARED · ${item.uploader || 'AI'}`,
+                    desc: item.desc || `${item.uploader || '지인'}님이 직접 만들어 공유한 AI 곡`,
+                    url: rawGhUrl,
+                    fallbackUrl: fileUrl,
+                    fileName: item.fileName,
+                    uploader: item.uploader || "",
+                    pinHash: item.pinHash || "",
+                    isCommunity: true,
+                    cover: null,
+                    emoji: style.emoji,
+                    gradient: style.gradient
+                });
+                changed = true;
+            }
+        });
+
+        if (changed || deletedKeys.size > 0) {
+            randomizeCurationState();
+            renderRecommendView();
+            loadAllAiSongCovers();
+        }
+    }
+
+    function openAiUploadModal() {
+        if (!communityProfile.nickname) {
+            showToast("최초 1회 내 닉네임과 PIN 번호를 먼저 설정해 주세요!");
+            openCommunityProfileModal(true);
+            return;
+        }
+        pendingUploadMp3File = null;
+        document.getElementById('uploadAiMp3Input').value = "";
+        document.getElementById('uploadSelectedFileName').innerText = "여기를 눌러 공유할 MP3 파일 선택";
+        document.getElementById('uploadAiTitleInput').value = "";
+        document.getElementById('uploadAiArtistInput').value = `${communityProfile.nickname} AI Studio`;
+        document.getElementById('uploadAiDescInput').value = "";
+        const statusEl = document.getElementById('uploadAiStatusText');
+        if (statusEl) statusEl.style.display = 'none';
+        const subEl = document.getElementById('uploadModalUserSub');
+        if (subEl) {
+            subEl.innerText = communityProfile.isAdmin
+                ? `👑 등록자: ${communityProfile.nickname} (마스터 관리자)`
+                : `🍑 등록자: ${communityProfile.nickname} (내가 올린 곡은 내가 직접 삭제 가능)`;
+        }
+        ensureHistoryGuard();
+        document.getElementById('aiSongUploadModal').style.display = 'flex';
+    }
+
+    function closeAiUploadModal() {
+        const m = document.getElementById('aiSongUploadModal');
+        if (m) m.style.display = 'none';
+    }
+
+    async function handleUploadMp3Selected(e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        pendingUploadMp3File = file;
+        document.getElementById('uploadSelectedFileName').innerText = `✅ 선택됨: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`;
+        const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/\s*\(\d+\)\s*$/, '').trim();
+        const titleInput = document.getElementById('uploadAiTitleInput');
+        if (titleInput && !titleInput.value.trim()) {
+            titleInput.value = cleanTitle;
+        }
+    }
+
+    function arrayBufferToBase64Async(buffer) {
+        return new Promise((resolve) => {
+            const bytes = new Uint8Array(buffer);
+            let binary = "";
+            const chunkSize = 8192;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+            }
+            resolve(window.btoa(binary));
+        });
+    }
+
+    async function submitAiSongToGitHub() {
+        if (!pendingUploadMp3File) {
+            showToast("공유할 MP3 음악 파일을 먼저 선택해 주세요!");
+            return;
+        }
+        const title = (document.getElementById('uploadAiTitleInput').value || "").trim();
+        if (!title) {
+            showToast("곡 제목을 입력해 주세요!");
+            return;
+        }
+        const artist = (document.getElementById('uploadAiArtistInput').value || "").trim() || `${communityProfile.nickname} AI Studio`;
+        const tag = document.getElementById('uploadAiTagSelect').value || "카페/일상";
+        const desc = (document.getElementById('uploadAiDescInput').value || "").trim() || `${communityProfile.nickname}님이 공유한 AI 오리지널 트랙`;
+
+        const token = getActiveGitHubToken();
+        if (!token) {
+            showToast("🔑 최초 1회 깃허브 업로드 열쇠(Token) 등록이 필요합니다!");
+            closeAiUploadModal();
+            openCommunityProfileModal(true);
+            return;
+        }
+
+        const btn = document.getElementById('uploadAiSubmitBtn');
+        const statusEl = document.getElementById('uploadAiStatusText');
+        btn.disabled = true;
+        btn.innerText = "업로드 중...";
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.innerText = "⏳ 1/2단계: MP3 음원 및 내장 표지/가사 분석 중...";
+        }
+
+        try {
+            const localMeta = await getSongMetadata(pendingUploadMp3File);
+            const buffer = await pendingUploadMp3File.arrayBuffer();
+            const mp3Base64 = await arrayBufferToBase64Async(buffer);
+
+            const extMatch = pendingUploadMp3File.name.match(/\.[^/.]+$/);
+            const ext = extMatch ? extMatch[0].toLowerCase() : ".mp3";
+            const safeTitle = title.replace(/[\\/:*?"<>|]/g, "_").trim();
+            const targetFileName = `${safeTitle}${ext}`;
+            const targetRepoPath = `songs/${targetFileName}`;
+
+            if (statusEl) {
+                statusEl.innerText = "🚀 2/2단계: 깃허브 서버(songs 폴더)로 공유 업로드 중...";
+            }
+
+            const existingMp3 = await githubApiGetFile(targetRepoPath, token);
+            await githubApiPutFile(
+                targetRepoPath,
+                mp3Base64,
+                `Upload shared AI song: ${title} by ${communityProfile.nickname}`,
+                token,
+                existingMp3 ? existingMp3.sha : null
+            );
+
+            // community_songs.json 메타데이터 업데이트
+            let metaObj = { uploadedSongs: [], deletedKeys: [] };
+            let existingMetaSha = null;
+            const metaFile = await githubApiGetFile(GH_META_PATH, token);
+            if (metaFile && metaFile.content) {
+                existingMetaSha = metaFile.sha;
+                try { metaObj = JSON.parse(base64ToUtf8(metaFile.content)); } catch (e) {}
+            }
+            if (!Array.isArray(metaObj.uploadedSongs)) metaObj.uploadedSongs = [];
+            if (!Array.isArray(metaObj.deletedKeys)) metaObj.deletedKeys = [];
+
+            const normKey = normalizeSongFileKey(targetFileName);
+            metaObj.deletedKeys = metaObj.deletedKeys.filter(k => normalizeSongFileKey(k) !== normKey);
+            metaObj.uploadedSongs = metaObj.uploadedSongs.filter(x => normalizeSongFileKey(x.fileName) !== normKey);
+            metaObj.uploadedSongs.push({
+                fileName: targetFileName,
+                name: title,
+                artist: artist,
+                tag: tag,
+                desc: desc,
+                uploader: communityProfile.nickname,
+                pinHash: communityProfile.pinHash,
+                createdAt: new Date().toISOString()
+            });
+
+            const metaB64 = utf8ToBase64(JSON.stringify(metaObj, null, 2));
+            await githubApiPutFile(
+                GH_META_PATH,
+                metaB64,
+                `Register metadata for ${title} (${communityProfile.nickname})`,
+                token,
+                existingMetaSha
+            );
+
+            try { localStorage.setItem(COMMUNITY_META_CACHE_KEY, JSON.stringify(metaObj)); } catch (e) {}
+            applyCommunityMetadataToAiSongs(metaObj);
+
+            // 방금 올린 곡의 표지와 가사를 즉시 캐싱 및 반영하여 1초 만에 바로 보이게 처리!
+            const newlyAdded = AI_SONGS.find(s => normalizeSongFileKey(s.fileName || s.name) === normKey);
+            if (newlyAdded) {
+                newlyAdded.url = URL.createObjectURL(pendingUploadMp3File);
+                if (localMeta && localMeta.cover) {
+                    newlyAdded.cover = localMeta.cover;
+                    await setCachedCover(`ai_song_${newlyAdded.id}`, localMeta.cover);
+                    applyExtractedCoverToAllLists(newlyAdded.id, localMeta.cover);
+                }
+                if (localMeta && localMeta.lyrics) {
+                    newlyAdded.lyrics = localMeta.lyrics;
+                    await setCachedLyrics(`ai_song_${newlyAdded.id}`, localMeta.lyrics);
+                    applyExtractedLyricsToAllLists(newlyAdded.id, localMeta.lyrics);
+                }
+            }
+
+            randomizeCurationState();
+            renderRecommendView();
+            closeAiUploadModal();
+            showToast(`🎉 '${title}' 곡이 추천탭에 공유 등록되었습니다!`);
+        } catch (err) {
+            if (statusEl) {
+                statusEl.innerText = `❌ 업로드 오류: ${err.message || '토큰 권한을 확인해 주세요'}`;
+            }
+            showToast("업로드 실패: 깃허브 업로드 열쇠(Token)를 확인해 주세요.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "🚀 공유 업로드";
+        }
+    }
+
+    function confirmDeleteSharedAiSong(song) {
+        if (!song || !canManageSong(song)) {
+            showToast("본인이 등록한 곡이거나 관리자만 삭제할 수 있습니다.");
+            return;
+        }
+        const roleLabel = communityProfile.isAdmin ? "👑 관리자 권한" : `🍑 등록자(${communityProfile.nickname}) 권한`;
+        showConfirmModal(
+            `<b>[${escapeHtmlSafe(song.name)}]</b><br><span style="font-size:12px; color:var(--sub-text);">${roleLabel}으로 이 곡을 추천 목록과 깃허브에서 삭제할까요?</span>`,
+            "삭제하기",
+            () => executeDeleteSharedAiSong(song)
+        );
+    }
+
+    async function executeDeleteSharedAiSong(song) {
+        const token = getActiveGitHubToken();
+        if (!token) {
+            showToast("삭제를 위해 최초 1회 깃허브 열쇠(Token) 설정이 필요합니다.");
+            openCommunityProfileModal(false);
+            return;
+        }
+        showToast(`🗑️ '${song.name}' 삭제 처리 중...`);
+        try {
+            const rawFileName = song.fileName || decodeURIComponent(String(song.url || '')).replace(/^.*\/songs\//i, '');
+            if (rawFileName) {
+                const repoPath = `songs/${rawFileName}`;
+                const existingFile = await githubApiGetFile(repoPath, token);
+                if (existingFile && existingFile.sha) {
+                    await githubApiDeleteFile(repoPath, existingFile.sha, `Delete song ${song.name} by ${communityProfile.nickname}`, token);
+                }
+            }
+
+            let metaObj = { uploadedSongs: [], deletedKeys: [] };
+            let existingMetaSha = null;
+            const metaFile = await githubApiGetFile(GH_META_PATH, token);
+            if (metaFile && metaFile.content) {
+                existingMetaSha = metaFile.sha;
+                try { metaObj = JSON.parse(base64ToUtf8(metaFile.content)); } catch (e) {}
+            }
+            if (!Array.isArray(metaObj.uploadedSongs)) metaObj.uploadedSongs = [];
+            if (!Array.isArray(metaObj.deletedKeys)) metaObj.deletedKeys = [];
+
+            const normKey = normalizeSongFileKey(rawFileName || song.name);
+            if (!metaObj.deletedKeys.includes(normKey)) {
+                metaObj.deletedKeys.push(normKey);
+            }
+            metaObj.uploadedSongs = metaObj.uploadedSongs.filter(x => normalizeSongFileKey(x.fileName || x.name) !== normKey);
+
+            const metaB64 = utf8ToBase64(JSON.stringify(metaObj, null, 2));
+            await githubApiPutFile(
+                GH_META_PATH,
+                metaB64,
+                `Remove song ${song.name} (${communityProfile.nickname})`,
+                token,
+                existingMetaSha
+            );
+
+            try { localStorage.setItem(COMMUNITY_META_CACHE_KEY, JSON.stringify(metaObj)); } catch (e) {}
+            applyCommunityMetadataToAiSongs(metaObj);
+            showToast(`✅ '${song.name}' 곡이 삭제되었습니다.`);
+        } catch (e) {
+            showToast("삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        }
+    }
+
     /* PWA 서비스 워커 등록 (PWABuilder APK 생성 및 오프라인/백그라운드 미디어 지원) */
     function registerPwaServiceWorker() {
         if ('serviceWorker' in navigator) {
@@ -5816,6 +6700,7 @@
         initHistoryBackGuard();
         initMediaSessionHandlers();
         initPullToRefreshRecommend();
+        loadCommunityProfile();
         loadCachedAutoDiscoveredSongs();
         loadAppState();
         randomizeCurationState();
@@ -5827,6 +6712,7 @@
         renderQueue();
         renderFolderList();
         initScrollEvents();
+        loadCommunityConfigAndMetaFromGitHub();
         syncNewSongsFromGitHubFolder().then((added) => {
             if (added > 0) {
                 randomizeCurationState();
