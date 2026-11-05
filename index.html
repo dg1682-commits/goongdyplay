@@ -16,6 +16,11 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
+        (function() {
+            var ua = navigator.userAgent || '';
+            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (window.Android !== undefined);
+            document.documentElement.classList.add(isMobile ? 'device-mobile' : 'device-pc');
+        })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
@@ -56,7 +61,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #0d0d0d;
+            background-color: var(--bg);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -72,7 +77,7 @@
             background: var(--bg);
             width: 100%;
             height: 100%;
-            max-width: 450px;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -1855,6 +1860,391 @@
             font-family: inherit;
             box-shadow: 0 4px 12px rgba(255, 107, 129, 0.3);
         }
+
+        /* =========================================================
+           🔊 볼륨 조절 버튼 & 슬라이더 (모바일: 팝오버 / PC: 플레이어 패널 상시 노출)
+           ========================================================= */
+        .desk-only { display: none !important; }
+        .player-top-bar { position: relative; }
+        .vol-top-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.15s, color 0.15s;
+        }
+        .vol-top-btn .material-symbols-outlined { font-size: 24px; }
+        .vol-top-btn.active {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .volume-popover {
+            display: none;
+            position: absolute;
+            top: 48px;
+            left: 0;
+            z-index: 600;
+            width: 250px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 10px 12px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+            align-items: center;
+            gap: 10px;
+        }
+        .volume-popover.open {
+            display: flex;
+            animation: fadeUpIn 0.18s ease-out;
+        }
+        .vol-mute-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .vol-mute-btn .material-symbols-outlined { font-size: 20px; }
+        .vol-slider {
+            flex: 1;
+            min-width: 0;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--vol-pct, 100%), var(--border) var(--vol-pct, 100%), var(--border) 100%);
+            outline: none;
+            cursor: pointer;
+            margin: 0;
+        }
+        .vol-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(255, 107, 129, 0.45);
+            cursor: pointer;
+        }
+        .vol-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(255, 107, 129, 0.45);
+            cursor: pointer;
+        }
+        .vol-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 38px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .desk-volume-row {
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            padding: 0 8px;
+        }
+
+        /* 시간표(LRC)가 없는 일반 가사: 억지 싱크 없이 전체 가사를 편하게 스크롤해서 읽는 모드 */
+        .lyrics-scroll-box.plain-lyrics .lyric-line {
+            color: var(--text);
+            margin: 2px 0;
+            padding: 3px 10px;
+            opacity: 0.92;
+        }
+
+        /* =========================================================
+           🖥️ PC 데스크톱 전용 웹 모드 (기기 자동 인식)
+           - PC 환경에서는 브라우저 창을 아무리 줄여도 450px 어플 모형으로 쪼그라들지 않음!
+           - 항상 브라우저 창 100%를 꽉 채우는 웹 플레이어로 자연스럽게 반응 (유튜브 뮤직 방식)
+           - 스마트폰/안드로이드 앱에서는 100% 모바일 앱 화면으로 고정
+           ========================================================= */
+        html.device-pc body {
+            display: block !important;
+            background-color: var(--bg) !important;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+        }
+        html.device-pc .app-container {
+            max-width: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            box-shadow: none !important;
+        }
+        html.device-pc .desk-only { display: flex !important; }
+        html.device-pc .mobile-only { display: none !important; }
+
+        /* PC 좌측 사이드바 */
+        html.device-pc .bottom-nav {
+            top: 0;
+            bottom: 0;
+            left: 0;
+            height: auto;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 4px;
+            border-top: none;
+            border-right: 1px solid var(--border);
+            background: var(--sub-bg);
+            z-index: 200;
+        }
+        html.device-pc #nav-player { display: none !important; }
+
+        /* PC 중앙 콘텐츠 뷰 */
+        html.device-pc #mainApp .view {
+            display: none;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            height: auto;
+            --scrollbar-color: rgba(153, 153, 153, 0.35);
+        }
+        html.device-pc #mainApp .view.desk-current { display: flex; }
+        html.device-pc .view::-webkit-scrollbar { width: 8px; }
+
+        /* PC 우측 플레이어 패널 (상시 표시) */
+        html.device-pc #mainApp #playerView {
+            display: flex;
+            left: auto;
+            right: 0;
+            border-left: 1px solid var(--border);
+            background: var(--bg);
+            z-index: 150;
+        }
+
+        /* 1) 기본 와이드 PC 화면 (가로 1180px 이상) */
+        @media (min-width: 1180px) {
+            html.device-pc .bottom-nav {
+                width: 240px;
+                padding: 22px 14px;
+            }
+            html.device-pc .desk-brand {
+                align-items: center;
+                gap: 10px;
+                padding: 4px 12px 22px 12px;
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--text);
+                letter-spacing: -0.3px;
+                white-space: nowrap;
+            }
+            html.device-pc .desk-brand .brand-peach { font-size: 28px; line-height: 1; }
+            html.device-pc .desk-brand .brand-sub {
+                display: block;
+                font-size: 10.5px;
+                font-weight: 700;
+                color: var(--primary);
+                letter-spacing: 1.2px;
+            }
+            html.device-pc .desk-nav-divider {
+                height: 1px;
+                background: var(--border);
+                margin: 10px 8px;
+            }
+            html.device-pc .desk-nav-caption {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--gray);
+                letter-spacing: 1px;
+                padding: 4px 14px 2px 14px;
+            }
+            html.device-pc .nav-btn {
+                width: 100%;
+                height: 46px;
+                flex: 0 0 auto;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 12px;
+                padding: 0 14px;
+                border-radius: 12px;
+                color: var(--sub-text);
+                transition: background 0.15s, color 0.15s;
+            }
+            html.device-pc .app-container .nav-btn .nav-label {
+                font-size: 14.5px;
+                font-weight: 600;
+            }
+            html.device-pc .nav-btn:hover { background: var(--card-bg); color: var(--text); }
+            html.device-pc .nav-btn.active,
+            html.device-pc .nav-btn.desk-active {
+                background: var(--primary-light);
+                color: var(--primary);
+            }
+
+            html.device-pc #mainApp .view {
+                left: 240px;
+                right: 400px;
+                padding: 0 40px 48px 40px;
+            }
+            html.device-pc #mainApp #playerView {
+                width: 400px;
+                padding: 0 24px 20px 24px;
+            }
+            html.device-pc .ytm-carousel {
+                flex-wrap: wrap;
+                overflow: visible;
+                gap: 20px 18px;
+                margin: 0;
+                padding: 0 0 4px 0;
+            }
+            html.device-pc .ytm-album-card { width: 168px; }
+            html.device-pc .ytm-album-thumb { width: 168px; height: 168px; }
+            html.device-pc .quick-picks-list {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                column-gap: 28px;
+            }
+            html.device-pc .hero-spotlight {
+                padding: 28px 32px;
+                border-radius: 24px;
+            }
+            html.device-pc .hero-title { font-size: 26px; }
+            html.device-pc .hero-desc { font-size: 14px; }
+            html.device-pc .hero-art-box {
+                width: 132px;
+                height: 132px;
+                border-radius: 20px;
+            }
+            html.device-pc .hero-art-box span { font-size: 54px; }
+            html.device-pc .recommend-quick-bar { max-width: 520px; }
+            html.device-pc .ytm-chips-row { flex-wrap: wrap; }
+            html.device-pc .ytm-section { margin-bottom: 32px; }
+        }
+
+        /* 2) PC 창을 줄였을 때 (창 가로 768px ~ 1179px - 절반 분할 창/노트북) */
+        @media (max-width: 1179px) and (min-width: 768px) {
+            html.device-pc .bottom-nav {
+                width: 76px;
+                padding: 16px 8px;
+                align-items: center;
+            }
+            html.device-pc .desk-brand {
+                padding: 0 0 16px 0;
+                justify-content: center;
+            }
+            html.device-pc .desk-brand div,
+            html.device-pc .desk-nav-caption { display: none !important; }
+            html.device-pc .desk-nav-divider { width: 44px; margin: 8px 0; }
+            html.device-pc .nav-btn {
+                width: 56px;
+                height: 52px;
+                flex-direction: column;
+                justify-content: center;
+                gap: 2px;
+                padding: 4px;
+                border-radius: 12px;
+            }
+            html.device-pc .app-container .nav-btn .nav-label { font-size: 11px; }
+
+            html.device-pc #mainApp .view {
+                left: 76px;
+                right: 340px;
+                padding: 0 24px 36px 24px;
+            }
+            html.device-pc #mainApp #playerView {
+                width: 340px;
+                padding: 0 16px 16px 16px;
+            }
+            html.device-pc .album-wrapper { width: 210px; height: 210px; }
+            html.device-pc .rgb-glow { width: 216px; height: 216px; }
+            html.device-pc .album-art { width: 184px; height: 184px; }
+            html.device-pc .song-info { margin-bottom: 12px; }
+            html.device-pc .progress-section { margin-bottom: 14px; }
+            html.device-pc .ytm-carousel {
+                flex-wrap: wrap;
+                overflow: visible;
+                gap: 14px 12px;
+            }
+            html.device-pc .ytm-album-card { width: 140px; }
+            html.device-pc .ytm-album-thumb { width: 140px; height: 140px; }
+            html.device-pc .quick-picks-list { display: block; }
+        }
+
+        /* 3) PC 창을 아주 좁게 줄였을 때 (창 가로 767px 이하 미니 창) */
+        @media (max-width: 767px) {
+            html.device-pc #nav-player { display: flex !important; }
+            html.device-pc .bottom-nav {
+                width: 64px;
+                padding: 12px 4px;
+                align-items: center;
+            }
+            html.device-pc .desk-brand div,
+            html.device-pc .desk-nav-caption { display: none !important; }
+            html.device-pc .nav-btn {
+                width: 52px;
+                height: 48px;
+                flex-direction: column;
+                justify-content: center;
+                gap: 2px;
+                padding: 2px;
+            }
+            html.device-pc .app-container .nav-btn .nav-label { font-size: 10px; }
+            html.device-pc #mainApp .view {
+                left: 64px;
+                right: 0;
+                padding: 0 16px 24px 16px;
+            }
+            html.device-pc #mainApp #playerView {
+                display: none;
+            }
+            html.device-pc #mainApp #playerView.active {
+                display: flex;
+                left: 64px;
+                right: 0;
+                width: auto;
+            }
+        }
+
+        /* PC 공통 컴포넌트 */
+        html.device-pc .track-item:hover,
+        html.device-pc .folder-card:hover { background: var(--sub-bg); }
+        html.device-pc #settingsView .settings-group,
+        html.device-pc #settingsView .sticky-header { max-width: 760px; }
+
+        html.device-pc .eq-modal-overlay {
+            align-items: center;
+            justify-content: center;
+        }
+        html.device-pc .eq-modal-content {
+            width: 540px;
+            height: auto;
+            min-height: 400px;
+            border-radius: 24px;
+        }
+        html.device-pc .bg-task-floating-banner {
+            left: auto;
+            right: 24px;
+            top: 16px;
+            width: 420px;
+        }
+        @media (min-height: 781px) and (min-width: 1180px) {
+            html.device-pc .album-wrapper { width: 270px; height: 270px; }
+            html.device-pc .rgb-glow { width: 276px; height: 276px; }
+            html.device-pc .album-art { width: 236px; height: 236px; }
+        }
     </style>
 </head>
 <body>
@@ -2054,7 +2444,7 @@
         <!-- =================================================
              1. 좌측 탭: [추천] 유튜브 뮤직 스타일 동적 큐레이션 홈
              ================================================= -->
-        <div id="recommendView" class="view">
+        <div id="recommendView" class="view desk-current">
             <div class="sticky-header">
                 <!-- 1단: 깔끔한 상단 헤더 (타이틀 + 프로필 뱃지 + 새로고침 아이콘) -->
                 <div class="header-row" style="margin-bottom:6px;">
@@ -2108,7 +2498,17 @@
              ================================================= -->
         <div id="playerView" class="view active">
             <div class="player-top-bar">
-                <div style="width:26px;"></div>
+                <button type="button" class="vol-top-btn mobile-only" id="volumeTopBtn" onclick="toggleVolumePopover()" title="볼륨 조절">
+                    <span class="material-symbols-outlined vol-icon">volume_up</span>
+                </button>
+                <div class="volume-popover" id="volumePopover">
+                    <button type="button" class="vol-mute-btn" onclick="toggleVolumeMute()" title="음소거">
+                        <span class="material-symbols-outlined vol-icon">volume_up</span>
+                    </button>
+                    <input type="range" class="vol-slider" min="0" max="100" step="1" value="100" oninput="setAppVolume(this.value, false)" onchange="setAppVolume(this.value, true)">
+                    <span class="vol-label">100%</span>
+                </div>
+                <div class="desk-only" style="width:32px;"></div>
                 <h2 class="app-title">PLAY</h2>
                 <span class="material-symbols-outlined settings-btn" onclick="openSettingsMenu()">settings</span>
             </div>
@@ -2185,6 +2585,14 @@
                             </svg>
                         </button>
                         <button id="repeatBtn" title="반복 재생"><span class="material-symbols-outlined">repeat</span></button>
+                    </div>
+                    <!-- PC 웹 전용: 플레이어 패널 하단 상시 볼륨 바 -->
+                    <div class="desk-volume-row desk-only">
+                        <button type="button" class="vol-mute-btn" onclick="toggleVolumeMute()" title="음소거">
+                            <span class="material-symbols-outlined vol-icon">volume_up</span>
+                        </button>
+                        <input type="range" class="vol-slider" min="0" max="100" step="1" value="100" oninput="setAppVolume(this.value, false)" onchange="setAppVolume(this.value, true)">
+                        <span class="vol-label">100%</span>
                     </div>
                 </div>
             </div>
@@ -2402,7 +2810,15 @@
 
         <!-- 하단 네비게이션 바 -->
         <div class="bottom-nav">
-            <button class="nav-btn" id="nav-recommend" onclick="showView('recommendView', 'nav-recommend')">
+            <!-- PC 웹 전용: 사이드바 로고 -->
+            <div class="desk-brand desk-only">
+                <span class="brand-peach">🍑</span>
+                <div>
+                    궁디 플레이어
+                    <span class="brand-sub">AI MUSIC STUDIO</span>
+                </div>
+            </div>
+            <button class="nav-btn desk-active" id="nav-recommend" onclick="showView('recommendView', 'nav-recommend')">
                 <span class="material-symbols-outlined">auto_awesome</span>
                 <span class="nav-label">추천</span>
             </button>
@@ -2412,6 +2828,17 @@
             <button class="nav-btn" id="nav-library" onclick="showView('libraryView', 'nav-library')">
                 <span class="material-symbols-outlined">queue_music</span>
                 <span class="nav-label">재생목록</span>
+            </button>
+            <!-- PC 웹 전용: 사이드바 추가 메뉴 -->
+            <div class="desk-nav-divider desk-only"></div>
+            <div class="desk-nav-caption desk-only">SETTINGS</div>
+            <button class="nav-btn desk-only" id="nav-settings" onclick="showView('settingsView', 'nav-settings')">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="nav-label">설정 · 위젯</span>
+            </button>
+            <button class="nav-btn desk-only" onclick="openEqModal()">
+                <span class="material-symbols-outlined">equalizer</span>
+                <span class="nav-label">이퀄라이저</span>
             </button>
         </div>
 
@@ -3347,6 +3774,69 @@
         saveAppState();
         showToast(isDark ? "어플 다크 모드 적용" : "어플 라이트 모드 적용");
     }
+
+    /* =========================================================================
+       🔊 볼륨 조절 (모바일 팝오버 + PC 패널 상시 바 동기화, 앱 재실행 시에도 유지)
+       ========================================================================= */
+    function getSavedVolume() {
+        const v = Number(config.volume);
+        return Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : 100;
+    }
+
+    function applyVolumeUI() {
+        const vol = getSavedVolume();
+        const muted = !!config.volumeMuted;
+        try {
+            audio.volume = vol / 100;
+            audio.muted = muted;
+        } catch (e) {}
+        const icon = (muted || vol === 0) ? 'volume_off' : (vol < 45 ? 'volume_down' : 'volume_up');
+        document.querySelectorAll('.vol-icon').forEach(el => { el.innerText = icon; });
+        document.querySelectorAll('.vol-slider').forEach(el => {
+            if (String(el.value) !== String(vol)) el.value = vol;
+            el.style.setProperty('--vol-pct', `${muted ? 0 : vol}%`);
+        });
+        document.querySelectorAll('.vol-label').forEach(el => {
+            el.innerText = muted ? '음소거' : `${vol}%`;
+        });
+    }
+
+    function setAppVolume(val, shouldSave = true) {
+        const num = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+        config.volume = num;
+        if (num > 0 && config.volumeMuted) config.volumeMuted = false;
+        applyVolumeUI();
+        if (shouldSave) saveAppState();
+    }
+
+    function toggleVolumeMute() {
+        if (config.volumeMuted || getSavedVolume() === 0) {
+            config.volumeMuted = false;
+            if (getSavedVolume() === 0) config.volume = 50;
+        } else {
+            config.volumeMuted = true;
+        }
+        applyVolumeUI();
+        saveAppState();
+    }
+
+    function toggleVolumePopover(forceOpen) {
+        const pop = document.getElementById('volumePopover');
+        const btn = document.getElementById('volumeTopBtn');
+        if (!pop) return;
+        const willOpen = typeof forceOpen === 'boolean' ? forceOpen : !pop.classList.contains('open');
+        pop.classList.toggle('open', willOpen);
+        if (btn) btn.classList.toggle('active', willOpen);
+    }
+
+    // 볼륨 팝오버 바깥을 누르면 자동으로 닫기
+    document.addEventListener('click', (e) => {
+        const pop = document.getElementById('volumePopover');
+        const btn = document.getElementById('volumeTopBtn');
+        if (!pop || !pop.classList.contains('open')) return;
+        if (pop.contains(e.target) || (btn && btn.contains(e.target))) return;
+        toggleVolumePopover(false);
+    });
 
     function applyAppFontScaleUI() {
         const scale = [95, 108, 120, 135].includes(Number(config.appFontScale)) ? Number(config.appFontScale) : 108;
@@ -5040,6 +5530,14 @@
        ========================================================================= */
     let currentViewId = 'playerView';
     let currentNavId = 'nav-player';
+    let deskMainViewId = 'recommendView'; // PC 와이드 레이아웃 중앙 영역에 표시 중인 화면
+    function isDesktopLayout() {
+        try {
+            return document.documentElement.classList.contains('device-pc') && window.innerWidth >= 768;
+        } catch (e) {
+            return false;
+        }
+    }
     let viewStack = [{ view: 'playerView', nav: 'nav-player' }];
     let isConfirmingAppExit = false;
     let isExitArmed = false;
@@ -5225,6 +5723,22 @@
 
         currentViewId = v;
         currentNavId = resolvedNav;
+
+        // PC 와이드 레이아웃: 우측 플레이어 패널은 항상 표시되고, 중앙 영역에는 마지막으로 연 화면(추천/재생목록/설정)을 유지
+        if (v !== 'playerView') {
+            deskMainViewId = v;
+        } else if (deskMainViewId === 'settingsView') {
+            deskMainViewId = 'recommendView';
+        }
+        document.querySelectorAll('.view').forEach(x => x.classList.toggle('desk-current', x.id === deskMainViewId));
+        const deskNavMap = { recommendView: 'nav-recommend', libraryView: 'nav-library', settingsView: 'nav-settings' };
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('desk-active', b.id === deskNavMap[deskMainViewId]));
+        if (isDesktopLayout() && v === 'playerView' && deskMainViewId === 'recommendView' && !spotlightSong) {
+            renderRecommendView();
+        }
+        if (isDesktopLayout() && v === 'playerView' && deskMainViewId === 'libraryView') {
+            switchLibraryTab(currentLibraryTab);
+        }
 
         document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
         document.getElementById(v).classList.add('active');
@@ -5687,6 +6201,12 @@
 
         currentParsedLyrics = parseLyricsLines(rawLyrics);
         currentActiveLyricIndex = -1;
+        const hasTimedLyrics = currentParsedLyrics.some(l => typeof l.time === 'number');
+        box.classList.toggle('plain-lyrics', !hasTimedLyrics);
+        const sourceBadge = document.getElementById('lyricsSourceBadge');
+        if (sourceBadge) {
+            sourceBadge.innerText = hasTimedLyrics ? '🎵 실시간 싱크 가사' : '📜 전체 가사';
+        }
 
         box.innerHTML = currentParsedLyrics.map((item, idx) => {
             if (item.isSpacer) {
@@ -5701,6 +6221,7 @@
             return `<div class="lyric-line ${timedClass}" id="lyric-line-${idx}" data-lyric-idx="${idx}" ${clickAttr}>${escapeHtmlSafe(item.text)}</div>`;
         }).join('');
 
+        if (!hasTimedLyrics) box.scrollTop = 0;
         syncLyricsPlaybackPosition(audio.currentTime || 0, audio.duration || 0);
     }
 
@@ -5716,25 +6237,14 @@
         if (!box) return;
 
         const hasTimedLines = currentParsedLyrics.some(l => typeof l.time === 'number');
+        // 시간표(LRC)가 없는 일반 가사는 억지로 줄을 넘기지 않고, 사용자가 직접 스크롤해서 읽도록 그대로 둠
+        if (!hasTimedLines) return;
         let targetIdx = -1;
 
-        if (hasTimedLines) {
-            for (let i = 0; i < currentParsedLyrics.length; i++) {
-                const t = currentParsedLyrics[i].time;
-                if (typeof t === 'number' && currentTime + 0.25 >= t) {
-                    targetIdx = i;
-                }
-            }
-        } else if (duration > 5 && currentTime > 0) {
-            // 일반 줄글 가사인 경우 재생 진행률(10% ~ 92% 구간)에 맞춰 하이라이트 줄을 자연스럽게 이동
-            const playableIndices = [];
-            currentParsedLyrics.forEach((item, idx) => {
-                if (!item.isSpacer && !item.isSection) playableIndices.push(idx);
-            });
-            if (playableIndices.length > 0) {
-                const effectiveRatio = Math.min(1, Math.max(0, (currentTime - duration * 0.05) / (duration * 0.86)));
-                const pickOrder = Math.min(playableIndices.length - 1, Math.floor(effectiveRatio * playableIndices.length));
-                targetIdx = playableIndices[pickOrder];
+        for (let i = 0; i < currentParsedLyrics.length; i++) {
+            const t = currentParsedLyrics[i].time;
+            if (typeof t === 'number' && currentTime + 0.25 >= t) {
+                targetIdx = i;
             }
         }
 
@@ -7054,6 +7564,7 @@
         loadCommunityProfile();
         loadCachedAutoDiscoveredSongs();
         loadAppState();
+        applyVolumeUI();
         randomizeCurationState();
         await restoreLocalAudioBlobs();
         if (playQueue.length > 0 && currentSongIndex >= 0 && currentSongIndex < playQueue.length) {
