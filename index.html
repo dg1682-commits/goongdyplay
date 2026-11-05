@@ -2013,26 +2013,21 @@
         }
         html.device-pc #nav-player { display: none !important; }
 
-        /* PC 중앙 콘텐츠 뷰 */
+        /* PC 중앙 콘텐츠 뷰 (전체 너비 100% 활용) */
         html.device-pc #mainApp .view {
             display: none;
             position: absolute;
             top: 0;
-            bottom: 0;
+            bottom: 88px;
             height: auto;
             --scrollbar-color: rgba(153, 153, 153, 0.35);
         }
         html.device-pc #mainApp .view.desk-current { display: flex; }
         html.device-pc .view::-webkit-scrollbar { width: 8px; }
 
-        /* PC 우측 플레이어 패널 (상시 표시) */
+        /* PC에서는 오른쪽 고정 어플 모형(#playerView)을 제거하고, 100% 하단 독 & 우측 슬라이드 가사 서랍(Mockup 1)으로 전환 */
         html.device-pc #mainApp #playerView {
-            display: flex;
-            left: auto;
-            right: 0;
-            border-left: 1px solid var(--border);
-            background: var(--bg);
-            z-index: 150;
+            display: none !important;
         }
 
         /* 1) 기본 와이드 PC 화면 (가로 1180px 이상) */
@@ -2040,6 +2035,7 @@
             html.device-pc .bottom-nav {
                 width: 240px;
                 padding: 22px 14px;
+                bottom: 88px;
             }
             html.device-pc .desk-brand {
                 align-items: center;
@@ -2096,42 +2092,43 @@
 
             html.device-pc #mainApp .view {
                 left: 240px;
-                right: 400px;
-                padding: 0 40px 48px 40px;
+                right: 0;
+                padding: 0 44px 44px 44px;
+                transition: right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
             }
-            html.device-pc #mainApp #playerView {
-                width: 400px;
-                padding: 0 24px 20px 24px;
+            html.device-pc.desk-lyrics-open #mainApp .view {
+                right: 440px;
             }
+
             html.device-pc .ytm-carousel {
                 flex-wrap: wrap;
                 overflow: visible;
-                gap: 20px 18px;
+                gap: 22px 20px;
                 margin: 0;
                 padding: 0 0 4px 0;
             }
-            html.device-pc .ytm-album-card { width: 168px; }
-            html.device-pc .ytm-album-thumb { width: 168px; height: 168px; }
+            html.device-pc .ytm-album-card { width: 176px; }
+            html.device-pc .ytm-album-thumb { width: 176px; height: 176px; }
             html.device-pc .quick-picks-list {
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
-                column-gap: 28px;
+                column-gap: 32px;
             }
             html.device-pc .hero-spotlight {
-                padding: 28px 32px;
+                padding: 32px 36px;
                 border-radius: 24px;
             }
-            html.device-pc .hero-title { font-size: 26px; }
-            html.device-pc .hero-desc { font-size: 14px; }
+            html.device-pc .hero-title { font-size: 28px; }
+            html.device-pc .hero-desc { font-size: 14.5px; }
             html.device-pc .hero-art-box {
-                width: 132px;
-                height: 132px;
+                width: 140px;
+                height: 140px;
                 border-radius: 20px;
             }
-            html.device-pc .hero-art-box span { font-size: 54px; }
-            html.device-pc .recommend-quick-bar { max-width: 520px; }
+            html.device-pc .hero-art-box span { font-size: 58px; }
+            html.device-pc .recommend-quick-bar { max-width: 560px; }
             html.device-pc .ytm-chips-row { flex-wrap: wrap; }
-            html.device-pc .ytm-section { margin-bottom: 32px; }
+            html.device-pc .ytm-section { margin-bottom: 34px; }
         }
 
         /* 2) PC 창을 줄였을 때 (창 가로 768px ~ 1179px - 절반 분할 창/노트북) */
@@ -2140,6 +2137,7 @@
                 width: 76px;
                 padding: 16px 8px;
                 align-items: center;
+                bottom: 88px;
             }
             html.device-pc .desk-brand {
                 padding: 0 0 16px 0;
@@ -2161,35 +2159,26 @@
 
             html.device-pc #mainApp .view {
                 left: 76px;
-                right: 340px;
-                padding: 0 24px 36px 24px;
+                right: 0;
+                padding: 0 28px 36px 28px;
             }
-            html.device-pc #mainApp #playerView {
-                width: 340px;
-                padding: 0 16px 16px 16px;
-            }
-            html.device-pc .album-wrapper { width: 210px; height: 210px; }
-            html.device-pc .rgb-glow { width: 216px; height: 216px; }
-            html.device-pc .album-art { width: 184px; height: 184px; }
-            html.device-pc .song-info { margin-bottom: 12px; }
-            html.device-pc .progress-section { margin-bottom: 14px; }
             html.device-pc .ytm-carousel {
                 flex-wrap: wrap;
                 overflow: visible;
-                gap: 14px 12px;
+                gap: 16px 14px;
             }
-            html.device-pc .ytm-album-card { width: 140px; }
-            html.device-pc .ytm-album-thumb { width: 140px; height: 140px; }
+            html.device-pc .ytm-album-card { width: 148px; }
+            html.device-pc .ytm-album-thumb { width: 148px; height: 148px; }
             html.device-pc .quick-picks-list { display: block; }
         }
 
         /* 3) PC 창을 아주 좁게 줄였을 때 (창 가로 767px 이하 미니 창) */
         @media (max-width: 767px) {
-            html.device-pc #nav-player { display: flex !important; }
             html.device-pc .bottom-nav {
                 width: 64px;
                 padding: 12px 4px;
                 align-items: center;
+                bottom: 88px;
             }
             html.device-pc .desk-brand div,
             html.device-pc .desk-nav-caption { display: none !important; }
@@ -2207,13 +2196,12 @@
                 right: 0;
                 padding: 0 16px 24px 16px;
             }
-            html.device-pc #mainApp #playerView {
-                display: none;
-            }
-            html.device-pc #mainApp #playerView.active {
-                display: flex;
+            html.device-pc .desk-dock-right .dock-pill-toggle:nth-child(2),
+            html.device-pc .desk-dock-right .dock-icon-btn { display: none !important; }
+            html.device-pc .desk-dock-art { width: 44px; height: 44px; font-size: 20px; }
+            html.device-pc .desk-volume-box { width: 100px; }
+            html.device-pc .desk-lyrics-drawer {
                 left: 64px;
-                right: 0;
                 width: auto;
             }
         }
@@ -2240,10 +2228,304 @@
             top: 16px;
             width: 420px;
         }
-        @media (min-height: 781px) and (min-width: 1180px) {
-            html.device-pc .album-wrapper { width: 270px; height: 270px; }
-            html.device-pc .rgb-glow { width: 276px; height: 276px; }
-            html.device-pc .album-art { width: 236px; height: 236px; }
+
+        /* =========================================================
+           🖥️ 하단 고정 플레이어 독 (Mockup 1)
+           ========================================================= */
+        html.device-pc .desk-bottom-dock {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 600;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .desk-dock-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 300px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .desk-dock-art {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 14px rgba(255, 107, 129, 0.25);
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .desk-dock-art:hover { transform: scale(1.05); }
+        .desk-dock-meta { min-width: 0; flex: 1; }
+        .desk-dock-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .desk-dock-artist {
+            font-size: 12px;
+            color: var(--sub-text);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .desk-dock-badge {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 2px 7px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        /* 중앙 재생 컨트롤 및 타임라인 */
+        .desk-dock-center {
+            flex: 1;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .desk-dock-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .dock-btn {
+            background: none;
+            border: none;
+            color: var(--sub-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s, transform 0.15s;
+            padding: 4px;
+            border-radius: 50%;
+        }
+        .dock-btn:hover { color: var(--text); transform: scale(1.1); }
+        .dock-btn.active-state { color: var(--primary); }
+        .dock-play-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffb6c1 0%, #ff8fa3 55%, #ff758f 100%);
+            color: white !important;
+            border: none;
+            box-shadow: 0 0 0 6px rgba(255, 143, 163, 0.18), 0 6px 18px rgba(255, 117, 143, 0.35);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+            padding: 0;
+        }
+        .dock-play-circle:hover { transform: scale(1.08); }
+        .dock-play-circle svg { width: 22px; height: 22px; fill: white; }
+
+        .desk-dock-timeline {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dock-time-text {
+            font-size: 11.5px;
+            color: var(--gray);
+            font-weight: 600;
+            min-width: 32px;
+            text-align: center;
+        }
+        .dock-progress-container {
+            flex: 1;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .dock-progress-track {
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            position: relative;
+            overflow: visible;
+        }
+        .dock-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.08s linear;
+        }
+        .dock-progress-thumb {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(-50%, -50%);
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(255, 107, 129, 0.45);
+            display: none;
+        }
+        .dock-progress-container:hover .dock-progress-thumb { display: block; }
+        .dock-progress-container:hover .dock-progress-track { height: 6px; }
+
+        /* 우측 가사/대기열/볼륨 */
+        .desk-dock-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            width: 320px;
+        }
+        .dock-pill-toggle {
+            background: var(--sub-bg);
+            border: 1px solid var(--border);
+            color: var(--sub-text);
+            padding: 6px 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+        .dock-pill-toggle:hover,
+        .dock-pill-toggle.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .dock-icon-btn {
+            background: none;
+            border: none;
+            color: var(--sub-text);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s;
+        }
+        .dock-icon-btn:hover { color: var(--primary); background: var(--sub-bg); }
+        .desk-volume-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 140px;
+        }
+
+        /* =========================================================
+           🖥️ 우측 슬라이드 가사 드로어 (Mockup 1)
+           ========================================================= */
+        html.device-pc .desk-lyrics-drawer {
+            position: fixed;
+            top: 0;
+            bottom: 88px;
+            right: -460px;
+            width: 440px;
+            background: var(--bg);
+            border-left: 1px solid var(--border);
+            box-shadow: -8px 0 28px rgba(0, 0, 0, 0.12);
+            transition: right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 550;
+            display: flex !important;
+            flex-direction: column;
+            padding: 22px 24px;
+        }
+        html.device-pc .desk-lyrics-drawer.open { right: 0; }
+        .desk-drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+        .desk-drawer-close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        .desk-drawer-close-btn:hover { color: var(--text); background: var(--sub-bg); }
+        .desk-drawer-song-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--sub-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 12px;
+        }
+        .desk-drawer-art {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .desk-drawer-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .desk-drawer-artist {
+            font-size: 12px;
+            color: var(--sub-text);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #deskLyricsScrollBox {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -2842,6 +3124,107 @@
             </button>
         </div>
 
+        <!-- =========================================================
+             🖥️ PC 웹 전용: 하단 고정 플레이어 독 (Mockup 1 스타일)
+             ========================================================= -->
+        <div id="deskBottomDock" class="desk-bottom-dock desk-only">
+            <!-- 좌측: 현재 재생 곡 썸네일 & 메타 정보 -->
+            <div class="desk-dock-left" onclick="toggleDeskLyricsDrawer()" title="클릭하여 가사 / 플레이어 열기">
+                <div class="desk-dock-art" id="deskDockArt">
+                    <span id="deskDockEmoji">🍑</span>
+                </div>
+                <div class="desk-dock-meta">
+                    <div class="desk-dock-title" id="deskDockTitle">선택된 곡 없음</div>
+                    <div class="desk-dock-artist" id="deskDockArtist">추천 탭에서 음악을 선택하세요</div>
+                </div>
+                <span class="desk-dock-badge" id="deskDockBadge" style="display:none;">AI</span>
+            </div>
+
+            <!-- 중앙: 재생 컨트롤 & 타임라인 프로그레스 바 -->
+            <div class="desk-dock-center">
+                <div class="desk-dock-controls">
+                    <button type="button" class="dock-btn" id="deskDockShuffleBtn" onclick="toggleShuffleFromDock()" title="랜덤 재생">
+                        <span class="material-symbols-outlined" style="font-size:20px;">shuffle</span>
+                    </button>
+                    <button type="button" class="dock-btn" onclick="prevSong()" title="이전 곡">
+                        <span class="material-symbols-outlined" style="font-size:26px;">skip_previous</span>
+                    </button>
+                    <button type="button" class="dock-play-circle" id="deskDockPlayBtn" onclick="toggleAudioPlaybackFromDock()" title="재생 / 일시정지">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 5.6c0-.85.92-1.38 1.65-.94l9.1 5.4c.7.42.7 1.46 0 1.88l-9.1 5.4c-.73.44-1.65-.09-1.65-.94V5.6z" /></svg>
+                    </button>
+                    <button type="button" class="dock-btn" onclick="nextSong(true)" title="다음 곡">
+                        <span class="material-symbols-outlined" style="font-size:26px;">skip_next</span>
+                    </button>
+                    <button type="button" class="dock-btn" id="deskDockRepeatBtn" onclick="toggleRepeatFromDock()" title="반복 재생">
+                        <span class="material-symbols-outlined" style="font-size:20px;">repeat</span>
+                    </button>
+                </div>
+                <div class="desk-dock-timeline">
+                    <span class="dock-time-text" id="deskDockCurrentTime">0:00</span>
+                    <div class="dock-progress-container" id="deskDockProgressContainer">
+                        <div class="dock-progress-track">
+                            <div class="dock-progress-fill" id="deskDockProgressFill"></div>
+                            <div class="dock-progress-thumb" id="deskDockProgressThumb"></div>
+                        </div>
+                    </div>
+                    <span class="dock-time-text" id="deskDockTotalTime">0:00</span>
+                </div>
+            </div>
+
+            <!-- 우측: 가사 드로어 토글 / 대기열 / EQ / 볼륨 슬라이더 -->
+            <div class="desk-dock-right">
+                <button type="button" class="dock-pill-toggle" id="deskDockLyricsBtn" onclick="toggleDeskLyricsDrawer()" title="가사 보기">
+                    <span class="material-symbols-outlined" style="font-size:16px;">lyrics</span>
+                    <span>가사</span>
+                </button>
+                <button type="button" class="dock-pill-toggle" onclick="showView('libraryView', 'nav-library')" title="재생목록 바로가기">
+                    <span class="material-symbols-outlined" style="font-size:16px;">queue_music</span>
+                    <span>대기열</span>
+                </button>
+                <button type="button" class="dock-icon-btn" onclick="openEqModal()" title="이퀄라이저">
+                    <span class="material-symbols-outlined" style="font-size:20px;">equalizer</span>
+                </button>
+                <div class="desk-volume-box">
+                    <button type="button" class="vol-mute-btn" onclick="toggleVolumeMute()" title="음소거">
+                        <span class="material-symbols-outlined vol-icon">volume_up</span>
+                    </button>
+                    <input type="range" class="vol-slider" min="0" max="100" step="1" value="100" oninput="setAppVolume(this.value, false)" onchange="setAppVolume(this.value, true)">
+                    <span class="vol-label">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             🖥️ PC 웹 전용: 우측 슬라이드 가사 드로어 (Mockup 1 스타일)
+             ========================================================= -->
+        <aside id="deskLyricsDrawer" class="desk-lyrics-drawer desk-only">
+            <div class="desk-drawer-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:16px; font-weight:800; color:var(--text);">📜 실시간 가사</span>
+                    <span class="lyrics-source-badge" id="deskLyricsSourceBadge">가사</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <div class="lyrics-zoom-group">
+                        <button class="lyrics-zoom-btn" onclick="changeLyricsFontSize(-1)">가-</button>
+                        <span class="lyrics-zoom-label" id="deskLyricsZoomLabel">100%</span>
+                        <button class="lyrics-zoom-btn" onclick="changeLyricsFontSize(1)">가+</button>
+                    </div>
+                    <button class="lyrics-mini-btn" onclick="openLyricsEditModal()">✏️ 편집</button>
+                    <button type="button" class="desk-drawer-close-btn" onclick="toggleDeskLyricsDrawer(false)">✕</button>
+                </div>
+            </div>
+            <div class="desk-drawer-song-meta">
+                <div class="desk-drawer-art" id="deskDrawerArt">🍑</div>
+                <div style="min-width:0; flex:1;">
+                    <div class="desk-drawer-title" id="deskDrawerTitle">선택된 곡 없음</div>
+                    <div class="desk-drawer-artist" id="deskDrawerArtist">궁디 AI Studio</div>
+                </div>
+            </div>
+            <div class="lyrics-scroll-box" id="deskLyricsScrollBox">
+                <div class="lyrics-empty-box">노래를 재생하면 가사를 자동으로 불러옵니다.</div>
+            </div>
+        </aside>
+
         <!-- 이퀄라이저 모달 -->
         <div id="eqModal" class="eq-modal-overlay" onclick="closeEqModal()">
             <div class="eq-modal-content" onclick="event.stopPropagation()">
@@ -3386,8 +3769,136 @@
     const PAUSE_SVG_ROUNDED = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5.2" width="4.2" height="13.6" rx="2.1" /><rect x="13.3" y="5.2" width="4.2" height="13.6" rx="2.1" /></svg>`;
 
     function setPlayBtnIcon(playing) {
-        if (!playBtn) return;
-        playBtn.innerHTML = playing ? PAUSE_SVG_ROUNDED : PLAY_SVG_ROUNDED;
+        if (playBtn) playBtn.innerHTML = playing ? PAUSE_SVG_ROUNDED : PLAY_SVG_ROUNDED;
+        const dockPlay = document.getElementById('deskDockPlayBtn');
+        if (dockPlay) dockPlay.innerHTML = playing ? PAUSE_SVG_ROUNDED : PLAY_SVG_ROUNDED;
+    }
+
+    function toggleAudioPlaybackFromDock() {
+        if (isPlaying) {
+            pauseAudio();
+        } else {
+            playAudio();
+        }
+    }
+
+    function toggleShuffleFromDock() {
+        if (shuffleBtn) shuffleBtn.click();
+        const dockShuffle = document.getElementById('deskDockShuffleBtn');
+        if (dockShuffle) dockShuffle.classList.toggle('active-state', isShuffle);
+    }
+
+    function toggleRepeatFromDock() {
+        if (repeatBtn) repeatBtn.click();
+        const dockRepeat = document.getElementById('deskDockRepeatBtn');
+        if (dockRepeat) {
+            const icons = ['repeat', 'repeat', 'repeat_one'];
+            dockRepeat.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">${icons[repeatMode]}</span>`;
+            dockRepeat.classList.toggle('active-state', repeatMode !== 0);
+        }
+    }
+
+    function toggleDeskLyricsDrawer(forceState) {
+        const drawer = document.getElementById('deskLyricsDrawer');
+        const btn = document.getElementById('deskDockLyricsBtn');
+        const root = document.documentElement;
+        if (!drawer) return;
+        const willOpen = typeof forceState === 'boolean' ? forceState : !drawer.classList.contains('open');
+        drawer.classList.toggle('open', willOpen);
+        root.classList.toggle('desk-lyrics-open', willOpen);
+        if (btn) btn.classList.toggle('active', willOpen);
+        if (willOpen) {
+            renderDeskDrawerLyrics();
+            applyLyricsFontScale();
+        }
+    }
+
+    let isDraggingDockBar = false;
+    function initDeskDockEvents() {
+        const dockContainer = document.getElementById('deskDockProgressContainer');
+        const dockFill = document.getElementById('deskDockProgressFill');
+        const dockThumb = document.getElementById('deskDockProgressThumb');
+        const dockCurTime = document.getElementById('deskDockCurrentTime');
+        if (!dockContainer) return;
+
+        const updateDockProgressUI = (e) => {
+            const rect = dockContainer.getBoundingClientRect();
+            let p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * 100;
+            if (dockFill) dockFill.style.width = p + "%";
+            if (dockThumb) dockThumb.style.left = p + "%";
+            if (audio.duration && dockCurTime) {
+                dockCurTime.innerText = formatTime((p / 100) * audio.duration);
+            }
+        };
+
+        const startDockDrag = (e) => {
+            isDraggingDockBar = true;
+            updateDockProgressUI(e.touches ? e.touches[0] : e);
+        };
+        const doDockDrag = (e) => {
+            if (isDraggingDockBar) updateDockProgressUI(e.touches ? e.touches[0] : e);
+        };
+        const endDockDrag = (e) => {
+            if (isDraggingDockBar) {
+                isDraggingDockBar = false;
+                const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                const rect = dockContainer.getBoundingClientRect();
+                let p = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+                if (audio.duration) {
+                    audio.currentTime = p * audio.duration;
+                    updateMediaSessionPosition();
+                    syncAndroidPlaybackProgress();
+                }
+            }
+        };
+
+        dockContainer.addEventListener('mousedown', startDockDrag);
+        window.addEventListener('mousemove', doDockDrag);
+        window.addEventListener('mouseup', endDockDrag);
+        dockContainer.addEventListener('touchstart', startDockDrag, { passive: false });
+        window.addEventListener('touchmove', doDockDrag, { passive: false });
+        window.addEventListener('touchend', endDockDrag);
+    }
+
+    function updateDeskDockSongDisplay(s) {
+        if (!s) return;
+        const dockTitle = document.getElementById('deskDockTitle');
+        const dockArtist = document.getElementById('deskDockArtist');
+        const dockBadge = document.getElementById('deskDockBadge');
+        const dockArt = document.getElementById('deskDockArt');
+        const drawerTitle = document.getElementById('deskDrawerTitle');
+        const drawerArtist = document.getElementById('deskDrawerArtist');
+        const drawerArt = document.getElementById('deskDrawerArt');
+
+        if (dockTitle) dockTitle.innerText = s.name;
+        if (dockArtist) dockArtist.innerText = s.desc ? `${s.artist} · ${s.desc}` : (s.artist || 'Unknown Artist');
+        if (dockBadge) {
+            dockBadge.style.display = s.isAi ? 'inline-block' : 'none';
+            dockBadge.innerText = s.moodLabel ? `#${s.moodLabel}` : 'AI';
+        }
+        if (drawerTitle) drawerTitle.innerText = s.name;
+        if (drawerArtist) drawerArtist.innerText = s.artist || 'Unknown Artist';
+
+        if (dockArt) {
+            if (s.cover) {
+                dockArt.style.backgroundImage = `url('${s.cover}')`;
+                dockArt.innerHTML = '';
+            } else {
+                dockArt.style.backgroundImage = '';
+                dockArt.style.background = s.gradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
+                dockArt.innerHTML = `<span>${s.emoji || '🍑'}</span>`;
+            }
+        }
+        if (drawerArt) {
+            if (s.cover) {
+                drawerArt.style.backgroundImage = `url('${s.cover}')`;
+                drawerArt.innerHTML = '';
+            } else {
+                drawerArt.style.backgroundImage = '';
+                drawerArt.style.background = s.gradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
+                drawerArt.innerHTML = `<span>${s.emoji || '🍑'}</span>`;
+            }
+        }
     }
 
     const audio = document.getElementById('audio');
@@ -5102,6 +5613,7 @@
             albumArtSub.innerText = s.eng || 'GUNGDI STUDIO';
             albumArtSub.style.display = 'block';
         }
+        updateDeskDockSongDisplay(s);
         updateMediaSessionMetadata();
     }
 
@@ -5121,6 +5633,7 @@
         }
 
         setMainPlayerCoverDisplay(s);
+        updateDeskDockSongDisplay(s);
         renderLyricsForCurrentSong();
 
         if (s.isAi && s.id && (!s.cover || s.lyrics === undefined)) {
@@ -5131,6 +5644,14 @@
         progressThumb.style.left = "0%";
         document.getElementById('currentTime').innerText = formatTime(restoreTimeSec || 0);
         document.getElementById('totalTime').innerText = "0:00";
+        const dockFill = document.getElementById('deskDockProgressFill');
+        const dockThumb = document.getElementById('deskDockProgressThumb');
+        const dockCur = document.getElementById('deskDockCurrentTime');
+        const dockTot = document.getElementById('deskDockTotalTime');
+        if (dockFill) dockFill.style.width = "0%";
+        if (dockThumb) dockThumb.style.left = "0%";
+        if (dockCur) dockCur.innerText = formatTime(restoreTimeSec || 0);
+        if (dockTot) dockTot.innerText = "0:00";
 
         if (s.url) {
             audio.src = s.url.startsWith('blob:') ? s.url : encodeURI(s.url);
@@ -5144,6 +5665,10 @@
                         progressThumb.style.left = p + "%";
                         document.getElementById('currentTime').innerText = formatTime(restoreTimeSec);
                         document.getElementById('totalTime').innerText = formatTime(audio.duration);
+                        if (dockFill) dockFill.style.width = p + "%";
+                        if (dockThumb) dockThumb.style.left = p + "%";
+                        if (dockCur) dockCur.innerText = formatTime(restoreTimeSec);
+                        if (dockTot) dockTot.innerText = formatTime(audio.duration);
                     }
                     audio.removeEventListener('loadedmetadata', onLoadedMeta);
                 };
@@ -5343,6 +5868,16 @@
             progressThumb.style.left = p + "%";
             document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
             document.getElementById('totalTime').innerText = formatTime(audio.duration);
+            if (!isDraggingDockBar) {
+                const dockFill = document.getElementById('deskDockProgressFill');
+                const dockThumb = document.getElementById('deskDockProgressThumb');
+                const dockCur = document.getElementById('deskDockCurrentTime');
+                const dockTot = document.getElementById('deskDockTotalTime');
+                if (dockFill) dockFill.style.width = p + "%";
+                if (dockThumb) dockThumb.style.left = p + "%";
+                if (dockCur) dockCur.innerText = formatTime(audio.currentTime);
+                if (dockTot) dockTot.innerText = formatTime(audio.duration);
+            }
             syncLyricsPlaybackPosition(audio.currentTime, audio.duration);
 
             const now = Date.now();
@@ -5533,7 +6068,7 @@
     let deskMainViewId = 'recommendView'; // PC 와이드 레이아웃 중앙 영역에 표시 중인 화면
     function isDesktopLayout() {
         try {
-            return document.documentElement.classList.contains('device-pc') && window.innerWidth >= 768;
+            return document.documentElement.classList.contains('device-pc');
         } catch (e) {
             return false;
         }
@@ -5759,6 +6294,11 @@
 
     function navigateBack(fromPopstate = false) {
         // 1순위: 열려 있는 팝업 모달이 있으면 모달부터 닫기
+        const deskDrawer = document.getElementById('deskLyricsDrawer');
+        if (deskDrawer && deskDrawer.classList.contains('open')) {
+            toggleDeskLyricsDrawer(false);
+            return;
+        }
         if (document.getElementById('exitConfirmModal').style.display === 'flex') {
             confirmAppExit(true);
             return;
@@ -6018,12 +6558,21 @@
         const activePx = (17.2 * pct / 100).toFixed(1) + 'px';
         const box = document.getElementById('lyricsScrollBox');
         const label = document.getElementById('lyricsZoomLabel');
+        const deskBox = document.getElementById('deskLyricsScrollBox');
+        const deskLabel = document.getElementById('deskLyricsZoomLabel');
         if (box) {
             box.style.setProperty('--lyric-base-size', basePx);
             box.style.setProperty('--lyric-active-size', activePx);
         }
         if (label) {
             label.innerText = `${pct}%`;
+        }
+        if (deskBox) {
+            deskBox.style.setProperty('--lyric-base-size', basePx);
+            deskBox.style.setProperty('--lyric-active-size', activePx);
+        }
+        if (deskLabel) {
+            deskLabel.innerText = `${pct}%`;
         }
     }
 
@@ -6222,7 +6771,58 @@
         }).join('');
 
         if (!hasTimedLyrics) box.scrollTop = 0;
+        renderDeskDrawerLyrics();
         syncLyricsPlaybackPosition(audio.currentTime || 0, audio.duration || 0);
+    }
+
+    function renderDeskDrawerLyrics() {
+        const deskBox = document.getElementById('deskLyricsScrollBox');
+        const deskBadge = document.getElementById('deskLyricsSourceBadge');
+        if (!deskBox) return;
+        applyLyricsFontScale();
+
+        const currentSong = playQueue[currentSongIndex];
+        if (!currentSong) {
+            deskBox.innerHTML = `<div class="lyrics-empty-box"><span style="font-size:26px;">🍑</span><div>재생 중인 곡이 없습니다.<br>노래를 재생하면 가사를 자동으로 불러옵니다.</div></div>`;
+            return;
+        }
+
+        const customMap = getCustomLyricsMap();
+        const cacheKey = getSongLyricsCacheKey(currentSong);
+        const nameKey = `name_${(currentSong.name || '').trim()}`;
+        const rawLyrics = customMap[cacheKey] || customMap[nameKey] || currentSong.lyrics || "";
+
+        if (!rawLyrics || !rawLyrics.trim()) {
+            deskBox.innerHTML = `
+                <div class="lyrics-empty-box">
+                    <span style="font-size:24px;">📝</span>
+                    <div>이 곡에 등록된 가사를 찾지 못했습니다.</div>
+                    <button class="lyrics-mini-btn" onclick="openLyricsEditModal()" style="margin-top:6px; padding:6px 12px; font-size:12px;">✏️ 직접 가사 입력 / 붙여넣기</button>
+                </div>`;
+            if (deskBadge) deskBadge.innerText = '가사 없음';
+            return;
+        }
+
+        const hasTimedLyrics = currentParsedLyrics.some(l => typeof l.time === 'number');
+        deskBox.classList.toggle('plain-lyrics', !hasTimedLyrics);
+        if (deskBadge) {
+            deskBadge.innerText = hasTimedLyrics ? '🎵 실시간 싱크' : '📜 전체 가사';
+        }
+
+        deskBox.innerHTML = currentParsedLyrics.map((item, idx) => {
+            if (item.isSpacer) {
+                return `<div style="height:10px;"></div>`;
+            }
+            if (item.isSection) {
+                return `<div class="lyric-section-tag" data-lyric-idx="${idx}">${escapeHtmlSafe(item.text)}</div>`;
+            }
+            const isTimed = typeof item.time === 'number';
+            const clickAttr = isTimed ? `onclick="seekToLyricTime(${item.time})"` : '';
+            const timedClass = isTimed ? 'timed' : '';
+            return `<div class="lyric-line ${timedClass}" id="desk-lyric-line-${idx}" data-lyric-idx="${idx}" ${clickAttr}>${escapeHtmlSafe(item.text)}</div>`;
+        }).join('');
+
+        if (!hasTimedLyrics) deskBox.scrollTop = 0;
     }
 
     function seekToLyricTime(sec) {
@@ -6232,9 +6832,11 @@
     }
 
     function syncLyricsPlaybackPosition(currentTime, duration) {
-        if (!isLyricsModeActive || !currentParsedLyrics.length) return;
+        const deskDrawer = document.getElementById('deskLyricsDrawer');
+        const isDeskDrawerOpen = deskDrawer && deskDrawer.classList.contains('open');
+        if ((!isLyricsModeActive && !isDeskDrawerOpen) || !currentParsedLyrics.length) return;
         const box = document.getElementById('lyricsScrollBox');
-        if (!box) return;
+        const deskBox = document.getElementById('deskLyricsScrollBox');
 
         const hasTimedLines = currentParsedLyrics.some(l => typeof l.time === 'number');
         // 시간표(LRC)가 없는 일반 가사는 억지로 줄을 넘기지 않고, 사용자가 직접 스크롤해서 읽도록 그대로 둠
@@ -6250,16 +6852,31 @@
 
         if (targetIdx !== -1 && targetIdx !== currentActiveLyricIndex) {
             currentActiveLyricIndex = targetIdx;
-            const allLines = box.querySelectorAll('.lyric-line');
-            allLines.forEach(el => {
-                const idx = parseInt(el.getAttribute('data-lyric-idx'), 10);
-                el.classList.toggle('active-line', idx === targetIdx);
-                el.classList.toggle('past-line', idx < targetIdx);
-            });
-            const activeEl = document.getElementById(`lyric-line-${targetIdx}`);
-            if (activeEl) {
-                const targetScrollTop = activeEl.offsetTop - (box.clientHeight / 2) + (activeEl.clientHeight / 2);
-                box.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+            if (isLyricsModeActive && box) {
+                const allLines = box.querySelectorAll('.lyric-line');
+                allLines.forEach(el => {
+                    const idx = parseInt(el.getAttribute('data-lyric-idx'), 10);
+                    el.classList.toggle('active-line', idx === targetIdx);
+                    el.classList.toggle('past-line', idx < targetIdx);
+                });
+                const activeEl = document.getElementById(`lyric-line-${targetIdx}`);
+                if (activeEl) {
+                    const targetScrollTop = activeEl.offsetTop - (box.clientHeight / 2) + (activeEl.clientHeight / 2);
+                    box.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+                }
+            }
+            if (isDeskDrawerOpen && deskBox) {
+                const deskLines = deskBox.querySelectorAll('.lyric-line');
+                deskLines.forEach(el => {
+                    const idx = parseInt(el.getAttribute('data-lyric-idx'), 10);
+                    el.classList.toggle('active-line', idx === targetIdx);
+                    el.classList.toggle('past-line', idx < targetIdx);
+                });
+                const activeDeskEl = document.getElementById(`desk-lyric-line-${targetIdx}`);
+                if (activeDeskEl) {
+                    const st = activeDeskEl.offsetTop - (deskBox.clientHeight / 2) + (activeDeskEl.clientHeight / 2);
+                    deskBox.scrollTo({ top: Math.max(0, st), behavior: 'smooth' });
+                }
             }
         }
     }
@@ -7565,6 +8182,7 @@
         loadCachedAutoDiscoveredSongs();
         loadAppState();
         applyVolumeUI();
+        initDeskDockEvents();
         randomizeCurationState();
         await restoreLocalAudioBlobs();
         if (playQueue.length > 0 && currentSongIndex >= 0 && currentSongIndex < playQueue.length) {
